@@ -35,7 +35,7 @@ scene.add(table);
 const pad1 = new Pad(0xffffff);
 pad1.addToScene(scene);
 
-const pad2 = new Pad(0xfff0ff, 0.1, 0.3, 0.2, 1.85, 0, 0);
+const pad2 = new Pad(0xfff0ff, 0.05, 0.3, 0.1, 1.85, 0, 0);
 pad2.addToScene(scene);
 
 const ballRadius = 0.07;
@@ -90,7 +90,7 @@ function movePads() {
     }
 }
 
-const ballSpeed = 0.03;
+let ballSpeed = 0.03;
 
 let ballDirectionX = 1;
 let ballDirectionY = 1;
@@ -103,33 +103,57 @@ function animate() {
 }
 
 function updateBallPosition() {
+    moveBall();
+    checkWallCollision();
+    checkPaddleCollision(pad1);
+    checkPaddleCollision(pad2);
+}
+
+function moveBall() {
     ball.position.x += ballDirectionX * ballSpeed;
     ball.position.y += ballDirectionY * ballSpeed;
+}
 
+function checkWallCollision() {
     if (ball.position.y + ballDirectionY * ballSpeed > tableHeight / 2 - ballRadius || ball.position.y + ballDirectionY * ballSpeed < -tableHeight / 2 + ballRadius) {
         ballDirectionY *= -1;
     }
 
     if (ball.position.x > tableWidth / 2 + ballRadius || ball.position.x < -tableWidth / 2 - ballRadius) {
-        ball.position.x = 0;
-        ball.position.y = 0;
-        ballDirectionX = Math.random() > 0.5 ? 1 : -1;
-        ballDirectionY = Math.random() > 0.5 ? 1 : -1;
-    }
-
-    if (ball.position.x + ballDirectionX * ballSpeed > pad1.mesh.position.x - padWidth / 2 - ballRadius &&
-        ball.position.x + ballDirectionX * ballSpeed < pad1.mesh.position.x + padWidth / 2 + ballRadius &&
-        ball.position.y + ballDirectionY * ballSpeed > pad1.mesh.position.y - padHeight / 2 - ballRadius &&
-        ball.position.y + ballDirectionY * ballSpeed < pad1.mesh.position.y + padHeight / 2 + ballRadius) {
-        ballDirectionX *= -1;
-    }
-
-    if (ball.position.x + ballDirectionX * ballSpeed > pad2.mesh.position.x - padWidth / 2 - ballRadius &&
-        ball.position.x + ballDirectionX * ballSpeed < pad2.mesh.position.x + padWidth / 2 + ballRadius &&
-        ball.position.y + ballDirectionY * ballSpeed > pad2.mesh.position.y - padHeight / 2 - ballRadius &&
-        ball.position.y + ballDirectionY * ballSpeed < pad2.mesh.position.y + padHeight / 2 + ballRadius) {
-        ballDirectionX *= -1;
+        resetBall();
     }
 }
+
+function resetBall() {
+    ballSpeed = 0.03;
+    ball.position.x = 0;
+    ball.position.y = 0;
+    ballDirectionX = Math.random() > 0.5 ? 1 : -1;
+    ballDirectionY = Math.random() > 0.5 ? 1 : -1;
+}
+
+function checkPaddleCollision(paddle) {
+    let paddleTop = paddle.mesh.position.y + padHeight / 2;
+    let paddleBottom = paddle.mesh.position.y - padHeight / 2;
+    let paddleLeft = paddle.mesh.position.x - padWidth / 2;
+    let paddleRight = paddle.mesh.position.x + padWidth / 2;
+
+    if (
+        ball.position.x + ballDirectionX * ballSpeed > paddleLeft - ballRadius &&
+        ball.position.x + ballDirectionX * ballSpeed < paddleRight + ballRadius &&
+        ball.position.y + ballDirectionY * ballSpeed > paddleBottom - ballRadius &&
+        ball.position.y + ballDirectionY * ballSpeed < paddleTop + ballRadius
+    ) {
+        if (ball.position.y > paddleTop || ball.position.y < paddleBottom) {
+            ballDirectionY *= -1;
+            ballDirectionX *= -1;
+            ballSpeed = 0.06;
+        } else {
+            ballDirectionX *= -1;
+            ballSpeed = 0.04;
+        }
+    }
+}
+
 
 animate();
