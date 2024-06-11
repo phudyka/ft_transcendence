@@ -15,6 +15,7 @@ services:
     build: requirements/grafana
     container_name: "monitoring_grafana"
     restart: unless-stopped
+    user: "1000"
     networks:
       - monitoring
     ports:
