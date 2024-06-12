@@ -5,19 +5,25 @@ import { Light } from './light.js'
 
 const scene = new THREE.Scene();
 
-const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, 0, 4);
+const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+camera.position.set(0, -2, 3);
 camera.lookAt(0, 0, 0);
 
-//const textureLoader = new THREE.TextureLoader();
-//const sable = textureLoader.load('sable.jpg');
 
-const renderer = new THREE.WebGLRenderer();
+//const textureLoader = new THREE.TextureLoader();
+//const tball = textureLoader.load('explosive.jpg');
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, 
+    alpha: false, 
+    stencil: false, 
+    preserveDrawingBuffer: false, 
+    depth: true});
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio * 0.6);
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
-const sunLight = new Light(0xffffff, 3);
+const sunLight = new Light(0xffffff, 2);
 scene.add(sunLight); 
 
 const geometryback = new THREE.PlaneGeometry(7, 5, 5);
@@ -26,7 +32,7 @@ const back = new THREE.Mesh(geometryback, materialback);
 back.receiveShadow = true;
 scene.add(back);
 
-const geometry = new THREE.BoxGeometry(4, 2, 0.1);
+const geometry = new THREE.BoxGeometry(4.10, 2, 0.01);
 const material = new THREE.MeshPhongMaterial({ color: 0x499BC2 });
 const table = new THREE.Mesh(geometry, material);
 table.receiveShadow = true;
@@ -35,14 +41,16 @@ scene.add(table);
 const pad1 = new Pad(0xffffff);
 pad1.addToScene(scene);
 
-const pad2 = new Pad(0xfff0ff, 0.05, 0.3, 0.1, 1.85, 0, 0);
+const pad2 = new Pad(0xfff0ff, 0.05, 0.3, 0.2, 1.85, 0, 0);
 pad2.addToScene(scene);
 
 const ballRadius = 0.07;
+const ballMaxSpeed = 0.09;
 const ballGeometry = new THREE.SphereGeometry(ballRadius, 32, 32);
-const ballMaterial = new THREE.MeshLambertMaterial({ color: 0xffffff });
+const ballMaterial = new THREE.MeshLambertMaterial({ color : 0xff8f00 });
 const ball = new THREE.Mesh(ballGeometry, ballMaterial);
 ball.receiveShadow = true;
+ball.position.z = 0.05;
 scene.add(ball);
 //const controls = new OrbitControls(camera, renderer.domElement);
 
@@ -99,6 +107,7 @@ function animate() {
     requestAnimationFrame(animate);
     updateBallPosition();
     movePads();
+    //controls.update();
     renderer.render(scene, camera);
 }
 
@@ -133,27 +142,27 @@ function resetBall() {
 }
 
 function checkPaddleCollision(paddle) {
-    let paddleTop = paddle.mesh.position.y + padHeight / 2;
-    let paddleBottom = paddle.mesh.position.y - padHeight / 2;
-    let paddleLeft = paddle.mesh.position.x - padWidth / 2;
-    let paddleRight = paddle.mesh.position.x + padWidth / 2;
+    const paddleBox = new THREE.Box3().setFromObject(paddle.mesh);
+    const ballBox = new THREE.Box3().setFromObject(ball);
 
-    if (
-        ball.position.x + ballDirectionX * ballSpeed > paddleLeft - ballRadius &&
-        ball.position.x + ballDirectionX * ballSpeed < paddleRight + ballRadius &&
-        ball.position.y + ballDirectionY * ballSpeed > paddleBottom - ballRadius &&
-        ball.position.y + ballDirectionY * ballSpeed < paddleTop + ballRadius
-    ) {
-        if (ball.position.y > paddleTop || ball.position.y < paddleBottom) {
-            ballDirectionY *= -1;
-            ballDirectionX *= -1;
-            ballSpeed = 0.06;
-        } else {
-            ballDirectionX *= -1;
-            ballSpeed = 0.04;
+    if (ballBox.intersectsBox(paddleBox)) {
+        const paddleCenter = paddleBox.getCenter(new THREE.Vector3());
+        const ballPosition = ball.position.clone();
+
+        const distance = ballPosition.distanceTo(paddleCenter);
+
+        if (distance <= ballRadius + Math.max(paddle.mesh.scale.x, paddle.mesh.scale.y)) {
+            const relativePosition = ballPosition.clone().sub(paddleCenter);
+
+            relativePosition.normalize();
+
+            ballDirectionX = relativePosition.x;
+            ballDirectionY = relativePosition.y * 0.7;
+
         }
+        if (ballSpeed < ballMaxSpeed)
+            ballSpeed += 0.02;
     }
 }
-
 
 animate();
