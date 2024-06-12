@@ -4,10 +4,10 @@ export class Light extends THREE.DirectionalLight {
     constructor(color, intensity) {
         super(color, intensity);
         this.castShadow = true;
-        this.position.set(5, 0, 10);
-        this.shadow.mapSize.width = 1024;
-        this.shadow.mapSize.height = 1024;
-        this.shadow.camera.near = 0.5;
-        this.shadow.camera.far = 500;
+        this.position.set(-5, 5, 20);
+        //this.shadow.mapSize.width = window.innerWidth;
+        //this.shadow.mapSize.height = window.innerHeight;
+        //this.shadow.camera.near = 0.5;
+        //this.shadow.camera.far = 500;
     }
 }

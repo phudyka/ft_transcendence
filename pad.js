@@ -6,6 +6,7 @@ export class Pad {
         const material = new THREE.MeshPhongMaterial({ color: color });
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.receiveShadow = true;
+        this.mesh.castShadow = true;
         this.mesh.position.set(x, y, z);
         this.targetY = this.mesh.position.y;
     }

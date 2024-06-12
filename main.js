@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import { Pad } from './pad.js';
-import { Light } from './light.js'
+import { Light } from './light.js';
+import { Ball } from './ball.js';
 
 const scene = new THREE.Scene();
 
@@ -9,25 +10,23 @@ const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerH
 camera.position.set(0, -2, 3);
 camera.lookAt(0, 0, 0);
 
-
-//const textureLoader = new THREE.TextureLoader();
-//const tball = textureLoader.load('explosive.jpg');
-
-const renderer = new THREE.WebGLRenderer({ antialias: true, 
-    alpha: false, 
-    stencil: false, 
-    preserveDrawingBuffer: false, 
-    depth: true});
+const renderer = new THREE.WebGLRenderer({
+    antialias: true,
+    alpha: false,
+    stencil: false,
+    preserveDrawingBuffer: false,
+    depth: true
+});
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio * 0.6);
 renderer.shadowMap.enabled = true;
 document.body.appendChild(renderer.domElement);
 
-const sunLight = new Light(0xffffff, 2);
-scene.add(sunLight); 
+const sunLight = new Light(0xffffff, 3);
+scene.add(sunLight);
 
 const geometryback = new THREE.PlaneGeometry(7, 5, 5);
-const materialback = new THREE.MeshPhongMaterial({ color : 0x000000 });
+const materialback = new THREE.MeshPhongMaterial({ color: 0x000000 });
 const back = new THREE.Mesh(geometryback, materialback);
 back.receiveShadow = true;
 scene.add(back);
@@ -38,21 +37,15 @@ const table = new THREE.Mesh(geometry, material);
 table.receiveShadow = true;
 scene.add(table);
 
-const pad1 = new Pad(0xffffff);
+const pad1 = new Pad(0xc4d418);
 pad1.addToScene(scene);
 
-const pad2 = new Pad(0xfff0ff, 0.05, 0.3, 0.2, 1.85, 0, 0);
+const pad2 = new Pad(0xfa00ff, 0.05, 0.3, 0.2, 1.85, 0, 0);
 pad2.addToScene(scene);
 
 const ballRadius = 0.07;
-const ballMaxSpeed = 0.09;
-const ballGeometry = new THREE.SphereGeometry(ballRadius, 32, 32);
-const ballMaterial = new THREE.MeshLambertMaterial({ color : 0xff8f00 });
-const ball = new THREE.Mesh(ballGeometry, ballMaterial);
-ball.receiveShadow = true;
-ball.position.z = 0.05;
-scene.add(ball);
-//const controls = new OrbitControls(camera, renderer.domElement);
+const ball = new Ball(ballRadius, 32);
+scene.add(ball.mesh);
 
 let pad1MoveUp = false;
 let pad1MoveDown = false;
@@ -98,70 +91,27 @@ function movePads() {
     }
 }
 
-let ballSpeed = 0.03;
-
-let ballDirectionX = 1;
-let ballDirectionY = 1;
-
 function animate() {
     requestAnimationFrame(animate);
     updateBallPosition();
     movePads();
-    //controls.update();
     renderer.render(scene, camera);
 }
 
 function updateBallPosition() {
-    moveBall();
+    ball.updatePosition();
+    ball.checkCollision(pad1);
+    ball.checkCollision(pad2);
     checkWallCollision();
-    checkPaddleCollision(pad1);
-    checkPaddleCollision(pad2);
-}
-
-function moveBall() {
-    ball.position.x += ballDirectionX * ballSpeed;
-    ball.position.y += ballDirectionY * ballSpeed;
 }
 
 function checkWallCollision() {
-    if (ball.position.y + ballDirectionY * ballSpeed > tableHeight / 2 - ballRadius || ball.position.y + ballDirectionY * ballSpeed < -tableHeight / 2 + ballRadius) {
-        ballDirectionY *= -1;
+    if (ball.mesh.position.y + ball.direction.y * ball.speed > tableHeight / 2 - ball.radius || ball.mesh.position.y + ball.direction.y * ball.speed < -tableHeight / 2 + ball.radius) {
+        ball.direction.y *= -1;
     }
 
-    if (ball.position.x > tableWidth / 2 + ballRadius || ball.position.x < -tableWidth / 2 - ballRadius) {
-        resetBall();
-    }
-}
-
-function resetBall() {
-    ballSpeed = 0.03;
-    ball.position.x = 0;
-    ball.position.y = 0;
-    ballDirectionX = Math.random() > 0.5 ? 1 : -1;
-    ballDirectionY = Math.random() > 0.5 ? 1 : -1;
-}
-
-function checkPaddleCollision(paddle) {
-    const paddleBox = new THREE.Box3().setFromObject(paddle.mesh);
-    const ballBox = new THREE.Box3().setFromObject(ball);
-
-    if (ballBox.intersectsBox(paddleBox)) {
-        const paddleCenter = paddleBox.getCenter(new THREE.Vector3());
-        const ballPosition = ball.position.clone();
-
-        const distance = ballPosition.distanceTo(paddleCenter);
-
-        if (distance <= ballRadius + Math.max(paddle.mesh.scale.x, paddle.mesh.scale.y)) {
-            const relativePosition = ballPosition.clone().sub(paddleCenter);
-
-            relativePosition.normalize();
-
-            ballDirectionX = relativePosition.x;
-            ballDirectionY = relativePosition.y * 0.7;
-
-        }
-        if (ballSpeed < ballMaxSpeed)
-            ballSpeed += 0.02;
+    if (ball.mesh.position.x > tableWidth / 2 + ball.radius || ball.mesh.position.x < -tableWidth / 2 - ball.radius) {
+        ball.resetPosition();
     }
 }
 
