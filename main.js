@@ -8,7 +8,7 @@ import { Ball } from './ball.js';
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, -1, 3);
+camera.position.set(0, -2, 3);
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({
@@ -29,7 +29,8 @@ scene.add(sunLight);
 const loader = new GLTFLoader();
 loader.load('./assets3D/scenes/pong_scene.glb', (gltf) => {
     const beachScene = gltf.scene;
-    beachScene.scale.set(0, -1, 2);
+    beachScene.scale.set(1, 1, 1);
+	beachScene.position.set(0, -2, 3);
     scene.add(beachScene);
 }, undefined, (error) =>
 {
