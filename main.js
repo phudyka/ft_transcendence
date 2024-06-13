@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import { Pad } from './pad.js';
 import { Light } from './light.js';
 import { Ball } from './ball.js';
@@ -7,7 +8,7 @@ import { Ball } from './ball.js';
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-camera.position.set(0, -2, 3);
+camera.position.set(0, -1, 3);
 camera.lookAt(0, 0, 0);
 
 const renderer = new THREE.WebGLRenderer({
@@ -24,6 +25,16 @@ document.body.appendChild(renderer.domElement);
 
 const sunLight = new Light(0xffffff, 3);
 scene.add(sunLight);
+
+const loader = new GLTFLoader();
+loader.load('./assets3D/scenes/pong_scene.glb', (gltf) => {
+    const beachScene = gltf.scene;
+    beachScene.scale.set(0, -1, 2);
+    scene.add(beachScene);
+}, undefined, (error) =>
+{
+    console.error('An error happened while loading the GLTF file:', error);
+});
 
 const geometryback = new THREE.PlaneGeometry(7, 5, 5);
 const materialback = new THREE.MeshPhongMaterial({ color: 0x000000 });
