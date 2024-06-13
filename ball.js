@@ -8,8 +8,8 @@ export class Ball {
         this.mesh.receiveShadow = true;
         this.mesh.castShadow = true;
         this.mesh.position.z = 0.05;
-        this.maxSpeed = 0.09;
-        this.speed = 0.03;
+        this.maxSpeed = 0.025;
+        this.speed = 0.015;
         this.radius = Radius;
         this.direction = new THREE.Vector2(1, 1).normalize();
     }
@@ -21,7 +21,7 @@ export class Ball {
 
     resetPosition() {
         this.mesh.position.set(0, 0, 0.05);
-        this.speed = 0.03;
+        this.speed = 0.015;
         this.direction.set(Math.random() > 0.5 ? 1 : -1, Math.random() > 0.5 ? 1 : -1).normalize();
     }
 
@@ -45,7 +45,7 @@ export class Ball {
 
             }
             if (this.speed < this.maxSpeed)
-                this.speed += 0.02;
+                this.speed += 0.01;
         }
     }
 }

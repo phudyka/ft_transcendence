@@ -27,10 +27,11 @@ const sunLight = new Light(0xffffff, 3);
 scene.add(sunLight);
 
 const loader = new GLTFLoader();
-loader.load('./assets3D/scenes/pong_scene.glb', (gltf) => {
+loader.load('./assets3D/scenes/pong_scene2.glb', (gltf) => {
     const beachScene = gltf.scene;
-    beachScene.scale.set(1, 1, 1);
-	beachScene.position.set(0, -2, 3);
+    beachScene.scale.set(1, 0.8, 0.4);
+	beachScene.position.z = -1;
+    beachScene.rotation.x = -Math.PI / 2;
     scene.add(beachScene);
 }, undefined, (error) =>
 {
@@ -41,7 +42,7 @@ const geometryback = new THREE.PlaneGeometry(7, 5, 5);
 const materialback = new THREE.MeshPhongMaterial({ color: 0x000000 });
 const back = new THREE.Mesh(geometryback, materialback);
 back.receiveShadow = true;
-scene.add(back);
+// scene.add(back);
 
 const geometry = new THREE.BoxGeometry(4.10, 2, 0.01);
 const material = new THREE.MeshPhongMaterial({ color: 0x499BC2 });
