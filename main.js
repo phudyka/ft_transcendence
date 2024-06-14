@@ -27,9 +27,9 @@ const sunLight = new Light(0xffffff, 3);
 scene.add(sunLight);
 
 const loader = new GLTFLoader();
-loader.load('./assets3D/scenes/pong_scene2.glb', (gltf) => {
+loader.load('./assets/scenes/pong_scene2.glb', (gltf) => {
     const beachScene = gltf.scene;
-    beachScene.scale.set(-1, -1, -0.7);
+    beachScene.scale.set(1, -1, -0.7);
 	beachScene.position.z = -4.6;
     beachScene.rotation.x = -2;
     beachScene.rotation.y = 1.57;
