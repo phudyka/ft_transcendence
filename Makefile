@@ -5,7 +5,9 @@ PROJECT = "ft_transcendence"
 IMAGES =	src-grafana\
 			src-prometheus\
 			src-node-exporter\
-			src-cadvisor
+			src-cadvisor\
+			src-elasticsearch\
+			src-kibana
 
 VOLUMES =	src_prometheus_data
 
