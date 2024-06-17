@@ -1,82 +1,110 @@
 networks:
-  monitoring:
+  # 42nice:
+  #   driver: bridge
+  # monitoring:
+  #   driver: bridge
+  elk:
     driver: bridge
   
-volumes:
-  prometheus_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: data/prometheus/
-      o: bind
+# volumes:
+  # prometheus_data:
+  #   driver: local
+  #   driver_opts:
+  #     type: none
+  #     device: data/prometheus/
+  #     o: bind
 
 services:
-  grafana:
-    build: requirements/grafana
-    container_name: "monitoring_grafana"
+
+  elasticsearch:
+    build: requirements/elasticsearch
+    container_name: "elk_elasticsearch"
     restart: unless-stopped
-    user: "1000"
     networks:
-      - monitoring
+      - elk
     ports:
-      - "3000:3000"
-    depends_on:
-    - prometheus
-  prometheus:
-    build: requirements/prometheus
-    container_name: "monitoring_prometheus"
-    restart: unless-stopped
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.size=1GB'
-    networks:
-      - monitoring
-    expose:
-      - 9090
-    depends_on:
-      - node-exporter
-      - cadvisor
-    volumes:
-     - prometheus_data:/prometheus
-  node-exporter:
-    build: requirements/node-exporter
-    container_name: "monitoring_node-exporter"
-    restart: unless-stopped
-    command:
-      - --path.procfs=/host/proc
-      - --path.sysfs=/host/sys
-      - --path.rootfs=/host
-      - --collector.filesystem.ignored-mount-points
-      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-      - /:/host:ro,rslave
-    networks:
-      - monitoring
-    expose:
-      - 9100
-  cadvisor:
-    build: requirements/cadvisor
-    container_name: "monitoring_cadvisor"
-    restart: unless-stopped
-    privileged: true
-    command:
-      - '-housekeeping_interval=15s'
-      - '-docker_only=true'
-      - '-store_container_labels=false'
-    devices:
-      - /dev/kmsg
-    networks:
-      - monitoring
-    expose:
-      - 8080
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-      - /etc/machine-id:/etc/machine-id:ro
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+
+  # kibana:
+  #   build: requirements/kibana
+  #   container_name: "elk_kibana"
+  #   restart: unless-stopped
+  #   networks:
+  #     - elk
+  #   ports:
+  #     - "5601:5601"
+  #   depends_on:
+  #     - elasticsearch
+
+  # grafana:
+  #   build: requirements/grafana
+  #   container_name: "monitoring_grafana"
+  #   restart: unless-stopped
+  #   user: "1000"
+  #   networks:
+  #     - monitoring
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #   - prometheus
+  # prometheus:
+  #   build: requirements/prometheus
+  #   container_name: "monitoring_prometheus"
+  #   restart: unless-stopped
+  #   command:
+  #     - '--config.file=/etc/prometheus/prometheus.yml'
+  #     - '--storage.tsdb.path=/prometheus'
+  #     - '--storage.tsdb.retention.size=1GB'
+  #   networks:
+  #     - monitoring
+  #   expose:
+  #     - 9090
+  #   depends_on:
+  #     - node-exporter
+  #     - cadvisor
+  #   volumes:
+  #    - prometheus_data:/prometheus
+  # node-exporter:
+  #   build: requirements/node-exporter
+  #   container_name: "monitoring_node-exporter"
+  #   restart: unless-stopped
+  #   command:
+  #     - --path.procfs=/host/proc
+  #     - --path.sysfs=/host/sys
+  #     - --path.rootfs=/host
+  #     - --collector.filesystem.ignored-mount-points
+  #     - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #     - /:/host:ro,rslave
+  #   networks:
+  #     - monitoring
+  #   expose:
+  #     - 9100
+  # cadvisor:
+  #   build: requirements/cadvisor
+  #   container_name: "monitoring_cadvisor"
+  #   restart: unless-stopped
+  #   privileged: true
+  #   command:
+  #     - '-housekeeping_interval=15s'
+  #     - '-docker_only=true'
+  #     - '-store_container_labels=false'
+  #   devices:
+  #     - /dev/kmsg
+  #   networks:
+  #     - monitoring
+  #   expose:
+  #     - 8080
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:rw
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker/:/var/lib/docker:ro
+  #     - /dev/disk/:/dev/disk:ro
+  #     - /etc/machine-id:/etc/machine-id:ro
