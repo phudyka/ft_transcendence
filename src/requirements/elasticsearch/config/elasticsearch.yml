@@ -1,3 +1,8 @@
-cluster.name: "docker-cluster"
+cluster.name: "42nice"
+node.name: node1
+discovery.seed_hosts:
+  - localhost:9300
+# cluster.initial_master_nodes:
+#   - node1
 network.host: 0.0.0.0
 discovery.type: single-node

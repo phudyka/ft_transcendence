@@ -11,7 +11,7 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: data/prometheus/
+      device: $HOME/ft_transcendence_data/monitoring/prometheus_data
       o: bind
 
 services:
@@ -22,10 +22,15 @@ services:
     restart: unless-stopped
     networks:
       - elk
-    ports:
-      - "9200:9200"
-      - "9300:9300"
-
+    expose:
+      - 9200
+      - 9300
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
   kibana:
     build: requirements/kibana
     container_name: "elk_kibana"
@@ -36,6 +41,9 @@ services:
       - "5601:5601"
     depends_on:
       - elasticsearch
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elk_elasticsearch:9200
+      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
 
   grafana:
     build: requirements/grafana
@@ -47,9 +55,10 @@ services:
     ports:
       - "3000:3000"
     depends_on:
-    - prometheus
-    env_file:
-      - ../.env
+      - prometheus
+    environment:
+      - GRAFANA_USER_NAME=${GRAFANA_USER_NAME}
+      - GRAFANA_USER_PASSWORD=${GRAFANA_USER_PASSWORD}
   prometheus:
     build: requirements/prometheus
     container_name: "monitoring_prometheus"
@@ -65,8 +74,19 @@ services:
     depends_on:
       - node-exporter
       - cadvisor
+      - alertmanager
     volumes:
      - prometheus_data:/prometheus
+  alertmanager:
+    build: requirements/alertmanager
+    container_name: "monitoring_alertmanager"
+    restart: unless-stopped
+    networks:
+      - monitoring
+    expose:
+      - 9093
+    environment:
+      - DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
   node-exporter:
     build: requirements/node-exporter
     container_name: "monitoring_node-exporter"
