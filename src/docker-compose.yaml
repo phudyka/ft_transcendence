@@ -3,48 +3,20 @@ networks:
   #   driver: bridge
   monitoring:
     driver: bridge
-  elk:
-    driver: bridge
+  # elk:
+  #   driver: bridge
   
 volumes:
   prometheus_data:
     driver: local
     driver_opts:
       type: none
-      device: $HOME/ft_transcendence_data/monitoring/prometheus_data
+      device: data/monitoring/prometheus_data
       o: bind
 
 services:
-
-  elasticsearch:
-    build: requirements/elasticsearch
-    container_name: "elk_elasticsearch"
-    restart: unless-stopped
-    networks:
-      - elk
-    expose:
-      - 9200
-      - 9300
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    environment:
-      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
-  kibana:
-    build: requirements/kibana
-    container_name: "elk_kibana"
-    restart: unless-stopped
-    networks:
-      - elk
-    ports:
-      - "5601:5601"
-    depends_on:
-      - elasticsearch
-    environment:
-      - ELASTICSEARCH_HOSTS=http://elk_elasticsearch:9200
-      - ELASTICSEARCH_PASSWORD=${KIBANA_PASSWORD}
-
+  nginx:
+    image: nginx
   grafana:
     build: requirements/grafana
     container_name: "monitoring_grafana"
@@ -69,8 +41,8 @@ services:
       - '--storage.tsdb.retention.size=1GB'
     networks:
       - monitoring
-    expose:
-      - 9090
+    ports:
+      - "9090:9090"
     depends_on:
       - node-exporter
       - cadvisor
@@ -83,8 +55,8 @@ services:
     restart: unless-stopped
     networks:
       - monitoring
-    expose:
-      - 9093
+    ports:
+      - "9093:9093"
     environment:
       - DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
   node-exporter:

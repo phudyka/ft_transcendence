@@ -19,7 +19,6 @@ groups:
       summary: "Host out of memory (instance {{ $labels.instance }})"
       description: "Node memory is filling up (< 25% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
-
   - alert: HostOutOfDiskSpace
     expr: (node_filesystem_avail{mountpoint="/"}  * 100) / node_filesystem_size{mountpoint="/"} < 50
     for: 1s
@@ -29,7 +28,6 @@ groups:
       summary: "Host out of disk space (instance {{ $labels.instance }})"
       description: "Disk is almost full (< 50% left)\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
-
   - alert: HostHighCpuLoad
     expr: (sum by (instance) (irate(node_cpu{job="node_exporter_metrics",mode="idle"}[5m]))) > 80
     for: 5m
@@ -38,3 +36,12 @@ groups:
     annotations:
       summary: "Host high CPU load (instance {{ $labels.instance }})"
       description: "CPU load is > 80%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
+
+  - alert: ContainerDown
+    expr: absent(container_last_seen{name="monitoring_grafana"})
+    for: 10s
+    labels:
+      severity: "critical"
+    annotations:
+      summary: "Endpoint down"
+      description: "Grafana is down"

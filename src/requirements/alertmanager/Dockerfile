@@ -14,4 +14,6 @@ EXPOSE 9093
 
 COPY /config/alertmanager.yml /alertmanager/alertmanager.yml
 
+COPY /config/alertmanager.yml /alertmanager/alertmanager.yml.tmp
+
 ENTRYPOINT ["/alertmanager/config.sh"]
