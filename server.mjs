@@ -5,6 +5,8 @@ import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { Vector3 } from 'three';
+import { ThreeMFLoader } from 'three/examples/jsm/Addons.js';
 
 const app = express();
 const server = createServer(app);
@@ -29,6 +31,7 @@ app.get("/main.html", (req, res) => {
 });
 
 const rooms = {};
+const roomsTypes = {};
 let roomCounter = 1;
 
 const tableHeight = 2;
@@ -42,12 +45,128 @@ io.on('connection', (socket) => {
         for (let room in rooms) {
             if (rooms[room].includes(socket.id)) {
                 rooms[room] = rooms[room].filter(id => id !== socket.id);
-                if (rooms[room].length === 1) {
+                if (rooms[room].length === 1 && roomsTypes[room] === 'multi') {
                     delete rooms[room];
+                    delete roomsTypes[room];
+                }
+                else if (rooms[room].length === 0 && roomsTypes[room] === 'solo'){
+                    delete rooms[room];
+                    delete roomsTypes[room];
                 }
                 break;
             }
         }
+    });
+    // Si le joueur click sur solo, une nouvelle room est cree et la partie 
+    // ce lance contre l'IA
+    socket.on('solo', () => {
+        let room = null;
+
+        room = `room-${roomCounter++}`;
+        rooms[room] = [];
+        roomsTypes[room] = 'solo';
+        rooms[room].push(socket.id);
+        socket.join(room);
+
+        io.in(room).emit('start-game', room);
+            console.log(`Starting game in ${room}`);
+
+            const ball = new Ball(0.07, 32);
+            const pad1 = new Pad(0xc4d418);
+            const pad2 = new Pad(0xfa00ff, 0.05, 0.40, 0.2, 1.85, 0, 0);
+
+            io.in(room).emit('initBall', {
+                position: { x: ball.mesh.position.x, y: ball.mesh.position.y },
+                direction: { x: ball.direction.x, y: ball.direction.y },
+                speed: ball.speed,
+            });
+
+            socket.on('movePad', (data) => {
+                if (data.pad === 1) {
+                    pad1.mesh.position.y = data.position;
+                } 
+                io.in(room).emit('movePad', { pad1: pad1.mesh.position.y, pad2: pad2.mesh.position.y });
+            });
+
+            function IApad(pad2) {
+                const speed = 0.1;
+                const impreciseSpeed = 0.03;
+                const padHeight = 0.5;
+                const pad2Limit = tableHeight / 2 - padHeight / 2;
+                const padPosition = pad2.mesh.position.clone();
+                const ballPosition = ball.mesh.position.clone();
+            
+                const distance = ballPosition.distanceTo(padPosition);
+            
+                if (distance < 1.50) {
+
+                    const deltaY = ballPosition.y - padPosition.y;
+                    let newY = padPosition.y + deltaY * speed;
+            
+                    if (newY > pad2Limit) {
+                        newY = pad2Limit;
+                    } else if (newY < -pad2Limit) {
+                        newY = -pad2Limit;
+                    }
+            
+                    pad2.mesh.position.y = newY;
+                } else {
+                    const imprecise = (Math.random() - 0.5) * 0.4;
+                    const targetPosition = ballPosition.y + imprecise;
+                    const deltaY = targetPosition - padPosition.y;
+                    let newY = padPosition.y + deltaY * impreciseSpeed;
+            
+                    if (newY > pad2Limit) {
+                        newY = pad2Limit;
+                    } else if (newY < -pad2Limit) {
+                        newY = -pad2Limit;
+                    }
+                    pad2.mesh.position.y = newY;
+                }
+            }
+            
+            function checkWallCollision() {
+                if (ball.mesh.position.y + ball.direction.y * ball.speed > tableHeight / 2 - ball.radius - 0.02) {
+                    ball.direction.y *= -1;
+                    ball.mesh.position.y = tableHeight / 2 - ball.radius - 0.02;
+                }
+                else if (ball.mesh.position.y + ball.direction.y * ball.speed < -tableHeight / 2 + ball.radius + 0.02) {
+                    ball.direction.y *= -1;
+                    ball.mesh.position.y = -tableHeight / 2 + ball.radius + 0.02;
+                }
+            
+                if (ball.mesh.position.x > tableWidth / 2 + ball.radius || ball.mesh.position.x < -tableWidth / 2 - ball.radius) {
+                    ball.resetPosition();
+                }
+            }
+            
+
+            function updateBallPosition() {
+                IApad(pad2);
+                ball.updatePosition();
+                checkWallCollision();
+                ball.checkCollision(pad1);
+                ball.checkCollision(pad2);
+                io.in(room).emit('moveBall', {
+                    position: { x: ball.mesh.position.x, y: ball.mesh.position.y },
+                    direction: { x: ball.direction.x, y: ball.direction.y },
+                    speed: ball.speed,
+                });
+                io.in(room).emit('movePad', { pad1: pad1.mesh.position.y, pad2: pad2.mesh.position.y });
+            }
+
+            const interval = setInterval(updateBallPosition, 16);
+
+            socket.on('disconnect', () => {
+                clearInterval(interval);
+                if (rooms[room]) {
+                    rooms[room] = rooms[room].filter(id => id !== socket.id);
+                    if (rooms[room].length === 0 && roomsTypes[room] === 'solo'){
+                        delete rooms[room];
+                        delete roomsTypes[room];
+                    }
+                }
+            });
     });
     // si le joueur choisi multijoueur soit il rejoint une room deja creee
     // avec deja un joueur en attente, soit une nouvelle room est creee.
@@ -55,7 +174,7 @@ io.on('connection', (socket) => {
         let room = null;
 
         for (let r in rooms) {
-            if (rooms[r].length === 1) {
+            if (rooms[r].length === 1 && roomsTypes[r] === 'multi') {
                 room = r;
                 break;
             }
@@ -64,6 +183,7 @@ io.on('connection', (socket) => {
         if (!room) {
             room = `room-${roomCounter++}`;
             rooms[room] = [];
+            roomsTypes[room] = 'multi';
         }
 
         rooms[room].push(socket.id);
@@ -131,9 +251,9 @@ io.on('connection', (socket) => {
                 clearInterval(interval);
                 if (rooms[room]) {
                     rooms[room] = rooms[room].filter(id => id !== socket.id);
-                    if (rooms[room].length === 1) {
+                    if (rooms[room].length === 1 && roomsTypes[room] === 'multi') {
                         delete rooms[room];
-                        console.log(`Clearing game in ${room}`);
+                        delete roomsTypes[room];
                     }
                 }
             });
