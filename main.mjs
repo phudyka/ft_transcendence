@@ -48,7 +48,7 @@ function initGame() {
     scene.add(sunLight);
     
     const backgeo = new THREE.PlaneGeometry(10, 10);
-    const backmaterial = new THREE.MeshPhongMaterial({ color : 0xff00ff00 });
+    const backmaterial = new THREE.MeshPhongMaterial({ color : 0x007BFF });
     const back = new THREE.Mesh(backgeo, backmaterial);
     back.receiveShadow = true;
     scene.add(back);
@@ -139,6 +139,11 @@ function initGame() {
             pad1.mesh.position.y = data.pad1;
             pad2.mesh.position.y = data.pad2;
         }
+    });
+
+    socket.on('updateScores', (scores) => {
+        document.getElementById('scoreLeft').textContent = scores.score1;
+        document.getElementById('scoreRight').textContent = scores.score2;
     });
 }
 

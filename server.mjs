@@ -48,10 +48,12 @@ io.on('connection', (socket) => {
                 if (rooms[room].length === 1 && roomsTypes[room] === 'multi') {
                     delete rooms[room];
                     delete roomsTypes[room];
+                    roomCounter--;
                 }
                 else if (rooms[room].length === 0 && roomsTypes[room] === 'solo'){
                     delete rooms[room];
                     delete roomsTypes[room];
+                    roomCounter--;
                 }
                 break;
             }
@@ -135,8 +137,15 @@ io.on('connection', (socket) => {
                     ball.mesh.position.y = -tableHeight / 2 + ball.radius + 0.02;
                 }
             
-                if (ball.mesh.position.x > tableWidth / 2 + ball.radius || ball.mesh.position.x < -tableWidth / 2 - ball.radius) {
+                if (ball.mesh.position.x > tableWidth / 2 + ball.radius) {
                     ball.resetPosition();
+                    pad2.score++
+                    io.in(room).emit('updateScores', { score1: pad1.score, score2: pad2.score });
+                }
+                if (ball.mesh.position.x < -tableWidth / 2 - ball.radius) {
+                    ball.resetPosition();
+                    pad1.score++
+                    io.in(room).emit('updateScores', { score1: pad1.score, score2: pad2.score });
                 }
             }
             
@@ -164,6 +173,7 @@ io.on('connection', (socket) => {
                     if (rooms[room].length === 0 && roomsTypes[room] === 'solo'){
                         delete rooms[room];
                         delete roomsTypes[room];
+                        roomCounter--;
                     }
                 }
             });
@@ -254,6 +264,7 @@ io.on('connection', (socket) => {
                     if (rooms[room].length === 1 && roomsTypes[room] === 'multi') {
                         delete rooms[room];
                         delete roomsTypes[room];
+                        roomCounter--;
                     }
                 }
             });
