@@ -4,7 +4,11 @@ import * as THREE from './node_modules/three/build/three.module.js';
 export class Pad {
     constructor(color, length = 0.045, height = 0.40, seg = 16, x = -1.85, y = 0, z = 0) {
         const geometry = new THREE.CapsuleGeometry(length, height, seg, 32);
-        const material = new THREE.MeshPhongMaterial({ color: color });
+        const material = new THREE.MeshStandardMaterial({ 
+            color: color,
+            metalness : 0.3,
+            roughness: 0.3,
+         });
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.receiveShadow = true;
         this.mesh.castShadow = true;
@@ -12,6 +16,7 @@ export class Pad {
         this.mesh.position.y = y;
         this.mesh.position.set(x, y, z);
         this.targetY = this.mesh.position.y;
+        this.score = 0;
     }
 
     addToScene(scene) {

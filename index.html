@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <title>Pong</title>
     <style>
+        /* Import de la police depuis Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
         body {
             margin: 0;
             display: flex;
@@ -11,7 +14,7 @@
             align-items: center;
             height: 100vh;
             background: #87CEEB;
-            font-family: Arial, sans-serif;
+            font-family: 'Press Start 2P', Arial, sans-serif; /* Utilisation de la police 'Press Start 2P' */
             overflow: hidden;
             position: relative;
         }
@@ -29,7 +32,7 @@
             display: none;
             flex-direction: column;
             align-items: center;
-            z-index: 10; /* Ensure menu is above the game */
+            z-index: 10;
         }
         .menu-button {
             background-color: #007BFF;
@@ -52,6 +55,29 @@
             border-top-color: white;
             border-radius: 50%;
             animation: spin 1s linear infinite;
+        }
+        .score-container {
+            position: absolute;
+            top: 120px;
+            text-align: center;
+            font-size: 36px;
+            color: white;
+            z-index: 10;
+        }
+        #scoreTitle {
+            font-family: 'Press Start 2P', Arial, sans-serif;
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        #scoreLeft {
+            position: absolute;
+            left: 300px;
+            top: 50px;
+        }
+        #scoreRight {
+            position: absolute;
+            right: 300px;
+            top: 50px;
         }
         @keyframes spin {
             0% {
@@ -81,6 +107,11 @@
     <div id="waiting">
         <p>Waiting for another player...</p>
         <div id="spinner"></div>
+    </div>
+    <div class="score-container">
+        <div id="scoreTitle">PONG</div>
+        <div id="scoreLeft">0</div>
+        <div id="scoreRight">0</div>
     </div>
     <script src="./node_modules/socket.io/client-dist/socket.io.js"></script>
     <script type="module" src="/main.mjs"></script>
