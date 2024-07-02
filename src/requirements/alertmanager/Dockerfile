@@ -1,19 +1,19 @@
-FROM debian:bullseye
-
-RUN apt update && apt install wget -y
+FROM alpine:3.18
 
 WORKDIR /alertmanager
 
-RUN wget https://github.com/prometheus/alertmanager/releases/download/v0.27.0/alertmanager-0.27.0.linux-amd64.tar.gz -P /alertmanager/dl
-
-RUN tar -xzf /alertmanager/dl/alertmanager-0.27.0.linux-amd64.tar.gz && rm -rf /alertmanager/dl && mv alertmanager-0.27.0.linux-amd64/* /alertmanager && rm -rf alertmanager-0.27.0.linux-amd64
-
-COPY config/config.sh /alertmanager/config.sh
-
-EXPOSE 9093
+RUN apk update && apk add --no-cache wget &&\
+    wget https://github.com/prometheus/alertmanager/releases/download/v0.27.0/alertmanager-0.27.0.linux-amd64.tar.gz &&\
+    tar -xf alertmanager-0.27.0.linux-amd64.tar.gz &&\
+    mv alertmanager-0.27.0.linux-amd64/* ./ &&\
+    rm -rf alertmanager-0.27.0.linux-amd64 alertmanager-0.27.0.linux-amd64.tar.gz
 
 COPY /config/alertmanager.yml /alertmanager/alertmanager.yml
-
+    
 COPY /config/alertmanager.yml /alertmanager/alertmanager.yml.tmp
 
-ENTRYPOINT ["/alertmanager/config.sh"]
+COPY /config/config.sh /alertmanager/start.sh
+    
+EXPOSE 9093
+
+ENTRYPOINT [ "ash", "/alertmanager/start.sh" ]

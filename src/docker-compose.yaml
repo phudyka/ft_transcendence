@@ -6,17 +6,15 @@ networks:
   # elk:
   #   driver: bridge
   
-volumes:
-  prometheus_data:
-    driver: local
-    driver_opts:
-      type: none
-      device: data/monitoring/prometheus_data
-      o: bind
+# volumes:
+#   prometheus_data:
+#     driver: local
+#     driver_opts:
+#       type: none
+#       device: data/monitoring/prometheus_data
+#       o: bind
 
 services:
-  nginx:
-    image: nginx
   grafana:
     build: requirements/grafana
     container_name: "monitoring_grafana"
@@ -35,40 +33,24 @@ services:
     build: requirements/prometheus
     container_name: "monitoring_prometheus"
     restart: unless-stopped
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--storage.tsdb.retention.size=1GB'
     networks:
       - monitoring
-    ports:
-      - "9090:9090"
     depends_on:
       - node-exporter
       - cadvisor
       - alertmanager
-    volumes:
-     - prometheus_data:/prometheus
   alertmanager:
     build: requirements/alertmanager
     container_name: "monitoring_alertmanager"
     restart: unless-stopped
     networks:
       - monitoring
-    ports:
-      - "9093:9093"
     environment:
       - DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
   node-exporter:
     build: requirements/node-exporter
     container_name: "monitoring_node-exporter"
     restart: unless-stopped
-    command:
-      - --path.procfs=/host/proc
-      - --path.sysfs=/host/sys
-      - --path.rootfs=/host
-      - --collector.filesystem.ignored-mount-points
-      - ^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)
     volumes:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
@@ -76,8 +58,6 @@ services:
       - /:/host:ro,rslave
     networks:
       - monitoring
-    expose:
-      - 9100
   cadvisor:
     build: requirements/cadvisor
     container_name: "monitoring_cadvisor"
