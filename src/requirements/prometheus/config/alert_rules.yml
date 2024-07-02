@@ -38,7 +38,7 @@ groups:
       description: "CPU load is > 80%\n  VALUE = {{ $value }}\n  LABELS: {{ $labels }}"
 
   - alert: ContainerDown
-    expr: time() - container_last_seen > 20
+    expr: (time() - container_last_seen) > 20
     for: 10s
     labels:
       severity: "critical"

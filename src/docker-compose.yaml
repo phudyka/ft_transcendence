@@ -1,6 +1,6 @@
 networks:
-  # 42nice:
-  #   driver: bridge
+  42nice:
+    driver: bridge
   monitoring:
     driver: bridge
   # elk:
@@ -21,6 +21,7 @@ services:
     restart: unless-stopped
     user: "1000"
     networks:
+      - 42nice
       - monitoring
     ports:
       - "3000:3000"
@@ -35,16 +36,20 @@ services:
     restart: unless-stopped
     networks:
       - monitoring
+    # ports:
+    #   - "9090:9090"
     depends_on:
-      - node-exporter
-      - cadvisor
       - alertmanager
+      - cadvisor
+      - node-exporter
   alertmanager:
     build: requirements/alertmanager
     container_name: "monitoring_alertmanager"
     restart: unless-stopped
     networks:
       - monitoring
+    # ports:
+    # - "9093:9093"
     environment:
       - DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
   node-exporter:
@@ -71,8 +76,6 @@ services:
       - /dev/kmsg
     networks:
       - monitoring
-    expose:
-      - 8080
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw

@@ -13,6 +13,8 @@ COPY /config/alertmanager.yml /alertmanager/alertmanager.yml
 COPY /config/alertmanager.yml /alertmanager/alertmanager.yml.tmp
 
 COPY /config/config.sh /alertmanager/start.sh
+
+RUN chmod +x /alertmanager/start.sh
     
 EXPOSE 9093
 

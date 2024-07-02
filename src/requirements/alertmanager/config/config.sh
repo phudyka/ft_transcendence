@@ -1,8 +1,9 @@
-#!/bin/bash
+#!/bin/bash -e
+
 if [ -f /alertmanager/alertmanager.yml.tmp ]
 then
     echo $DISCORD_WEBHOOK_URL >> alertmanager.yml
     rm /alertmanager/alertmanager.yml.tmp
 fi
 
-./alertmanager
+exec /alertmanager/alertmanager

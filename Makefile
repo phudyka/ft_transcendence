@@ -15,20 +15,20 @@ all: $(NAME)
 $(NAME):
 	@mkdir -p \
 		src/data/monitoring/prometheus_data
-	@docker compose --project-directory src up -d > /dev/null
+	@docker compose --project-directory src up -d
 
 start: all
 
 down:
-	@docker compose --project-directory src down > /dev/null
+	@docker compose --project-directory src down
 
 stop: down
 
 clean: down
-	@docker image rm -f $(IMAGES) > /dev/null
+	@docker image rm -f $(IMAGES)
 
 fclean: clean
-	@docker volume rm -f $(VOLUMES) > /dev/null
+	@docker volume rm -f $(VOLUMES)
 	@rm -rf src/data/
 
 re: fclean all
