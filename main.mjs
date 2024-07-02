@@ -1,7 +1,9 @@
 import * as THREE from './node_modules/three/build/three.module.js';
+import { GLTFLoader } from './node_modules/three/examples/jsm/loaders/GLTFLoader.js';
 import { Light } from './light.mjs';
 import { Pad } from './pad.mjs';
 import { Ball } from './ball.mjs';
+
 
 const socket = io();
 
@@ -44,6 +46,12 @@ function initGame() {
     renderer.shadowMap.enabled = true;
     document.body.appendChild(renderer.domElement);
     
+    // const loader = new GLTFLoader();
+
+    // loader.load('scenes/pong_scene.glb', function (gltf) {
+    //     scene.add(gltf.scene);
+    // });
+
     const sunLight = new Light(0xffffff, 3);
     scene.add(sunLight);
     

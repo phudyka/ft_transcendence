@@ -5,7 +5,6 @@ import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Vector3 } from 'three';
 import { ThreeMFLoader } from 'three/examples/jsm/Addons.js';
 
 const app = express();
@@ -29,6 +28,8 @@ app.get("/", (req, res) => {
 app.get("/main.html", (req, res) => {
     res.sendFile(path.join(__dirname, 'main.html'));
 });
+
+app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
 
 const rooms = {};
 const roomsTypes = {};
