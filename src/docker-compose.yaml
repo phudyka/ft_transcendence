@@ -3,8 +3,8 @@ networks:
     driver: bridge
   monitoring:
     driver: bridge
-  # elk:
-  #   driver: bridge
+  elk:
+    driver: bridge
   
 # volumes:
 #   prometheus_data:
@@ -15,6 +15,12 @@ networks:
 #       o: bind
 
 services:
+  elasticsearch:
+    build: requirements/elasticsearch
+    container_name: "elk_elasticsearch"
+    restart: unless-stopped
+    networks:
+      - elk
   grafana:
     build: requirements/grafana
     container_name: "monitoring_grafana"
