@@ -2,7 +2,7 @@ import * as THREE from './node_modules/three/build/three.module.js';
 import { GLTFLoader } from './node_modules/three/examples/jsm/loaders/GLTFLoader.js';
 import { Light } from './light.mjs';
 import { Pad } from './pad.mjs';
-import { Ball } from './ball.mjs';
+import { OrbitControls } from './node_modules/three/examples/jsm/controls/OrbitControls.js';
 
 
 const socket = io();
@@ -15,12 +15,13 @@ let pad2MoveDown = false;
 var pad1;
 var pad2;
 
-const tableHeight = 2
+const tableHeight = 2.70;
 const padHeight = 0.5;
 
 var scene;
 var camera;
 var renderer;
+var island;
 
 function initGame() {
 
@@ -35,8 +36,7 @@ function initGame() {
     scene = new THREE.Scene();
     
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, 0, 5);
-    camera.lookAt(0, 0, 0);
+    camera.position.set(0, -80, 80);
     
     renderer = new THREE.WebGLRenderer({ 
         antialias: true
@@ -44,60 +44,43 @@ function initGame() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio * 0.8);
     renderer.shadowMap.enabled = true;
+    renderer.setClearColor(0x7EB6F7); // Fond blanc
     document.body.appendChild(renderer.domElement);
-    
-    // const loader = new GLTFLoader();
 
-    // loader.load('scenes/pong_scene.glb', function (gltf) {
-    //     scene.add(gltf.scene);
-    // });
-
-    const sunLight = new Light(0xffffff, 3);
+    const sunLight = new Light(0xffffff, 2.5);
     scene.add(sunLight);
-    
-    const backgeo = new THREE.PlaneGeometry(10, 10);
-    const backmaterial = new THREE.MeshPhongMaterial({ color : 0x007BFF });
-    const back = new THREE.Mesh(backgeo, backmaterial);
-    back.receiveShadow = true;
-    scene.add(back);
-    
-    const tableGeometry = new THREE.BoxGeometry(4.10, 2, 0.01);
-    const tableMaterial = new THREE.MeshPhongMaterial({ color: 0x499BC2, transparent: true, opacity: 0 });
-    const table = new THREE.Mesh(tableGeometry, tableMaterial);
-    table.receiveShadow = true;
-    scene.add(table);
-    
-    function border() {
-    
-        const borderMaterial = new THREE.MeshBasicMaterial({ color: 0xFFFFFF });
-        const borderThickness = 0.07;
-        const horizontalBorderGeometry = new THREE.BoxGeometry(4.10 + borderThickness * 2, borderThickness, 0.01 + borderThickness);
-        const verticalBorderGeometry = new THREE.BoxGeometry(borderThickness, 2 + borderThickness * 2, 0.01 + borderThickness);
-        
-        const topBorder = new THREE.Mesh(horizontalBorderGeometry, borderMaterial);
-        topBorder.position.set(0, 2 / 2 + borderThickness / 2, 0);
-        scene.add(topBorder);
-        
-        const bottomBorder = new THREE.Mesh(horizontalBorderGeometry, borderMaterial);
-        bottomBorder.position.set(0, -2 / 2 - borderThickness / 2, 0);
-        scene.add(bottomBorder);
-        
-        const leftBorder = new THREE.Mesh(verticalBorderGeometry, borderMaterial);
-        leftBorder.position.set(-4.10 / 2 - borderThickness / 2, 0, 0);
-        scene.add(leftBorder);
-        
-        const rightBorder = new THREE.Mesh(verticalBorderGeometry, borderMaterial);
-        rightBorder.position.set(4.10 / 2 + borderThickness / 2, 0, 0);
-        scene.add(rightBorder);
-    
-    }
-    
-    border();
-    
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // Couleur gris et intensité augmentée
+    scene.add(ambientLight);
+
+    const loader = new GLTFLoader();
+
+    loader.load('scenes/pong_scene_maj.glb', function (gltf) {
+        island = gltf.scene;
+        island.traverse((child) => {
+            if (child.isMesh && child.name != "Cube" && child.name != "Plan" && child.name != "base") {
+                if (child.name === "ile" || child.name === "Plan001")
+                    {
+                        child.receiveShadow = true;
+                    }
+                else{
+                    child.castShadow = true;
+                    child.receiveShadow = true;
+
+                }
+            }
+        });
+        island.position.set(0, -0.09, -3.59);
+        island.scale.set(1.5, 1.5, 1.28);
+        island.rotation.set(1.56, 0, 0);
+        scene.add(island);
+        console.log(island);
+    });
+
     pad1 = new Pad(0xc4d418);
     pad1.addToScene(scene);
     
-    pad2 = new Pad(0xfa00ff, 0.045, 0.40, 16, 1.85, 0, 0);
+    pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 0, 0);
     pad2.addToScene(scene);
     
     const ballGeometry = new THREE.SphereGeometry(0.07, 32, 32);
@@ -153,9 +136,46 @@ function initGame() {
         document.getElementById('scoreLeft').textContent = scores.score1;
         document.getElementById('scoreRight').textContent = scores.score2;
     });
+
+    const startPosition = {
+        x: camera.position.x,
+        y: camera.position.y,
+        z: camera.position.z
+    };
+    const endPosition = {
+        x: 0,
+        y: 0,
+        z: 6
+    };
+    const duration = 4000;
+    const interval = 16;
+    const step = {
+        x: (endPosition.x - startPosition.x) / (duration / interval),
+        y: (endPosition.y - startPosition.y) / (duration / interval),
+        z: (endPosition.z - startPosition.z) / (duration / interval)
+    };
+
+    const cameraAnimation = setInterval(() => {
+        camera.position.x += step.x;
+        camera.position.y += step.y;
+        camera.position.z += step.z;
+        camera.lookAt(0,0,0);
+
+        if (camera.position.z <= endPosition.z) {
+            camera.position.set(endPosition.x, endPosition.y, endPosition.z);
+            clearInterval(cameraAnimation);
+        }
+
+        renderer.render(scene, camera);
+    }, interval);
 }
 
 initGame();
+
+// const controls = new OrbitControls(camera, renderer.domElement);
+// controls.enableDamping = true;
+// controls.dampingFactor = 0.25;
+// controls.screenSpacePanning = false;
 
 function movePads() {
     const speed = 0.02;
@@ -195,6 +215,8 @@ function emitPadMovement() {
 function animate() {
     requestAnimationFrame(animate);
     movePads();
+    // controls.update();
+    //console.log(camera.position);
     renderer.render(scene, camera);
 }
 

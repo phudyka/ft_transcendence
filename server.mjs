@@ -5,7 +5,6 @@ import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { ThreeMFLoader } from 'three/examples/jsm/Addons.js';
 
 const app = express();
 const server = createServer(app);
@@ -35,8 +34,8 @@ const rooms = {};
 const roomsTypes = {};
 let roomCounter = 1;
 
-const tableHeight = 2;
-const tableWidth = 4.10;
+const tableHeight = 2.70;
+const tableWidth = 4.70;
 
 io.on('connection', (socket) => {
     console.log('New user connected:', socket.id);
@@ -76,7 +75,7 @@ io.on('connection', (socket) => {
 
             const ball = new Ball(0.07, 32);
             const pad1 = new Pad(0xc4d418);
-            const pad2 = new Pad(0xfa00ff, 0.05, 0.40, 0.2, 1.85, 0, 0);
+            const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 0, 0)
 
             io.in(room).emit('initBall', {
                 position: { x: ball.mesh.position.x, y: ball.mesh.position.y },
@@ -208,7 +207,7 @@ io.on('connection', (socket) => {
 
             const ball = new Ball(0.07, 32);
             const pad1 = new Pad(0xc4d418);
-            const pad2 = new Pad(0xfa00ff, 0.05, 0.3, 0.2, 1.85, 0, 0);
+            const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 0, 0)
 
             const gameState = {
                 ball,

@@ -2,7 +2,7 @@ import * as THREE from './node_modules/three/build/three.module.js';
 
 
 export class Pad {
-    constructor(color, length = 0.045, height = 0.40, seg = 16, x = -1.85, y = 0, z = 0) {
+    constructor(color, length = 0.045, height = 0.50, seg = 16, x = -2.13, y = 0, z = 0) {
         const geometry = new THREE.CapsuleGeometry(length, height, seg, 32);
         const material = new THREE.MeshStandardMaterial({ 
             color: color,

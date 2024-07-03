@@ -5,14 +5,14 @@ export class Light extends THREE.DirectionalLight {
         super(color, intensity);
         this.castShadow = true;
 
-        this.position.set(-10, 5, 5);
+        this.position.set(-10, 10, 15);
 
-        const target = new THREE.Object3D();
-        target.position.set(0, 0, 0);
-        this.target = target;
+        // const target = new THREE.Object3D();
+        // target.position.set(0, 0, 0);
+        // this.target = target;
 
-        this.shadow.mapSize.width = 1024;
-        this.shadow.mapSize.height = 1024;
+        this.shadow.mapSize.width = 2048;
+        this.shadow.mapSize.height = 2048;
         this.shadow.camera.near = 0.5;
         this.shadow.camera.far = 500;
 
