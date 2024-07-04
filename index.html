@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <title>Pong</title>
     <style>
-        /* Import de la police depuis Google Fonts */
         @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
         body {
@@ -14,7 +13,7 @@
             align-items: center;
             height: 100vh;
             background: #87CEEB;
-            font-family: 'Press Start 2P', Arial, sans-serif; /* Utilisation de la police 'Press Start 2P' */
+            font-family: 'Press Start 2P', Arial, sans-serif;
             overflow: hidden;
             position: relative;
         }
@@ -116,6 +115,7 @@
     <script src="./node_modules/socket.io/client-dist/socket.io.js"></script>
     <script type="module" src="/main.mjs"></script>
     <script>
+        document.getElementById('menu').classList.remove('active');
         document.getElementById('solo-button').addEventListener('click', () => {
             document.getElementById('menu').classList.remove('active');
         });

@@ -232,14 +232,24 @@ io.on('connection', (socket) => {
             });
 
             function checkWallCollision() {
-                if (ball.mesh.position.y + ball.direction.y * ball.speed > tableHeight / 2 - ball.radius || ball.mesh.position.y + ball.direction.y * ball.speed < -tableHeight / 2 + ball.radius) {
+                if (ball.mesh.position.y + ball.direction.y * ball.speed > tableHeight / 2 - ball.radius - 0.02) {
                     ball.direction.y *= -1;
-                    ball.collided = true;
+                    ball.mesh.position.y = tableHeight / 2 - ball.radius - 0.02;
                 }
-
-                if (ball.mesh.position.x > tableWidth / 2 + ball.radius || ball.mesh.position.x < -tableWidth / 2 - ball.radius) {
+                else if (ball.mesh.position.y + ball.direction.y * ball.speed < -tableHeight / 2 + ball.radius + 0.02) {
+                    ball.direction.y *= -1;
+                    ball.mesh.position.y = -tableHeight / 2 + ball.radius + 0.02;
+                }
+            
+                if (ball.mesh.position.x > tableWidth / 2 + ball.radius) {
                     ball.resetPosition();
-                    ball.collided = true;
+                    pad2.score++
+                    io.in(room).emit('updateScores', { score1: pad1.score, score2: pad2.score });
+                }
+                if (ball.mesh.position.x < -tableWidth / 2 - ball.radius) {
+                    ball.resetPosition();
+                    pad1.score++
+                    io.in(room).emit('updateScores', { score1: pad1.score, score2: pad2.score });
                 }
             }
 

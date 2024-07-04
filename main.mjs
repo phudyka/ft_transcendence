@@ -1,9 +1,8 @@
 import * as THREE from './node_modules/three/build/three.module.js';
-import { GLTFLoader } from './node_modules/three/examples/jsm/loaders/GLTFLoader.js';
-import { Light } from './light.mjs';
+import { sunLight } from './light.mjs';
 import { Pad } from './pad.mjs';
 import { OrbitControls } from './node_modules/three/examples/jsm/controls/OrbitControls.js';
-
+import loadModel from './loadIsland.mjs';
 
 const socket = io();
 
@@ -21,17 +20,10 @@ const padHeight = 0.5;
 var scene;
 var camera;
 var renderer;
-var island;
 
 function initGame() {
 
-    document.getElementById('multi-button').addEventListener('click', () => {
-        socket.emit('multi');
-    });
-
-    document.getElementById('solo-button').addEventListener('click', () => {
-        socket.emit('solo');
-    });
+    document.getElementById('menu').classList.remove('active');
 
     scene = new THREE.Scene();
     
@@ -44,38 +36,16 @@ function initGame() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio * 0.8);
     renderer.shadowMap.enabled = true;
-    renderer.setClearColor(0x7EB6F7); // Fond blanc
+    renderer.setClearColor(0x7EB6F7);
     document.body.appendChild(renderer.domElement);
 
-    const sunLight = new Light(0xffffff, 2.5);
-    scene.add(sunLight);
+    const Light = new sunLight(0xffffff, 2.5);
+    scene.add(Light);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5); // Couleur gris et intensité augmentée
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
-    const loader = new GLTFLoader();
-
-    loader.load('scenes/pong_scene_maj.glb', function (gltf) {
-        island = gltf.scene;
-        island.traverse((child) => {
-            if (child.isMesh && child.name != "Cube" && child.name != "Plan" && child.name != "base") {
-                if (child.name === "ile" || child.name === "Plan001")
-                    {
-                        child.receiveShadow = true;
-                    }
-                else{
-                    child.castShadow = true;
-                    child.receiveShadow = true;
-
-                }
-            }
-        });
-        island.position.set(0, -0.09, -3.59);
-        island.scale.set(1.5, 1.5, 1.28);
-        island.rotation.set(1.56, 0, 0);
-        scene.add(island);
-        console.log(island);
-    });
+    loadModel(scene);
 
     pad1 = new Pad(0xc4d418);
     pad1.addToScene(scene);
@@ -163,11 +133,20 @@ function initGame() {
 
         if (camera.position.z <= endPosition.z) {
             camera.position.set(endPosition.x, endPosition.y, endPosition.z);
+            document.getElementById('menu').classList.add('active');
             clearInterval(cameraAnimation);
         }
 
         renderer.render(scene, camera);
     }, interval);
+
+    document.getElementById('multi-button').addEventListener('click', () => {
+        socket.emit('multi');
+    });
+
+    document.getElementById('solo-button').addEventListener('click', () => {
+        socket.emit('solo');
+    });
 }
 
 initGame();

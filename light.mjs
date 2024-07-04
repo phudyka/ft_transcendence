@@ -1,15 +1,15 @@
 import * as THREE from './node_modules/three/build/three.module.js';
 
-export class Light extends THREE.DirectionalLight {
+export class sunLight extends THREE.DirectionalLight {
     constructor(color, intensity) {
         super(color, intensity);
         this.castShadow = true;
 
         this.position.set(-10, 10, 15);
 
-        // const target = new THREE.Object3D();
-        // target.position.set(0, 0, 0);
-        // this.target = target;
+        const target = new THREE.Object3D();
+        target.position.set(0, 0, 0);
+        this.target = target;
 
         this.shadow.mapSize.width = 2048;
         this.shadow.mapSize.height = 2048;
