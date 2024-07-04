@@ -17,6 +17,9 @@
             overflow: hidden;
             position: relative;
         }
+        #score {
+            display : none;
+        }
         #menu, #waiting {
             position: absolute;
             top: 50%;
@@ -89,6 +92,9 @@
         #menu.active, #waiting.active {
             display: flex;
         }
+        #score.score-container {
+            display: flex;
+        }
         canvas {
             position: absolute;
             top: 0;
@@ -107,23 +113,24 @@
         <p>Waiting for another player...</p>
         <div id="spinner"></div>
     </div>
-    <div class="score-container">
+    <div id="score" class="score-container">
         <div id="scoreTitle">PONG</div>
         <div id="scoreLeft">0</div>
         <div id="scoreRight">0</div>
     </div>
-    <script src="./node_modules/socket.io/client-dist/socket.io.js"></script>
-    <script type="module" src="/main.mjs"></script>
     <script>
         document.getElementById('menu').classList.remove('active');
+        document.getElementById('score').classList.remove('score-container');
         document.getElementById('solo-button').addEventListener('click', () => {
             document.getElementById('menu').classList.remove('active');
         });
-
+        
         document.getElementById('multi-button').addEventListener('click', () => {
             document.getElementById('menu').classList.remove('active');
             document.getElementById('waiting').classList.add('active');
         });
-    </script>
+        </script>
+        <script src="./node_modules/socket.io/client-dist/socket.io.js"></script>
+        <script type="module" src="/main.mjs"></script>
 </body>
 </html>

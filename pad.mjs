@@ -7,7 +7,7 @@ export class Pad {
         const material = new THREE.MeshStandardMaterial({ 
             color: color,
             metalness : 0.3,
-            roughness: 0.3,
+            roughness: 0.3
          });
         this.mesh = new THREE.Mesh(geometry, material);
         this.mesh.receiveShadow = true;

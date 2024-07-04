@@ -23,8 +23,6 @@ var renderer;
 
 function initGame() {
 
-    document.getElementById('menu').classList.remove('active');
-
     scene = new THREE.Scene();
     
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -54,7 +52,10 @@ function initGame() {
     pad2.addToScene(scene);
     
     const ballGeometry = new THREE.SphereGeometry(0.07, 32, 32);
-    const ballMaterial = new THREE.MeshLambertMaterial({ color: 0xff8f00 });
+    const ballMaterial = new THREE.MeshStandardMaterial({ color: 0xff8f00,
+        metalness : 0.3,
+        roughness: 0.3,
+     });
     const ball = new THREE.Mesh(ballGeometry, ballMaterial);
     ball.receiveShadow = true;
     ball.castShadow = true;
@@ -195,12 +196,13 @@ function animate() {
     requestAnimationFrame(animate);
     movePads();
     // controls.update();
-    //console.log(camera.position);
+    // console.log(camera.position);
     renderer.render(scene, camera);
 }
 
 socket.on('start-game', () => {
     document.getElementById('waiting').classList.remove('active');
+    document.getElementById('score').classList.add('score-container');
     animate();
 });
 
