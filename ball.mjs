@@ -3,7 +3,10 @@ import * as THREE from './node_modules/three/build/three.module.js';
 export class Ball {
     constructor(Radius, number) {
         const ballGeometry = new THREE.SphereGeometry(Radius, number, number);
-        const ballMaterial = new THREE.MeshLambertMaterial({ color: 0xff8f00 });
+        const ballMaterial = new THREE.MeshStandardMaterial({ color: 0xff8f00,
+            metalness : 0.3,
+            roughness: 0.3,
+        });
         this.mesh = new THREE.Mesh(ballGeometry, ballMaterial);
         this.mesh.receiveShadow = true;
         this.mesh.castShadow = true;
@@ -13,6 +16,10 @@ export class Ball {
         this.collided = false;
         this.radius = Radius;
         this.direction = new THREE.Vector2(1, 1).normalize();
+    }
+
+    addToScene(scene) {
+        scene.add(this.mesh);
     }
 
     updatePosition() {

@@ -24,18 +24,22 @@ app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.get("/main.html", (req, res) => {
-    res.sendFile(path.join(__dirname, 'main.html'));
-});
-
 app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
 
 const rooms = {};
 const roomsTypes = {};
 let roomCounter = 1;
 
+const padsMap = new Map();
+
 const tableHeight = 2.70;
 const tableWidth = 4.70;
+
+function initializePads(room) {
+    const pad1 = new Pad(0xc4d418);
+    const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 0, 0);
+    padsMap.set(room, { pad1, pad2 });
+}
 
 io.on('connection', (socket) => {
     console.log('New user connected:', socket.id);
@@ -70,7 +74,7 @@ io.on('connection', (socket) => {
         rooms[room].push(socket.id);
         socket.join(room);
 
-        io.in(room).emit('start-game', room);
+        io.in(room).emit('start-game', rooms[room]);
             console.log(`Starting game in ${room}`);
 
             const ball = new Ball(0.07, 32);
@@ -199,36 +203,57 @@ io.on('connection', (socket) => {
         rooms[room].push(socket.id);
         socket.join(room);
 
+        if (rooms[room].length === 1) {
+            const pad1 = new Pad(0xc4d418);
+            const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 0, 0);
+            padsMap.set(room, { pad1, pad2 });
+        }
+    
+        socket.on('movePad', (data) => {
+            const { pad1, pad2 } = padsMap.get(room);
+            console.log(data);
+            if (data.pad === 1) {
+                pad1.mesh.position.y = data.position;
+                console.log('reception emitting pad1');
+            } else if (data.pad === 2) {
+                pad2.mesh.position.y = data.position;
+                console.log('reception emitting pad2');
+            }
+            io.in(room).emit('movePad',  {
+                pad1: pad1.mesh.position.y,
+                pad2: pad2.mesh.position.y
+            });
+        });
+
         console.log(`Player ${socket.id} joined ${room}`);
         // Si 2 joueurs sont dans la room, la partie ce lance.
         if (rooms[room].length === 2) {
-            io.in(room).emit('start-game', room);
+
+            io.in(room).emit('start-game', rooms[room]);
             console.log(`Starting game in ${room}`);
 
             const ball = new Ball(0.07, 32);
-            const pad1 = new Pad(0xc4d418);
-            const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 0, 0)
-
-            const gameState = {
-                ball,
-                pad1,
-                pad2,
-                room,
-            };
+            const { pad1, pad2 } = padsMap.get(room);
 
             io.in(room).emit('initBall', {
                 position: { x: ball.mesh.position.x, y: ball.mesh.position.y },
                 direction: { x: ball.direction.x, y: ball.direction.y },
                 speed: ball.speed,
             });
-
+            
             socket.on('movePad', (data) => {
+                console.log(data);
                 if (data.pad === 1) {
                     pad1.mesh.position.y = data.position;
+                    console.log('reception emitting pad1');
                 } else if (data.pad === 2) {
                     pad2.mesh.position.y = data.position;
+                    console.log('reception emitting pad2');
                 }
-                io.in(room).emit('movePad', { pad1: pad1.mesh.position.y, pad2: pad2.mesh.position.y });
+                io.in(room).emit('movePad',  {
+                    pad1: pad1.mesh.position.y,
+                    pad2: pad2.mesh.position.y
+                });
             });
 
             function checkWallCollision() {

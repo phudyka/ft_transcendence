@@ -3,6 +3,7 @@ import { sunLight } from './light.mjs';
 import { Pad } from './pad.mjs';
 import { OrbitControls } from './node_modules/three/examples/jsm/controls/OrbitControls.js';
 import loadModel from './loadIsland.mjs';
+import { Ball } from './ball.mjs';
 
 const socket = io();
 
@@ -10,6 +11,7 @@ let pad1MoveUp = false;
 let pad1MoveDown = false;
 let pad2MoveUp = false;
 let pad2MoveDown = false;
+let controlledPad = null;
 
 var pad1;
 var pad2;
@@ -45,62 +47,54 @@ function initGame() {
 
     loadModel(scene);
 
-    pad1 = new Pad(0xc4d418);
+    pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 0, 0);
     pad1.addToScene(scene);
     
     pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 0, 0);
     pad2.addToScene(scene);
     
-    const ballGeometry = new THREE.SphereGeometry(0.07, 32, 32);
-    const ballMaterial = new THREE.MeshStandardMaterial({ color: 0xff8f00,
-        metalness : 0.3,
-        roughness: 0.3,
-     });
-    const ball = new THREE.Mesh(ballGeometry, ballMaterial);
-    ball.receiveShadow = true;
-    ball.castShadow = true;
-    ball.position.z = 0.05;
-    scene.add(ball);
-    
+    const ball = new Ball(0.07, 32);
+    ball.addToScene(scene);
+
     document.addEventListener('keydown', (event) => {
-        if (event.key === 'w') pad1MoveUp = true;
-        if (event.key === 's') pad1MoveDown = true;
-        if (event.key === 'ArrowUp') pad2MoveUp = true;
-        if (event.key === 'ArrowDown') pad2MoveDown = true;
-        emitPadMovement();
+        if (controlledPad === 1) {
+            if (event.key === 'w') pad1MoveUp = true;
+            if (event.key === 's') pad1MoveDown = true;
+        } else if (controlledPad === 2) {
+            if (event.key === 'ArrowUp') pad2MoveUp = true;
+            if (event.key === 'ArrowDown') pad2MoveDown = true;
+        }
+        movePads();
     });
     
     document.addEventListener('keyup', (event) => {
-        if (event.key === 'w') pad1MoveUp = false;
-        if (event.key === 's') pad1MoveDown = false;
-        if (event.key === 'ArrowUp') pad2MoveUp = false;
-        if (event.key === 'ArrowDown') pad2MoveDown = false;
-        emitPadMovement();
+        if (controlledPad === 1) {
+            if (event.key === 'w') pad1MoveUp = false;
+            if (event.key === 's') pad1MoveDown = false;
+        } else if (controlledPad === 2) {
+            if (event.key === 'ArrowUp') pad2MoveUp = false;
+            if (event.key === 'ArrowDown') pad2MoveDown = false;
+        }
+        movePads();
     });
     
     socket.on('initBall', (data) => {
-        ball.position.x = data.position.x;
-        ball.position.y = data.position.y;
+        ball.mesh.position.x = data.position.x;
+        ball.mesh.position.y = data.position.y;
         console.log('Initial ball data received:', data);
     });
     
     socket.on('moveBall', (data) => {
-        ball.position.x = data.position.x;
-        ball.position.y = data.position.y;
+        ball.mesh.position.x = data.position.x;
+        ball.mesh.position.y = data.position.y;
         ball.speed = data.speed;
     });
     
     
     socket.on('movePad', (data) => {
         console.log('Received movePad event:', data);
-        if (data.pad === 1) {
-            pad1.mesh.position.y = data.position;
-        } else if (data.pad === 2) {
-            pad2.mesh.position.y = data.position;
-        } else {
             pad1.mesh.position.y = data.pad1;
             pad2.mesh.position.y = data.pad2;
-        }
     });
 
     socket.on('updateScores', (scores) => {
@@ -118,7 +112,7 @@ function initGame() {
         y: 0,
         z: 6
     };
-    const duration = 4000;
+    const duration = 1000;
     const interval = 16;
     const step = {
         x: (endPosition.x - startPosition.x) / (duration / interval),
@@ -158,51 +152,47 @@ initGame();
 // controls.screenSpacePanning = false;
 
 function movePads() {
-    const speed = 0.02;
-
     const pad1Limit = tableHeight / 2 - padHeight / 2;
     const pad2Limit = tableHeight / 2 - padHeight / 2;
 
-    if (pad1MoveUp && pad1.mesh.position.y + speed < pad1Limit) {
-        pad1.mesh.position.y = pad1.mesh.position.y + speed;
+    if (pad1MoveUp && pad1.mesh.position.y + pad1.speed < pad1Limit) {
+        pad1.mesh.position.y = pad1.mesh.position.y + pad1.speed;
         socket.emit('movePad', { pad: 1, position: pad1.mesh.position.y });
     }
-    if (pad1MoveDown && pad1.mesh.position.y - speed > -pad1Limit) {
-        pad1.mesh.position.y = pad1.mesh.position.y - speed;
+    else if (pad1MoveDown && pad1.mesh.position.y - pad1.speed > -pad1Limit) {
+        pad1.mesh.position.y = pad1.mesh.position.y - pad1.speed;
         socket.emit('movePad', { pad: 1, position: pad1.mesh.position.y });
     }
-    if (pad2MoveUp && pad2.mesh.position.y + speed < pad2Limit) {
-        pad2.mesh.position.y = pad2.mesh.position.y + speed;
+    else if (pad2MoveUp && pad2.mesh.position.y + pad2.speed < pad2Limit) {
+        pad2.mesh.position.y = pad2.mesh.position.y + pad2.speed;
         socket.emit('movePad', { pad: 2, position: pad2.mesh.position.y });
     }
-    if (pad2MoveDown && pad2.mesh.position.y - speed > -pad2Limit) {
-        pad2.mesh.position.y = pad2.mesh.position.y - speed;
+    else if (pad2MoveDown && pad2.mesh.position.y - pad2.speed > -pad2Limit) {
+        pad2.mesh.position.y = pad2.mesh.position.y - pad2.speed;
         socket.emit('movePad', { pad: 2, position: pad2.mesh.position.y });
-    }
-}
-
-function emitPadMovement() {
-    if (pad1MoveUp || pad1MoveDown || pad2MoveUp || pad2MoveDown) {
-        const data = {
-            pad1: pad1.mesh.position.y,
-            pad2: pad2.mesh.position.y
-        };
-        console.log('Emitting movePad event:', data);
-        socket.emit('movePad', data);
     }
 }
 
 function animate() {
     requestAnimationFrame(animate);
     movePads();
-    // controls.update();
+    //controls.update();
     // console.log(camera.position);
     renderer.render(scene, camera);
 }
 
-socket.on('start-game', () => {
+socket.on('start-game', (rooms) => {
     document.getElementById('waiting').classList.remove('active');
     document.getElementById('score').classList.add('score-container');
+    const player1 = rooms[0];
+    const player2 = rooms[1];
+
+    if (socket.id === player1) {
+        controlledPad = 1;
+    } else if (socket.id === player2) {
+        controlledPad = 2;
+    }
+    console.log(controlledPad);
     animate();
 });
 
