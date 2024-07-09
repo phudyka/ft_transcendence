@@ -150,10 +150,10 @@ function initGame() {
 
 initGame();
 
-// const controls = new OrbitControls(camera, renderer.domElement);
-// controls.enableDamping = true;
-// controls.dampingFactor = 0.25;
-// controls.screenSpacePanning = false;
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.25;
+controls.screenSpacePanning = false;
 
 function movePads() {
     const pad1Limit = tableHeight / 2 - padHeight / 2;
@@ -180,7 +180,7 @@ function movePads() {
 function animate() {
     requestAnimationFrame(animate);
     movePads();
-    //controls.update();
+    controls.update();
     // console.log(camera.position);
     renderer.render(scene, camera);
 }

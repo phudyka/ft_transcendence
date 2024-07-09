@@ -10,7 +10,7 @@ export class Ball {
         this.mesh = new THREE.Mesh(ballGeometry, ballMaterial);
         this.mesh.receiveShadow = true;
         this.mesh.castShadow = true;
-        this.mesh.position.z = 0.05;
+        this.mesh.position.z = 0.03;
         this.maxSpeed = 0.06;
         this.speed = 0.02;
         this.collided = false;
