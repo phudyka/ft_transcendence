@@ -4,7 +4,7 @@ export default async function loadModel(scene) {
     const loader = new GLTFLoader();
 
     try {
-        const gltf = await loader.loadAsync('scenes/pong_scene_maj.glb');
+        const gltf = await loader.loadAsync('scenes/pongScene_V1.glb');
         const model = gltf.scene;
 
         model.traverse((child) => {
