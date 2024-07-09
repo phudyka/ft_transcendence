@@ -4,6 +4,7 @@ import { Pad } from './pad.mjs';
 import { OrbitControls } from './node_modules/three/examples/jsm/controls/OrbitControls.js';
 import loadModel from './loadIsland.mjs';
 import { Ball } from './ball.mjs';
+import { tableHeight } from './config.mjs';
 
 const socket = io();
 
@@ -16,7 +17,6 @@ let controlledPad = null;
 var pad1;
 var pad2;
 
-const tableHeight = 2.70;
 const padHeight = 0.5;
 
 var scene;
