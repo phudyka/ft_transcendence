@@ -102,6 +102,10 @@ function initGame() {
         document.getElementById('scoreRight').textContent = scores.score2;
     });
 
+    socket.on('LeaveRoom', (room) => {
+        socket.emit('disconnect');
+    })
+
     const startPosition = {
         x: camera.position.x,
         y: camera.position.y,
@@ -112,7 +116,7 @@ function initGame() {
         y: 0,
         z: 6
     };
-    const duration = 1000;
+    const duration = 4000;
     const interval = 16;
     const step = {
         x: (endPosition.x - startPosition.x) / (duration / interval),
