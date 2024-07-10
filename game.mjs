@@ -107,6 +107,25 @@ export function setupSoloGame(io, room, socket, rooms, roomsTypes) {
     });
 }
 
+function updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room) {
+        ball.updatePosition();
+        checkWallCollision(ball, pad1, pad2, io, room);
+        ball.checkCollision(pad1);
+        ball.checkCollision(pad2);
+        ball.checkCollision(pad3);
+        ball.checkCollision(pad4);
+        io.in(room).emit('moveBall', {
+            position: { x: ball.mesh.position.x, y: ball.mesh.position.y },
+            direction: { x: ball.direction.x, y: ball.direction.y },
+            speed: ball.speed,
+        });
+        io.in(room).emit('movePad', { pad1: pad1.mesh.position.y, pad2: pad2.mesh.position.y, pad3: pad3.mesh.position.y, pad4: pad4.mesh.position.y });
+}
+
 export function setupMultiGame(io, room, ball, pad1, pad2, interval) {
     interval = setInterval(() => updateBallPosition(ball, pad1, pad2, io, room, false), 16);
+}
+
+export function setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, interval) {
+    interval = setInterval(() => updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room), 16);
 }

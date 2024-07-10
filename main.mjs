@@ -12,10 +12,16 @@ let pad1MoveUp = false;
 let pad1MoveDown = false;
 let pad2MoveUp = false;
 let pad2MoveDown = false;
+let pad3MoveUp = false;
+let pad3MoveDown = false;
+let pad4MoveUp = false;
+let pad4MoveDown = false;
 let controlledPad = null;
 
 var pad1;
 var pad2;
+var pad3;
+var pad4;
 
 const padHeight = 0.5;
 
@@ -28,7 +34,7 @@ function initGame() {
     scene = new THREE.Scene();
     
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, -80, 80);
+    camera.position.set(0, -80, 150);
     
     renderer = new THREE.WebGLRenderer({ 
         antialias: true
@@ -64,6 +70,14 @@ function initGame() {
             if (event.key === 'ArrowUp') pad2MoveUp = true;
             if (event.key === 'ArrowDown') pad2MoveDown = true;
         }
+        else if (controlledPad === 3) {
+            if (event.key === 'ArrowUp') pad3MoveUp = true;
+            if (event.key === 'ArrowDown') pad3MoveDown = true;
+        }
+        else if (controlledPad === 4) {
+            if (event.key === 'ArrowUp') pad4MoveUp = true;
+            if (event.key === 'ArrowDown') pad4MoveDown = true;
+        }
         movePads();
     });
     
@@ -74,6 +88,14 @@ function initGame() {
         } else if (controlledPad === 2) {
             if (event.key === 'ArrowUp') pad2MoveUp = false;
             if (event.key === 'ArrowDown') pad2MoveDown = false;
+        }
+        else if (controlledPad === 3) {
+            if (event.key === 'ArrowUp') pad3MoveUp = false;
+            if (event.key === 'ArrowDown') pad3MoveDown = false;
+        }
+        else if (controlledPad === 4) {
+            if (event.key === 'ArrowUp') pad4MoveUp = false;
+            if (event.key === 'ArrowDown') pad4MoveDown = false;
         }
         movePads();
     });
@@ -95,6 +117,11 @@ function initGame() {
         console.log('Received movePad event:', data);
             pad1.mesh.position.y = data.pad1;
             pad2.mesh.position.y = data.pad2;
+            if (pad4)
+            {
+                pad3.mesh.position.y = data.pad3;
+                pad4.mesh.position.y = data.pad4;
+            }
     });
 
     socket.on('updateScores', (scores) => {
@@ -113,10 +140,10 @@ function initGame() {
     };
     const endPosition = {
         x: 0,
-        y: 0,
+        y: -5,
         z: 6
     };
-    const duration = 4000;
+    const duration = 3000;
     const interval = 16;
     const step = {
         x: (endPosition.x - startPosition.x) / (duration / interval),
@@ -132,6 +159,7 @@ function initGame() {
 
         if (camera.position.z <= endPosition.z) {
             camera.position.set(endPosition.x, endPosition.y, endPosition.z);
+            camera.lookAt(0,0,0);
             document.getElementById('menu').classList.add('active');
             clearInterval(cameraAnimation);
         }
@@ -146,42 +174,61 @@ function initGame() {
     document.getElementById('solo-button').addEventListener('click', () => {
         socket.emit('solo');
     });
+
+    document.getElementById('multi-four').addEventListener('click', () => {
+        socket.emit('multi-four');
+    });
 }
 
 initGame();
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.dampingFactor = 0.25;
-controls.screenSpacePanning = false;
+// const controls = new OrbitControls(camera, renderer.domElement);
+// controls.enableDamping = true;
+// controls.dampingFactor = 0.25;
+// controls.screenSpacePanning = false;
 
 function movePads() {
-    const pad1Limit = tableHeight / 2 - padHeight / 2;
-    const pad2Limit = tableHeight / 2 - padHeight / 2;
+    const padLimit = tableHeight / 2 - padHeight / 2;
 
-    if (pad1MoveUp && pad1.mesh.position.y + pad1.speed < pad1Limit) {
+    if (pad1MoveUp && pad1.mesh.position.y + pad1.speed < padLimit) {
         pad1.mesh.position.y = pad1.mesh.position.y + pad1.speed;
         socket.emit('movePad', { pad: 1, position: pad1.mesh.position.y });
     }
-    else if (pad1MoveDown && pad1.mesh.position.y - pad1.speed > -pad1Limit) {
+    else if (pad1MoveDown && pad1.mesh.position.y - pad1.speed > -padLimit) {
         pad1.mesh.position.y = pad1.mesh.position.y - pad1.speed;
         socket.emit('movePad', { pad: 1, position: pad1.mesh.position.y });
     }
-    else if (pad2MoveUp && pad2.mesh.position.y + pad2.speed < pad2Limit) {
+    else if (pad2MoveUp && pad2.mesh.position.y + pad2.speed < padLimit) {
         pad2.mesh.position.y = pad2.mesh.position.y + pad2.speed;
         socket.emit('movePad', { pad: 2, position: pad2.mesh.position.y });
     }
-    else if (pad2MoveDown && pad2.mesh.position.y - pad2.speed > -pad2Limit) {
+    else if (pad2MoveDown && pad2.mesh.position.y - pad2.speed > -padLimit) {
         pad2.mesh.position.y = pad2.mesh.position.y - pad2.speed;
         socket.emit('movePad', { pad: 2, position: pad2.mesh.position.y });
+    }
+    else if (pad3MoveUp && pad3.mesh.position.y + pad3.speed < padLimit) {
+        pad3.mesh.position.y = pad3.mesh.position.y + pad3.speed;
+        socket.emit('movePad', { pad: 3, position: pad3.mesh.position.y });
+    }
+    else if (pad3MoveDown && pad3.mesh.position.y - pad3.speed > -padLimit) {
+        pad3.mesh.position.y = pad3.mesh.position.y - pad3.speed;
+        socket.emit('movePad', { pad: 3, position: pad3.mesh.position.y });
+    }
+    else if (pad4MoveUp && pad4.mesh.position.y + pad4.speed < padLimit) {
+        pad4.mesh.position.y = pad4.mesh.position.y + pad4.speed;
+        socket.emit('movePad', { pad: 4, position: pad4.mesh.position.y });
+    }
+    else if (pad4MoveDown && pad4.mesh.position.y - pad4.speed > -padLimit) {
+        pad4.mesh.position.y = pad4.mesh.position.y - pad4.speed;
+        socket.emit('movePad', { pad: 4, position: pad4.mesh.position.y });
     }
 }
 
 function animate() {
     requestAnimationFrame(animate);
     movePads();
-    controls.update();
-    // console.log(camera.position);
+    //controls.update();
+    //console.log(camera.position);
     renderer.render(scene, camera);
 }
 
@@ -190,11 +237,24 @@ socket.on('start-game', (rooms) => {
     document.getElementById('score').classList.add('score-container');
     const player1 = rooms[0];
     const player2 = rooms[1];
+    const player3 = rooms[2];
+    const player4 = rooms[3];
 
     if (socket.id === player1) {
         controlledPad = 1;
     } else if (socket.id === player2) {
         controlledPad = 2;
+    } else if (socket.id === player3) {
+        controlledPad = 3;
+    } else if (socket.id === player4) {
+        controlledPad = 4;
+    }
+    if (player4) {
+        pad3 = new Pad(0xffffff, 0.045, 0.50, 16, -1, 0, 0);
+        pad3.addToScene(scene);
+    
+        pad4 = new Pad(0xffff00, 0.045, 0.50, 16, 1, 0, 0);
+        pad4.addToScene(scene);
     }
     console.log(controlledPad);
     animate();

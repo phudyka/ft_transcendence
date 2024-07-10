@@ -108,6 +108,7 @@
     <div id="menu" class="active">
         <button class="menu-button" id="solo-button">Solo</button>
         <button class="menu-button" id="multi-button">Multijoueur</button>
+        <button class="menu-button" id="multi-four"> 4 Joueurs</button>
     </div>
     <div id="waiting">
         <p>Waiting for another player...</p>
@@ -126,6 +127,10 @@
         });
         
         document.getElementById('multi-button').addEventListener('click', () => {
+            document.getElementById('menu').classList.remove('active');
+            document.getElementById('waiting').classList.add('active');
+        });
+        document.getElementById('multi-four').addEventListener('click', () => {
             document.getElementById('menu').classList.remove('active');
             document.getElementById('waiting').classList.add('active');
         });
