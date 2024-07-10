@@ -45,18 +45,18 @@ function initGame() {
     renderer.setClearColor(0x7EB6F7);
     document.body.appendChild(renderer.domElement);
 
-    const Light = new sunLight(0xffffff, 2.5);
+    const Light = new sunLight(0xffffff, 1.5);
     scene.add(Light);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
     scene.add(ambientLight);
 
     loadModel(scene);
 
-    pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 0, 0);
+    pad1 = new Pad(0xb3261a, 0.045, 0.50, 16, -2.13, 0, 0);
     pad1.addToScene(scene);
     
-    pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 0, 0);
+    pad2 = new Pad(0x2040df, 0.045, 0.50, 16, 2.10, 0, 0);
     pad2.addToScene(scene);
     
     const ball = new Ball(0.07, 32);
@@ -71,8 +71,8 @@ function initGame() {
             if (event.key === 'ArrowDown') pad2MoveDown = true;
         }
         else if (controlledPad === 3) {
-            if (event.key === 'ArrowUp') pad3MoveUp = true;
-            if (event.key === 'ArrowDown') pad3MoveDown = true;
+            if (event.key === 'w') pad3MoveUp = true;
+            if (event.key === 's') pad3MoveDown = true;
         }
         else if (controlledPad === 4) {
             if (event.key === 'ArrowUp') pad4MoveUp = true;
@@ -90,8 +90,8 @@ function initGame() {
             if (event.key === 'ArrowDown') pad2MoveDown = false;
         }
         else if (controlledPad === 3) {
-            if (event.key === 'ArrowUp') pad3MoveUp = false;
-            if (event.key === 'ArrowDown') pad3MoveDown = false;
+            if (event.key === 'w') pad3MoveUp = false;
+            if (event.key === 's') pad3MoveDown = false;
         }
         else if (controlledPad === 4) {
             if (event.key === 'ArrowUp') pad4MoveUp = false;
@@ -250,10 +250,10 @@ socket.on('start-game', (rooms) => {
         controlledPad = 4;
     }
     if (player4) {
-        pad3 = new Pad(0xffffff, 0.045, 0.50, 16, -1, 0, 0);
+        pad3 = new Pad(0xb3261a, 0.045, 0.50, 16, -0.5, 0, 0);
         pad3.addToScene(scene);
     
-        pad4 = new Pad(0xffff00, 0.045, 0.50, 16, 1, 0, 0);
+        pad4 = new Pad(0x2040df, 0.045, 0.50, 16, 0.5, 0, 0);
         pad4.addToScene(scene);
     }
     console.log(controlledPad);

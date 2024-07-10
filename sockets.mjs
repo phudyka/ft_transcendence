@@ -66,7 +66,7 @@ export default function setupSockets(io) {
 
             if (rooms[room].length === 1) {
                 const pad1 = new Pad(0xc4d418);
-                const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 0, 0);
+                const pad2 = new Pad(0xb3261a, 0.045, 0.50, 16, 2.10, 0, 0);
                 padsMap.set(room, { pad1, pad2 });
             }
 
@@ -140,8 +140,8 @@ export default function setupSockets(io) {
             if (rooms[room].length === 1) {
                 const pad1 = new Pad(0xc4d418);
                 const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 0, 0);
-                const pad3 = new Pad(0xfa00ff, 0.045, 0.50, 16, -1, 0, 0);
-                const pad4 = new Pad(0xfa00ff, 0.045, 0.50, 16, 1, 0, 0);
+                const pad3 = new Pad(0xfa00ff, 0.045, 0.50, 16, -0.5, 0, 0);
+                const pad4 = new Pad(0xfa00ff, 0.045, 0.50, 16, 0.5, 0, 0);
                 padsMap.set(room, { pad1, pad2, pad3, pad4 });
             }
 
