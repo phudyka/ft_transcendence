@@ -24,10 +24,10 @@ down:
 stop: down
 
 clean: down
-	@docker image rm -f $(IMAGES)
+	@docker image rm -f $(IMAGES) > /dev/null 2>&1
 
 fclean: clean
-	@docker volume rm -f $(VOLUMES)
+	@docker volume rm -f $(VOLUMES) > /dev/null
 
 re: fclean all
 

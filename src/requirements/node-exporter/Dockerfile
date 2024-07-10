@@ -10,7 +10,7 @@ RUN apk update && apk add --no-cache wget &&\
 
 EXPOSE 9100
 
-ENTRYPOINT [ "./node_exporter" ]
+ENTRYPOINT [ "/node-exporter/node_exporter" ]
 
 CMD [ "--path.procfs=/host/proc", \
     "--path.sysfs=/host/sys", \

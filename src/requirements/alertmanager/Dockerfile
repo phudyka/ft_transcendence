@@ -18,4 +18,4 @@ RUN chmod +x /alertmanager/start.sh
     
 EXPOSE 9093
 
-ENTRYPOINT [ "ash", "/alertmanager/start.sh" ]
+ENTRYPOINT [ "/alertmanager/start.sh" ]

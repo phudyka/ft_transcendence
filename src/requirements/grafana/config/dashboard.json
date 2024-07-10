@@ -584,7 +584,7 @@
           },
           "editorMode": "code",
           "exemplar": true,
-          "expr": "avg(node_hwmon_temp_celsius)",
+          "expr": "avg(node_hwmon_temp_celsius{sensor=\"temp1\"})",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -1340,7 +1340,7 @@
           },
           "editorMode": "code",
           "exemplar": false,
-          "expr": "avg(node_hwmon_temp_celsius)",
+          "expr": "avg(node_hwmon_temp_celsius{sensor=\"temp1\"})",
           "format": "time_series",
           "hide": false,
           "interval": "",
@@ -2565,8 +2565,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2667,8 +2666,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2741,8 +2739,7 @@
             "mode": "absolute",
             "steps": [
               {
-                "color": "green",
-                "value": null
+                "color": "green"
               },
               {
                 "color": "red",
@@ -2906,8 +2903,7 @@
     ]
   },
   "timezone": "browser",
-  "title": "Raspberry Pi & Docker Monitoring",
-  "uid": "VKtkKcAVz",
+  "title": "Monitoring",
   "version": 2,
   "weekStart": ""
 }
