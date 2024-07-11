@@ -15,6 +15,14 @@ networks:
 #       o: bind
 
 services:
+  nginx:
+    build: requirements/nginx
+    container_name: "nginx"
+    restart: "unless-stopped"
+    networks:
+      - 42nice
+    ports:
+      - "8080:80"
   grafana:
     build: requirements/grafana
     container_name: "monitoring_grafana"

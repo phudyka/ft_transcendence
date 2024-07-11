@@ -1,0 +1,292 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    background-color: #FFF9D0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Pousse le footer en bas */
+    align-items: center;
+}
+
+#ft_transcendence {
+    height: 100%;
+    width: 100%;
+}
+
+.dashboard-container {
+    display: flex;
+    flex-direction: column;
+    flex: 1; /* Permet à cet élément de prendre tout l'espace disponible */
+    width: 95%;
+    margin: 0;
+    padding: 0;
+}
+
+/* other existing styles */
+
+.login-register-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 90vh;
+    margin: 0;
+}
+
+.view {
+    display: none;
+    padding: 20px;
+}
+
+.active-view {
+    display: block;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 7%;
+    margin-top: 7%;
+    font-weight: 900;
+}
+
+.login-container h1 {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 50px;
+    background-color: #CAF4FF;
+    border-radius: 30px;
+    box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
+    border: 5px solid black;
+}
+
+form {
+    width: 100%;
+}
+
+p {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    text-align: center;
+    margin-bottom: 5px;
+    width: 100%;
+    font-weight: 900;
+    box-sizing: border-box;
+}
+
+input[type="text"], input[type="password"] {
+    width: calc(100%);
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    background-color: #5AB2FF;
+    border-radius: 30px;
+    border: 1px solid black;
+}
+
+.unmask {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    border: none;
+    border-radius: 30px;
+    color: #ffffff;
+    font-size: 16px;
+}
+
+.img-thumbnail {
+    width: 100%;
+    height: 100%;
+}
+
+/* button */
+.btn-primary {
+    background-color: #007bff;
+    border: 3px solid black;
+}
+
+.btn-danger {
+    background-color: #FF0000;
+    border: 3px solid black;
+}
+
+.btn-block {
+    display: block;
+    width: 100%;
+}
+
+/* for password visibility toggle */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-wrapper input[type="text"], 
+.password-wrapper input[type="password"] {
+    width: calc(100% - 40px);
+    width: 100%;
+    padding-right: 40px;
+    box-sizing: border-box;
+}
+
+.password-wrapper .unmask {
+    position: absolute;
+    right: 10px;
+    top: -15%;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: black;
+}
+
+.navbar {
+    color: #FFF9D0;
+    /* mettre en haut de la page */
+    position: fixed;
+    /* top: 0;
+    width: 100%;
+    z-index: 1000; */
+
+}
+
+.container-fluid {
+    padding-left: 0;
+    padding-right: 0;
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .user-info {
+        width: 100%;
+        padding: 20px;
+    }
+}
+
+#registerbutton, #registerbutton42{
+    margin-bottom: 10px;
+}
+
+#profile-picture {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	margin-bottom: 50px;
+	margin-top: 50px;
+
+	margin-left:auto;
+    margin-right:auto;
+    border-radius: 100px;
+    border: 4px solid black;
+    
+	/* object-fit: cover; */
+    /* width: 150px; */
+    /* height: 150px; */
+}
+
+.img-thumbnail {
+    width: 200px;
+    height: 200px;
+    /* object-fit: cover; */
+    border-radius: 50%;
+}
+
+#start_button {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+#loginAlert {
+	/* display: none; */
+	margin-left: 300px;
+	margin-right: 300px;
+	border-radius: 30px;
+	text-align: center;
+	border: 2px solid black;
+}
+
+#title_dashboard {
+	display: flex;
+	justify-content: center;
+	margin-left: auto;
+	margin-right: auto;
+}
+
+#play_button {
+	display: flex;
+}
+
+/* footer */
+footer {
+    text-align: center;
+    width: 100%;
+}
+
+#friends {
+    display: flex;
+    /* justify-content: center; */
+    /* align-items: center; */
+    margin-left: 5%;
+}
+
+/* liltle image picture for chose pp on register page*/
+#chose_pp {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* width : auto;
+    height : auto; */
+    width : 20px;
+    height : 15px;
+}
+
+
+.game-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-top: 2%;
+    /* margin-bottom: 50px; */
+    min-width: 85%;
+    min-height: 85%;
+    height: auto;
+    width: auto;
+}
+
+#header-dashboard {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    margin-top: 10px;
+    margin-bottom: 10px;
+
+
+    /* margin-top: 50px; */
+    /* margin-bottom: 50px; */
+}
