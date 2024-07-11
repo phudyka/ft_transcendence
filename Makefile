@@ -7,7 +7,8 @@ IMAGES =	src-grafana\
 			src-alertmanager\
 			src-node-exporter\
 			src-cadvisor\
-			src-nginx
+			src-nginx\
+			src-backend
 
 VOLUMES =	src_prometheus_data
 

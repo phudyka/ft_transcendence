@@ -3,8 +3,6 @@ networks:
     driver: bridge
   monitoring:
     driver: bridge
-  elk:
-    driver: bridge
   
 # volumes:
 #   prometheus_data:
@@ -18,11 +16,17 @@ services:
   nginx:
     build: requirements/nginx
     container_name: "nginx"
-    restart: "unless-stopped"
+    restart: unless-stopped
     networks:
       - 42nice
     ports:
       - "8080:80"
+  backend:
+    build: requirements/backend
+    container_name: "backend"
+    restart: unless-stopped
+    networks:
+      - 42nice
   grafana:
     build: requirements/grafana
     container_name: "monitoring_grafana"
