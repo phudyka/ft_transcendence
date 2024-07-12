@@ -45,15 +45,35 @@ function initGame() {
     renderer.setClearColor(0x7EB6F7);
     document.body.appendChild(renderer.domElement);
 
-    const Light = new sunLight(0xffffff, 1.5);
+    const axesHelper = new THREE.AxesHelper(10);
+    scene.add(axesHelper);
+
+    const textureLoader = new THREE.TextureLoader();
+    const texture = textureLoader.load('./png/nuages.png', function(texture) {
+
+    const planeGeo = new THREE.PlaneGeometry(window.innerWidth / 2, window.innerHeight / 2, 100);
+
+    const materialPlane = new THREE.MeshBasicMaterial({ 
+        map: texture,
+        transparent: true,
+        opacity: 0.7
+    });
+
+    const PlaneMesh = new THREE.Mesh(planeGeo, materialPlane);
+    PlaneMesh.position.set(0, 0, 50);
+
+    scene.add(PlaneMesh);
+});
+
+    const Light = new sunLight(0xffffff, 3);
     scene.add(Light);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
     scene.add(ambientLight);
 
     loadModel(scene);
 
-    pad1 = new Pad(0xb3261a, 0.045, 0.50, 16, -2.13, 0, 0);
+    pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.13, 0, 0);
     pad1.addToScene(scene);
     
     pad2 = new Pad(0x2040df, 0.045, 0.50, 16, 2.10, 0, 0);
@@ -140,10 +160,10 @@ function initGame() {
     };
     const endPosition = {
         x: 0,
-        y: -5,
+        y: -12,
         z: 6
     };
-    const duration = 3000;
+    const duration = 5000;
     const interval = 16;
     const step = {
         x: (endPosition.x - startPosition.x) / (duration / interval),
@@ -182,10 +202,10 @@ function initGame() {
 
 initGame();
 
-// const controls = new OrbitControls(camera, renderer.domElement);
-// controls.enableDamping = true;
-// controls.dampingFactor = 0.25;
-// controls.screenSpacePanning = false;
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.25;
+controls.screenSpacePanning = false;
 
 function movePads() {
     const padLimit = tableHeight / 2 - padHeight / 2;
@@ -250,7 +270,7 @@ socket.on('start-game', (rooms) => {
         controlledPad = 4;
     }
     if (player4) {
-        pad3 = new Pad(0xb3261a, 0.045, 0.50, 16, -0.5, 0, 0);
+        pad3 = new Pad(0xcc7700, 0.045, 0.50, 16, -0.5, 0, 0);
         pad3.addToScene(scene);
     
         pad4 = new Pad(0x2040df, 0.045, 0.50, 16, 0.5, 0, 0);
