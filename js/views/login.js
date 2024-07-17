@@ -7,7 +7,7 @@ function login(navigateTo) {
 	<div class="container login-container">
 	  <form id="loginForm">
 		<p>
-		  <label for="username">username</label>
+		  <label for="username" style="margin-top:3%;">username</label>
 		  <input type="text" class="value="" placeholder="Enter Username" id="username">
 		</p>
 		<p>

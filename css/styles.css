@@ -57,7 +57,7 @@ body {
 
 h1 {
     text-align: center;
-    /* margin-bottom: 7%; */
+    margin-bottom: 3%;
     margin-top: 2%;
     font-weight: 900;
     /* margin-bottom: 220px; */
@@ -82,7 +82,7 @@ h1 {
     border-radius: 30px;
     box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
     border: 5px solid black;
-    max-width: 50%;
+    max-width: 30%;
 }
 
 form {
@@ -96,7 +96,7 @@ p {
 label {
     display: block;
     text-align: center;
-    margin-bottom: 5px;
+    margin-bottom: 15px;
     width: 100%;
     font-weight: 900;
     box-sizing: border-box;
@@ -276,21 +276,30 @@ input::placeholder {
 }
 
 #loginAlert {
-	/* display: none; */
-	/* margin-left: 300px;
-	margin-right: 300px;
-    margin-bottom: 150px; */
-    margin-left: 6%;
-    margin-right: 6%;
+    margin-left: 36%;
+    margin-right: 36%;
 	border-radius: 30px;
 	text-align: center;
 	border: 2px solid black;
     background-color:#d93d35;
     border: 2px solid black;
-    /* need text in bold and white */
     color: white;
     font-weight: 900;
 }
+
+#arrowbackregister {
+    /* font-weight: 800";"aria-current="page"; */
+    display: flex;
+    justify-content: center;
+    margin-left: auto;
+	margin-right: auto;
+    margin-bottom: 1%;
+    border: 3px solid black;
+    max-width: 10%;
+    border-radius: 30px;
+
+}
+
 
 #title_dashboard {
 	display: flex;
@@ -307,6 +316,11 @@ input::placeholder {
 footer {
     text-align: center;
     width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center; 
+    position: fixed;
+    bottom: -50px;
 }
 
 #friends {
@@ -411,8 +425,7 @@ div.input-container {
     margin-bottom: 10px;
     margin-left: 10px;
     margin-right: 10px;
-    height: 400px;
-    
+    height: 270px;
   }
   
   .chat-log {

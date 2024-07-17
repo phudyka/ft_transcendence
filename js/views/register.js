@@ -1,62 +1,58 @@
 function register(navigateTo) {
   document.getElementById('ft_transcendence').innerHTML = `
   <ul class="nav navbar-expand-lg justify-content-center">
-    <li class="breadcrumb-item active" id="arrowbackregister" style="font-weight: 800" "aria-current="page">Back</li>
-	</ul>
+  </ul>
   <h1>Register</h1>
-    <div class="container login-container">
+  <li class="breadcrumb-item active" id="arrowbackregister">Back</li>
+  <div class="container login-container">
       <form id="registerForm">
-        <p>
-          <label for="username">username</label>
-          <input type="text" value="" placeholder="Enter Username" id="username">
-        </p>
-        <p>
-          <label for="password">password</label>
+          <p>
+              <label for="username" style="margin-top:3%;">username</label>
+              <input type="text" value="" placeholder="Enter Username" id="username">
+          </p>
+          <p>
+              <label for="password">password</label>
           <div class="password-wrapper">
-            <input type="password" value="" placeholder="Enter Password" id="password" class="password">
-            <button class="unmask" type="button" title="Mask/Unmask password to check content">
-              <i class="fas fa-lock"></i>
-            </button>
+              <input type="password" value="" placeholder="Enter Password" id="password" class="password">
+              <button class="unmask" type="button" title="Mask/Unmask password to check content">
+                  <i class="fas fa-lock"></i>
+              </button>
           </div>
-        </p>
-        <p>
-        <div class="choose-avatar">
-          <div class="avatars-container" id="avatars-container">
-            <span class="left" id="left_click"></span>
-            <div class="avatars" id="avatars">
-              <div class="avatar-item" style="background-image: url('https://i.ibb.co/C2WLdyY/avatar1.png');">
-                <span id="text-avatar">Choose</span>
-              </div>
-              <div class="avatar-item" style="background-image: url('https://i.ibb.co/0t3JTMz/avatar2.png');">
-                <span id="text-avatar">Choose</span>
-              </div>
-              <div class="avatar-item" style="background-image: url('https://i.ibb.co/K08BjJx/avatar3.png');">
-                <span id="text-avatar">Choose</span>
-              </div>
-              <div class="avatar-item" style="background-image: url('https://i.ibb.co/6XW1X2L/avatar4.png');">
-                <span id="text-avatar">Choose</span>
-              </div>
-              <div class="avatar-item" style="background-image: url('https://i.ibb.co/DVfTxB2/avatar5.png');">
-                <span id="text-avatar">Choose</span>
-              </div>
-              <div class="avatar-item" style="background-image: url('https://i.ibb.co/Bzvqgg3/avatar6.png');">
-                <span id="text-avatar">Choose</span>
-              </div>
-              <div class="avatar-item" style="background-image: url('https://i.ibb.co/FDg3t8m/avatar7.png');">
-                <span id="text-avatar">Choose</span>
-              </div>
+          </p>
+          <p>
+          <div class="choose-avatar">
+          <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
+          <div class="carousel-inner">
+            <div class="carousel-item active">
+              <img class="d-block w-100" id="avatar-item" src="https://i.ibb.co/C2WLdyY/avatar1.png" alt="First slide">
             </div>
-            <span class="right" id="right_click"></span>
+            <div class="carousel-item">
+              <img class="d-block w-100" id="avatar-item" src="https://i.ibb.co/0t3JTMz/avatar2.png" alt="Second slide">
+            </div>
+            <div class="carousel-item">
+              <img class="d-block w-100" id="avatar-item" src="https://i.ibb.co/K08BjJx/avatar3.png" alt="Third slide">
+            </div>
+            <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="sr-only">Next</span>
+            </div>
           </div>
+          </a>
         </div>
-        </p>
-        <button id="registerbutton" type="submit" class="btn btn-primary btn-block">Register</button>
-        <button id="registerbutton42" type="button" class="btn btn-primary btn-block">Register with 42</button>
+
+
+          </p>
+          <button id="registerbutton" type="submit" class="btn btn-primary btn-block">Register</button>
+          <button id="registerbutton42" type="button" class="btn btn-primary btn-block">Register with 42</button>
       </form>
-    </div>
-    <footer class="py-3 my-4">
+  </div>
+  <footer class="py-3 my-4">
       <p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
-    </footer>
+  </footer>
   `;
 
   document.addEventListener('click', function(event) {
@@ -87,15 +83,4 @@ function register(navigateTo) {
     navigateTo('login');
   });
 
-  document.getElementById('left_click').addEventListener('click', function(event) {
-    console.log('left click');
-    event.preventDefault();
-    document.getElementById('avatars').scrollLeft -= 200;
-  });
-
-  document.getElementById('right_click').addEventListener('click', function(event) {
-    console.log('right click');
-    event.preventDefault();
-    document.getElementById('avatars').scrollLeft += 200;
-  });
 }

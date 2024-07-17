@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Initial view display
-  const initialViewId = 'login';  // Default view to show on initial load
+  const initialViewId = 'register';  // Default view to show on initial load
   showView(initialViewId);
 
   document.addEventListener('click', function (event) {
