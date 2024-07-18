@@ -29,6 +29,9 @@ var scene;
 var camera;
 var renderer;
 
+var nuages;
+var nuagesMaterial;
+
 function initGame() {
 
     scene = new THREE.Scene();
@@ -53,17 +56,17 @@ function initGame() {
 
     const planeGeo = new THREE.PlaneGeometry(window.innerWidth / 2, window.innerHeight / 2, 100);
 
-    const materialPlane = new THREE.MeshBasicMaterial({ 
+    nuagesMaterial = new THREE.MeshBasicMaterial({ 
         map: texture,
         transparent: true,
-        opacity: 0.7
+        opacity: 1
     });
 
-    const PlaneMesh = new THREE.Mesh(planeGeo, materialPlane);
-    PlaneMesh.position.set(0, 0, 50);
-
-    scene.add(PlaneMesh);
-});
+    nuages = new THREE.Mesh(planeGeo, nuagesMaterial);
+    nuages.position.set(0, 0, 40);
+    
+    scene.add(nuages);
+    });
 
     const Light = new sunLight(0xffffff, 3);
     scene.add(Light);
@@ -153,6 +156,9 @@ function initGame() {
         socket.emit('disconnect');
     })
 
+    const startOpacity = 1;
+    const endOpacity = 0.0;
+
     const startPosition = {
         x: camera.position.x,
         y: camera.position.y,
@@ -168,13 +174,15 @@ function initGame() {
     const step = {
         x: (endPosition.x - startPosition.x) / (duration / interval),
         y: (endPosition.y - startPosition.y) / (duration / interval),
-        z: (endPosition.z - startPosition.z) / (duration / interval)
+        z: (endPosition.z - startPosition.z) / (duration / interval),
+        o: (endOpacity - startOpacity) / (duration / interval)
     };
 
     const cameraAnimation = setInterval(() => {
         camera.position.x += step.x;
         camera.position.y += step.y;
         camera.position.z += step.z;
+        nuagesMaterial.opacity += step.o;
         camera.lookAt(0,0,0);
 
         if (camera.position.z <= endPosition.z) {
@@ -182,6 +190,9 @@ function initGame() {
             camera.lookAt(0,0,0);
             document.getElementById('menu').classList.add('active');
             clearInterval(cameraAnimation);
+            scene.remove(nuages);
+            nuages.geometry.dispose();
+            nuages.material.dispose();
         }
 
         renderer.render(scene, camera);
