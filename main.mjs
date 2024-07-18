@@ -182,7 +182,7 @@ function initGame() {
         camera.position.x += step.x;
         camera.position.y += step.y;
         camera.position.z += step.z;
-        nuagesMaterial.opacity += step.o;
+        nuagesMaterial.opacity += step.o * 1.2;
         camera.lookAt(0,0,0);
 
         if (camera.position.z <= endPosition.z) {
