@@ -32,6 +32,11 @@ var renderer;
 var nuages;
 var nuagesMaterial;
 
+let mixer;
+let action;
+
+const clock = new THREE.Clock();
+
 function initGame() {
 
     scene = new THREE.Scene();
@@ -39,13 +44,20 @@ function initGame() {
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, -80, 150);
     
+    const loader = new THREE.TextureLoader();
+    loader.load('png/ciel3.jpg', function(texture) {
+    // Une fois la texture chargée, l'appliquer comme arrière-plan de la scène
+    scene.background = texture;
+    });
+
     renderer = new THREE.WebGLRenderer({ 
         antialias: true
     });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.setPixelRatio(window.devicePixelRatio * 0.8);
+    renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
-    renderer.setClearColor(0x7EB6F7);
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    //renderer.setClearColor(0x7EB6F7);
     document.body.appendChild(renderer.domElement);
 
     const axesHelper = new THREE.AxesHelper(10);
@@ -68,13 +80,21 @@ function initGame() {
     scene.add(nuages);
     });
 
-    const Light = new sunLight(0xffffff, 3);
+    const Light = new sunLight(0xfffff0, 2);
     scene.add(Light);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    const Sun = new THREE.DirectionalLight(0xfffff0, 1);
+    //Sun.castShadow = true;
+    Sun.position.set(10, 10, 15);
+    scene.add(Sun);
+
+    const ambientLight = new THREE.AmbientLight(0xfffff0, 0.5);
     scene.add(ambientLight);
 
-    loadModel(scene);
+    loadModel(scene, (loadedMixer, loadedAction) => {
+        mixer = loadedMixer;
+        action = loadedAction;
+    });
 
     pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.13, 0, 0);
     pad1.addToScene(scene);
@@ -258,6 +278,8 @@ function movePads() {
 function animate() {
     requestAnimationFrame(animate);
     movePads();
+    const delta = clock.getDelta();
+    if (mixer) mixer.update(delta);
     //controls.update();
     //console.log(camera.position);
     renderer.render(scene, camera);
