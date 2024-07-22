@@ -56,12 +56,41 @@ function initGame() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
-    //renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    //renderer.setClearColor(0x7EB6F7);
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+	renderer.toneMapping = THREE.ReinhardToneMapping;
+	renderer.toneMappingExposure = 1.8;
+    renderer.setClearColor(0x7EB6F7);
     document.body.appendChild(renderer.domElement);
 
     // const axesHelper = new THREE.AxesHelper(10);
     // scene.add(axesHelper);
+
+	const hemiLight = new THREE.HemisphereLight(0xffa95c, 0x080820, 1.5);
+    hemiLight.position.set(0, 200, 0);
+    scene.add(hemiLight);
+
+	const dirLight = new THREE.DirectionalLight(0xffa95c, 1);
+    dirLight.position.set(-13, 11, 11);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 4096;
+    dirLight.shadow.mapSize.height = 4096;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 500;
+    dirLight.shadow.camera.left = -50;
+    dirLight.shadow.camera.right = 50;
+    dirLight.shadow.camera.top = 50;
+    dirLight.shadow.camera.bottom = -50;
+    scene.add(dirLight);
+
+	// const spotLight = new THREE.SpotLight(0xffa95c, 4);
+	// spotLight.castShadow = true;
+	// scene.add(spotLight);
+	const pointLight = new THREE.PointLight(0xffa95c, 0.5, 100);
+    pointLight.position.set(0, 50, 50);
+    scene.add(pointLight);
+
+	const ambLight = new THREE.AmbientLight(0xffa95c, 1.5);
+    scene.add(ambLight);
 
     const textureLoader = new THREE.TextureLoader();
     const texture = textureLoader.load('./png/nuages.png', function(texture) {
@@ -176,59 +205,65 @@ function initGame() {
         socket.emit('disconnect');
     })
 
-    const startOpacity = 1;
-    const endOpacity = 0.0;
+	const startOpacity = 1;
+	const endOpacity = 0.0;
+	
+	const startPosition = {
+		x: camera.position.x,
+		y: camera.position.y,
+		z: camera.position.z
+	};
+	const endPosition = {
+		x: 0,
+		y: -20,
+		z: 6
+	};
+	const duration = 6000;
+	const interval = 16;
+	
+	function easeInOutExpo(t) {
+		const exponent = 15;
+		return t === 0 ? 0 : t === 1 ? 1 : t < 0.5 ? Math.pow(2, exponent * t - exponent / 2) / 2 : (2 - Math.pow(2, -exponent * t + exponent / 2)) / 2;
+	}
 
-    const startPosition = {
-        x: camera.position.x,
-        y: camera.position.y,
-        z: camera.position.z
-    };
-    const endPosition = {
-        x: 0,
-        y: -20,
-        z: 6
-    };
-    const duration = 5000;
-    const interval = 16;
-    const step = {
-        x: (endPosition.x - startPosition.x) / (duration / interval),
-        y: (endPosition.y - startPosition.y) / (duration / interval),
-        z: (endPosition.z - startPosition.z) / (duration / interval),
-        o: (endOpacity - startOpacity) / (duration / interval)
-    };
-
-    const cameraAnimation = setInterval(() => {
-        camera.position.x += step.x;
-        camera.position.y += step.y;
-        camera.position.z += step.z;
-        nuagesMaterial.opacity += step.o * 1.2;
-        camera.lookAt(0,0,0);
-
-        if (camera.position.z <= endPosition.z) {
-            camera.position.set(endPosition.x, endPosition.y, endPosition.z);
-            camera.lookAt(0,0,0);
-            document.getElementById('menu').classList.add('active');
-            clearInterval(cameraAnimation);
-            scene.remove(nuages);
-            nuages.geometry.dispose();
-            nuages.material.dispose();
-        }
-
-        renderer.render(scene, camera);
-    }, interval);
-
-    document.getElementById('multi-button').addEventListener('click', () => {
-        socket.emit('multi');
-    });
-
-    document.getElementById('solo-button').addEventListener('click', () => {
-        socket.emit('solo');
-    });
-
-    document.getElementById('multi-four').addEventListener('click', () => {
-        socket.emit('multi-four');
-    });
+	const cameraAnimation = setInterval(() => {
+		const elapsed = Date.now() - startTime;
+		const t = elapsed / duration;
+	
+		if (t >= 1) {
+			camera.position.set(endPosition.x, endPosition.y, endPosition.z);
+			camera.lookAt(0, 0, 0);
+			document.getElementById('menu').classList.add('active');
+			clearInterval(cameraAnimation);
+			scene.remove(nuages);
+			nuages.geometry.dispose();
+			nuages.material.dispose();
+			return;
+		}
+	
+		const easedT = easeInOutExpo(t);
+		camera.position.x = startPosition.x + (endPosition.x - startPosition.x) * easedT;
+		camera.position.y = startPosition.y + (endPosition.y - startPosition.y) * easedT;
+		camera.position.z = startPosition.z + (endPosition.z - startPosition.z) * easedT;
+		nuagesMaterial.opacity = startOpacity + (endOpacity - startOpacity) * easedT * 1.2;
+		camera.lookAt(0, 0, 0);
+	
+		renderer.render(scene, camera);
+	}, interval);
+	
+	document.getElementById('multi-button').addEventListener('click', () => {
+		socket.emit('multi');
+	});
+	
+	document.getElementById('solo-button').addEventListener('click', () => {
+		socket.emit('solo');
+	});
+	
+	document.getElementById('multi-four').addEventListener('click', () => {
+		socket.emit('multi-four');
+	});
+	
+	const startTime = Date.now();
 }
 
 initGame();
@@ -283,6 +318,11 @@ function animate() {
     //controls.update();
     //console.log(camera.position);
     renderer.render(scene, camera);
+		spotlight.position.set (
+		camera.position.x + 10,
+		camera.position.y + 10,
+		camera.position.z + 10
+	)
 }
 
 socket.on('start-game', (rooms) => {
