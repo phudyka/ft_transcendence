@@ -2,7 +2,7 @@ FROM alpine:3.18
 
 WORKDIR /alertmanager
 
-RUN apk update && apk add --no-cache wget &&\
+RUN apk update && apk add --no-cache wget=1.21.4-r0 &&\
     wget https://github.com/prometheus/alertmanager/releases/download/v0.27.0/alertmanager-0.27.0.linux-amd64.tar.gz &&\
     tar -xf alertmanager-0.27.0.linux-amd64.tar.gz &&\
     mv alertmanager-0.27.0.linux-amd64/* ./ &&\

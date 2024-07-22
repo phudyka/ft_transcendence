@@ -3,6 +3,8 @@ networks:
     driver: bridge
   monitoring:
     driver: bridge
+  # db_network:
+  #   driver: bridge
   
 # volumes:
 #   prometheus_data:
@@ -20,13 +22,35 @@ services:
     networks:
       - 42nice
     ports:
-      - "8080:80"
-  backend:
-    build: requirements/backend
-    container_name: "backend"
+      - "8080:443"
+    depends_on:
+      - grafana
+      - django
+
+
+
+
+  django:
+    build: requirements/django
+    container_name: "django"
     restart: unless-stopped
+    environment:
+      - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
     networks:
       - 42nice
+      # - db_network
+    # depends_on:
+    #   - postgresql
+  # postgresql:
+  #   build: requirements/postgresql
+  #   container_name: "postgresql"
+  #   restart: unless-stopped
+  #   networks:
+  #     - db_network
+
+
+
+
   grafana:
     build: requirements/grafana
     container_name: "monitoring_grafana"

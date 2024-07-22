@@ -8,7 +8,8 @@ IMAGES =	src-grafana\
 			src-node-exporter\
 			src-cadvisor\
 			src-nginx\
-			src-backend
+			src-django\
+			src-postgresql
 
 VOLUMES =	src_prometheus_data
 
