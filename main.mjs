@@ -352,4 +352,3 @@ socket.on('start-game', (rooms) => {
     console.log(controlledPad);
     animate();
 });
-

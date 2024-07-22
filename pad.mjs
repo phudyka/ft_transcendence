@@ -19,9 +19,7 @@ export class Pad {
         this.speed = 0.02;
         this.score = 0;
     }
-
     addToScene(scene) {
         scene.add(this.mesh);
     }
-
 }

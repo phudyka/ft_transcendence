@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Pong</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+        body {
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #87CEEB;
+            font-family: 'Press Start 2P', Arial, sans-serif;
+            overflow: hidden;
+            position: relative;
+        }
+        #score {
+            display : none;
+        }
+        #menu, #waiting {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            color: white;
+            backdrop-filter: blur(5px);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+        }
+        .menu-button {
+            background-color: #007BFF;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 10px 2px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #spinner {
+            margin-top: 20px;
+            width: 50px;
+            height: 50px;
+            border: 5px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        .score-container {
+            position: absolute;
+            top: 120px;
+            text-align: center;
+            font-size: 36px;
+            color: black;
+            z-index: 10;
+        }
+        #scoreTitle {
+            font-family: 'Press Start 2P', Arial, sans-serif;
+            font-size: 50px;
+            margin-bottom: 10px;
+        }
+        #scoreLeft {
+            position: absolute;
+            left: 300px;
+            top: 50px;
+        }
+        #scoreRight {
+            position: absolute;
+            right: 300px;
+            top: 50px;
+        }
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+        #menu.active, #waiting.active {
+            display: flex;
+        }
+        #score.score-container {
+            display: flex;
+        }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="menu" class="active">
+        <button class="menu-button" id="solo-button">Solo</button>
+        <button class="menu-button" id="multi-button">Multijoueur</button>
+        <button class="menu-button" id="multi-four"> 4 Joueurs</button>
+    </div>
+    <div id="waiting">
+        <p>Waiting for another player...</p>
+        <div id="spinner"></div>
+    </div>
+    <div id="score" class="score-container">
+        <div id="scoreTitle">PONG</div>
+        <div id="scoreLeft">0</div>
+        <div id="scoreRight">0</div>
+    </div>
+    <script>
+        document.getElementById('menu').classList.remove('active');
+        document.getElementById('score').classList.remove('score-container');
+        document.getElementById('solo-button').addEventListener('click', () => {
+            document.getElementById('menu').classList.remove('active');
+        });
+        
+        document.getElementById('multi-button').addEventListener('click', () => {
+            document.getElementById('menu').classList.remove('active');
+            document.getElementById('waiting').classList.add('active');
+        });
+        document.getElementById('multi-four').addEventListener('click', () => {
+            document.getElementById('menu').classList.remove('active');
+            document.getElementById('waiting').classList.add('active');
+        });
+        </script>
+        <script src="./node_modules/socket.io/client-dist/socket.io.js"></script>
+        <script type="module" src="/main.mjs"></script>
+</body>
+</html>
