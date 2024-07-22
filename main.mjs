@@ -118,6 +118,7 @@ function initGame() {
     const ambientLight = new THREE.AmbientLight(0xfffff0, 0.5);
     scene.add(ambientLight);
 
+
 	renderer.setPixelRatio(window.devicePixelRatio);
 
     loadModel(scene, (loadedMixer, loadedAction) => {
@@ -218,7 +219,7 @@ function initGame() {
 		y: -20,
 		z: 6
 	};
-	const duration = 6000;
+	const duration = 6800;
 	const interval = 16;
 	
 	function easeInOutExpo(t) {
