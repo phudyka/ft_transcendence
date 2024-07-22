@@ -26,6 +26,24 @@ function dashboard(navigateTo, $player_name) {
 					<a class="dropdown-item" href="#" id="sendMessage">Send Private Message</a>
 					<a class="dropdown-item" href="#" id="startGame">Start a Game</a>
 				</div>
+				<div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="chatbox" aria-labelledby="chatboxLabel">
+					<div class="offcanvas-header">
+						<h5 class="offcanvas-title" id="chatboxLabel">Private Message</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+					</div>
+				<div class="offcanvas-body">
+
+					<div class="chat-container2">
+						<div class="chat-log2" id="chat-log2"> 
+						</div>	
+						<div class="input-container2">
+							<textarea id="message-input2" placeholder="Type your message..." rows="1"></textarea>
+							<button id="send-button2">Send</button>
+						</div>
+					</div>
+
+				</div>
+		</div>
 			</div>
 				<div class="col-md-9 main-content">
 					<div class="card">
@@ -46,12 +64,12 @@ function dashboard(navigateTo, $player_name) {
 					<div class="card">
 						<div class="chat-container">
 							<div class="chat-log" id="chat-log"> 
-						</div>
-						<div class="input-container">
-							<textarea id="message-input" placeholder="Type your message..." rows="1"></textarea>
-							<button id="send-button">Send</button>
-						</div>
-					<f/div>
+							</div>	
+								<div class="input-container">
+								<textarea id="message-input" placeholder="Type your message..." rows="1"></textarea>
+								<button id="send-button">Send</button>
+							</div>
+					</div>
 					</div>
 				</div>
 			</div>
@@ -118,10 +136,17 @@ function attachEventHandlers3(navigateTo, $player_name) {
     // Event handlers for dropdown menu actions
     document.getElementById('sendMessage').addEventListener('click', function (event) {
         event.preventDefault();
-        const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
-        console.log(`Send message to ${friendName}`);
-        chat(navigateTo, $player_name, friendName);
+        // const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
+        // console.log(`Send message to ${friendName}`);
+        // chat(navigateTo, $player_name, friendName);
+		var chatbox = new bootstrap.Offcanvas(document.getElementById('chatbox'));
+		if (!chatbox)
+			{console.log('chatbox is null');}
+		chatbox.show();
     });
+
+
+
 
     document.getElementById('startGame').addEventListener('click', function (event) {
         event.preventDefault();
@@ -134,14 +159,30 @@ function attachEventHandlers3(navigateTo, $player_name) {
 	document.getElementById('send-button').addEventListener('click', function (event) {
 		event.preventDefault();
 		const messageInput = document.getElementById('message-input');
-		const message = formatMessage(messageInput.value);
-		const chatLog = document.getElementById('chat-log');
-		const messageElement = document.createElement('div');
-		messageElement.textContent = message;
-		chatLog.appendChild(messageElement);
-		messageInput.value = '';
-		// adjustInputHeight();
+		if (messageInput.value.trim() !== '') {
+			const message = formatMessage(messageInput.value, $player_name);
+			const chatLog = document.getElementById('chat-log');
+			const messageElement = document.createElement('div');
+			messageElement.innerText = message;
+			chatLog.appendChild(messageElement);
+			messageInput.value = '';
+			scrollToBottom();
+		}
 	});
+
+	document.getElementById('send-button2').addEventListener('click', function (event) {
+		event.preventDefault();
+		const messageInput2 = document.getElementById('message-input2');
+		if (messageInput2.value.trim() !== '') {
+		  const message = formatMessage(messageInput2.value, $player_name);
+		  const chatLog2 = document.getElementById('chat-log2');
+		  const messageElement = document.createElement('div');
+		  messageElement.innerText = message;
+		  chatLog2.appendChild(messageElement);
+		  messageInput2.value = '';
+		  scrollToBottom2();
+		}
+	  });
 
 	// Send message when pressing Enter key
 	document.addEventListener("keydown", function (event) {
@@ -150,16 +191,36 @@ function attachEventHandlers3(navigateTo, $player_name) {
 			document.getElementById('send-button').click();
 		}
 	});
+
+	document.addEventListener("keydown", function (event) {
+		if (event.key === 'Enter' && !event.shiftKey) {
+			event.preventDefault();
+			document.getElementById('send-button2').click();
+		}
+	});
+
 }
 
+function scrollToBottom() {
+    const chatLog = document.getElementById('chat-log');
+    chatLog.scrollTop = chatLog.scrollHeight;
+}
 
+function scrollToBottom2() {
+	const chatLog2 = document.getElementById('chat-log2');
+	chatLog2.scrollTop = chatLog2.scrollHeight;
+  }
 
-function formatMessage(message) {
+function formatMessage(message, playerName) {
+	/* for no html injection */
 	if (message.startsWith("```")) {
 		return `<pre>${message}</pre>`;
 	}
+
+	/* syntax : [player_name] : message */
 	message = message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-	return message.replace(/(```[\s\S]*?```)/g, '<pre>$1</pre>');
+	message = message.replace(/(```[\s\S]*?```)/g, '<pre>$1</pre>');
+	return `[${playerName}] : ${message}`;
   }
 
   // Adjust the height of the input field based on its content
@@ -167,3 +228,4 @@ function adjustInputHeight() {
 	messageInput.style.height = 'auto';
 	messageInput.style.height = `${messageInput.scrollHeight}px`;
 }
+

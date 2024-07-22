@@ -59,6 +59,9 @@ function attachEventHandlers(navigateTo) {
 	  if (username === '' && password === '') {
 		console.log('Login successful');
 		navigateTo('dashboard', username);
+	  } else if (username === 'fab' && password === 'fab') {
+			console.log('Login successful');
+			navigateTo('dashboard', username);
 	  } else {
 		const loginAlert = document.getElementById('loginAlert');
 		loginAlert.classList.remove('d-none');
@@ -91,4 +94,11 @@ function attachEventHandlers(navigateTo) {
 		  }
 		}
 	  });
+
+	  document.addEventListener("keydown", function (event) {
+		//if enter key is presset and login form is complete then submit the form
+		if (event.key === "Enter" && document.getElementById('username').value !== '' && document.getElementById('password').value !== '') {
+			document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+		}
+	});
 }

@@ -20,31 +20,30 @@ function register(navigateTo) {
           </div>
           </p>
           <p>
+            
           <div class="choose-avatar">
-          <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
+            <div id="carouselExampleControls" class="carousel slide" data-ride="carousel" data-interval="false" keyboard="true">
           <div class="carousel-inner">
             <div class="carousel-item active">
-              <img class="d-block w-100" id="avatar-item" src="https://i.ibb.co/C2WLdyY/avatar1.png" alt="First slide">
+              <img class="d-block w-100 avatar-image" src="https://i.ibb.co/C2WLdyY/avatar1.png" alt="First slide">
             </div>
             <div class="carousel-item">
-              <img class="d-block w-100" id="avatar-item" src="https://i.ibb.co/0t3JTMz/avatar2.png" alt="Second slide">
+              <img class="d-block w-100 avatar-image" src="https://i.ibb.co/0t3JTMz/avatar2.png" alt="Second slide">
             </div>
             <div class="carousel-item">
-              <img class="d-block w-100" id="avatar-item" src="https://i.ibb.co/K08BjJx/avatar3.png" alt="Third slide">
+              <img class="d-block w-100 avatar-image" src="https://i.ibb.co/K08BjJx/avatar3.png" alt="Third slide">
             </div>
-            <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
-              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <a class="carousel-control-prev" role="button" data-slide="prev">
+              <span class="carousel-control-prev-icon" id="carousel-control-prev-icon" aria-hidden="true"></span>
               <span class="sr-only">Previous</span>
             </a>
-            <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
-              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <a class="carousel-control-next" role="button" data-slide="next">
+              <span class="carousel-control-next-icon" id="carousel-control-next-icon" aria-hidden="true"></span>
               <span class="sr-only">Next</span>
-            </div>
+            </a>
           </div>
-          </a>
+          </div>
         </div>
-
-
           </p>
           <button id="registerbutton" type="submit" class="btn btn-primary btn-block">Register</button>
           <button id="registerbutton42" type="button" class="btn btn-primary btn-block">Register with 42</button>
@@ -55,25 +54,24 @@ function register(navigateTo) {
   </footer>
   `;
 
-  document.addEventListener('click', function(event) {
-    if (event.target.classList.contains('unmask') || event.target.closest('.unmask')) {
-      const button = event.target.closest('.unmask');
-      const input = button.previousElementSibling;
-      if (input.type === 'password') {
-        input.type = 'text';
-        button.querySelector('i').classList.remove('fa-lock');
-        button.querySelector('i').classList.add('fa-lock-open');
-      } else {
-        input.type = 'password';
-        button.querySelector('i').classList.remove('fa-lock-open');
-        button.querySelector('i').classList.add('fa-lock');
-      }
-    }
-  });
+	document.addEventListener('click', function (event) {
+		if (event.target.classList.contains('unmask') || event.target.closest('.unmask')) {
+		  const button = event.target.closest('.unmask');  // Target the entire button
+		  const input = button.previousElementSibling;
+		  if (input.type === 'password') {
+			input.type = 'text';
+			button.querySelector('i').classList.remove('fa-lock');
+			button.querySelector('i').classList.add('fa-lock-open');
+		  } else {
+			input.type = 'password';
+			button.querySelector('i').classList.remove('fa-lock-open');
+			button.querySelector('i').classList.add('fa-lock');
+		  }
+		}
+	  });
 
   document.getElementById('registerForm').addEventListener('submit', function(event) {
     event.preventDefault();
-    // create account and add to database
     alert('Account created successfully');
     navigateTo('login');
   });
@@ -83,4 +81,14 @@ function register(navigateTo) {
     navigateTo('login');
   });
 
+  //carrousel 
+  document.getElementById('carousel-control-next-icon').addEventListener('click', function(event) {
+    event.preventDefault();
+    $('#carouselExampleControls').carousel('next');
+  });
+
+  document.getElementById('carousel-control-prev-icon').addEventListener('click', function(event) {
+    event.preventDefault();
+    $('#carouselExampleControls').carousel('prev');
+  });
 }

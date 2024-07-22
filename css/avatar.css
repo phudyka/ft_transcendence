@@ -3,16 +3,5 @@
 	align-items: center;
 	justify-content: center;
 	flex-direction: column;
-  }
-
-.carousel-control-next-icon {
-	display:flex;
-	align-items: center;
-	justify-content: center;
-	flex-direction: column;
-	left:115px;
 }
 
-.avatar-item {
-	
-}
