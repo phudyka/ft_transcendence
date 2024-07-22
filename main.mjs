@@ -46,7 +46,7 @@ function initGame() {
     
     const loader = new THREE.TextureLoader();
     loader.load('png/ciel3.jpg', function(texture) {
-    // Une fois la texture chargée, l'appliquer comme arrière-plan de la scène
+
     scene.background = texture;
     });
 
@@ -56,12 +56,12 @@ function initGame() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    //renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     //renderer.setClearColor(0x7EB6F7);
     document.body.appendChild(renderer.domElement);
 
-    const axesHelper = new THREE.AxesHelper(10);
-    scene.add(axesHelper);
+    // const axesHelper = new THREE.AxesHelper(10);
+    // scene.add(axesHelper);
 
     const textureLoader = new THREE.TextureLoader();
     const texture = textureLoader.load('./png/nuages.png', function(texture) {
@@ -76,7 +76,7 @@ function initGame() {
 
     nuages = new THREE.Mesh(planeGeo, nuagesMaterial);
     nuages.position.set(0, 0, 40);
-    
+
     scene.add(nuages);
     });
 
@@ -186,7 +186,7 @@ function initGame() {
     };
     const endPosition = {
         x: 0,
-        y: -12,
+        y: -20,
         z: 6
     };
     const duration = 5000;
