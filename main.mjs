@@ -80,11 +80,9 @@ function initGame() {
     dirLight.shadow.camera.right = 50;
     dirLight.shadow.camera.top = 50;
     dirLight.shadow.camera.bottom = -50;
+	dirLight.shadow.bias = -0.01;
     scene.add(dirLight);
 
-	// const spotLight = new THREE.SpotLight(0xffa95c, 4);
-	// spotLight.castShadow = true;
-	// scene.add(spotLight);
 	const pointLight = new THREE.PointLight(0xffa95c, 0.5, 100);
     pointLight.position.set(0, 50, 50);
     scene.add(pointLight);
@@ -109,16 +107,18 @@ function initGame() {
     scene.add(nuages);
     });
 
-    const Light = new sunLight(0xfffff0, 2);
+    const Light = new sunLight(0xffa95c, 2);
     scene.add(Light);
 
-    const Sun = new THREE.DirectionalLight(0xfffff0, 1);
-    //Sun.castShadow = true;
+    const Sun = new THREE.DirectionalLight(0xffa95c, 0.5);
+    Sun.castShadow = true;
     Sun.position.set(10, 10, 15);
     scene.add(Sun);
 
     const ambientLight = new THREE.AmbientLight(0xfffff0, 0.5);
     scene.add(ambientLight);
+
+	renderer.setPixelRatio(window.devicePixelRatio);
 
     loadModel(scene, (loadedMixer, loadedAction) => {
         mixer = loadedMixer;
