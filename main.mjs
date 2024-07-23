@@ -52,30 +52,30 @@ function initGame() {
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.body.appendChild(renderer.domElement);
 
-    const hemiLight = new THREE.HemisphereLight(0xffa95c, 0x080820, 1.5);
+    const hemiLight = new THREE.HemisphereLight(0xfffff0, 0x080820, 1);
     hemiLight.position.set(0, 200, 0);
     scene.add(hemiLight);
 
-    const dirLight = new THREE.DirectionalLight(0xffa95c, 1);
-    dirLight.position.set(-13, 11, 11);
-    dirLight.castShadow = true;
-    dirLight.shadow.mapSize.width = 4096;
-    dirLight.shadow.mapSize.height = 4096;
-    dirLight.shadow.camera.near = 0.5;
-    dirLight.shadow.camera.far = 500;
-    dirLight.shadow.camera.left = -50;
-    dirLight.shadow.camera.right = 50;
-    dirLight.shadow.camera.top = 50;
-    dirLight.shadow.camera.bottom = -50;
-    dirLight.shadow.bias = -0.01;
-    scene.add(dirLight);
+    // const dirLight = new THREE.DirectionalLight(0xfffff0, 1);
+    // dirLight.position.set(-13, 11, 11);
+    // dirLight.castShadow = true;
+    // dirLight.shadow.mapSize.width = 4096;
+    // dirLight.shadow.mapSize.height = 4096;
+    // dirLight.shadow.camera.near = 0.5;
+    // dirLight.shadow.camera.far = 500;
+    // dirLight.shadow.camera.left = -50;
+    // dirLight.shadow.camera.right = 50;
+    // dirLight.shadow.camera.top = 50;
+    // dirLight.shadow.camera.bottom = -50;
+    // dirLight.shadow.bias = -0.01;
+    // scene.add(dirLight);
 
     const pointLight = new THREE.PointLight(0xffa95c, 0.5, 100);
     pointLight.position.set(0, 50, 50);
     scene.add(pointLight);
 
-    const ambLight = new THREE.AmbientLight(0xffa95c, 1.5);
-    scene.add(ambLight);
+    // const ambLight = new THREE.AmbientLight(0xffa95c, 1.5);
+    // scene.add(ambLight);
 
     const logoTextureLoader = new THREE.TextureLoader();
     const logoTexture = logoTextureLoader.load('./png/logoScreen.png', function(texture) {
@@ -183,7 +183,7 @@ function initGame() {
             }, interval);
         });
 
-        const Light = new sunLight(0xffa95c, 2);
+        const Light = new sunLight(0xfffff0, 2);
         scene.add(Light);
 
         const Sun = new THREE.DirectionalLight(0xfffff0, 1);
