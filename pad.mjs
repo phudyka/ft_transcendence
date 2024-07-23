@@ -13,7 +13,7 @@ export class Pad {
         this.mesh.castShadow = true;
         this.mesh.position.set(x, y, z);
         this.targetY = this.mesh.position.y;
-        this.speed = 0.02;
+        this.speed = 0.04;
         this.score = 0;
     }
 
