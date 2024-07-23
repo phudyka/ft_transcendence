@@ -102,6 +102,19 @@
             width: 100%;
             height: 100%;
         }
+        #credits {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            color: white;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
     </style>
 </head>
 <body>
@@ -119,6 +132,9 @@
         <div id="scoreLeft">0</div>
         <div id="scoreRight">0</div>
     </div>
+    <div id="credits">
+        <h1>CREDITS</h1>
+    </div>
     <script>
         document.getElementById('menu').classList.remove('active');
         document.getElementById('score').classList.remove('score-container');
@@ -134,8 +150,8 @@
             document.getElementById('menu').classList.remove('active');
             document.getElementById('waiting').classList.add('active');
         });
-        </script>
-        <script src="./node_modules/socket.io/client-dist/socket.io.js"></script>
-        <script type="module" src="/main.mjs"></script>
+    </script>
+    <script src="./node_modules/socket.io/client-dist/socket.io.js"></script>
+    <script type="module" src="/main.mjs"></script>
 </body>
 </html>

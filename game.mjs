@@ -2,6 +2,8 @@ import { tableHeight, tableWidth } from './config.mjs';
 import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
 
+let maxScore = 1; // (11 points to win)
+
 function IApad(pad2, ball) {
     const speed = 0.1;
     const impreciseSpeed = 0.03;
@@ -46,16 +48,25 @@ function checkWallCollision(ball, pad1, pad2, io, room) {
         ball.direction.z *= -1;
         ball.mesh.position.z = -tableHeight / 2 + ball.radius + 0.02;
     }
-
     if (ball.mesh.position.x > tableWidth / 2 + ball.radius) {
         ball.resetPosition();
         pad2.score++;
         io.in(room).emit('updateScores', { score1: pad1.score, score2: pad2.score });
+        if (pad2.score >= maxScore) { 
+            io.in(room).emit('gameOver', { winner: 'Player 2', score1: pad1.score, score2: pad2.score });
+            pad1.score = 0;
+            pad2.score = 0;
+        }
     }
     if (ball.mesh.position.x < -tableWidth / 2 - ball.radius) {
         ball.resetPosition();
         pad1.score++;
         io.in(room).emit('updateScores', { score1: pad1.score, score2: pad2.score });
+        if (pad1.score >= maxScore) { 
+            io.in(room).emit('gameOver', { winner: 'Player 1', score1: pad1.score, score2: pad2.score });
+            pad1.score = 0;
+            pad2.score = 0;
+        }
     }
 }
 

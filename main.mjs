@@ -38,18 +38,11 @@ let action;
 const clock = new THREE.Clock();
 
 function initGame() {
-
     scene = new THREE.Scene();
     
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.set(0, 200, 50);
     
-    const loader = new THREE.TextureLoader();
-    loader.load('png/ciel3.jpg', function(texture) {
-
-    scene.background = texture;
-    });
-
     renderer = new THREE.WebGLRenderer({ 
         antialias: true
     });
@@ -57,17 +50,13 @@ function initGame() {
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    //renderer.setClearColor(0x7EB6F7);
     document.body.appendChild(renderer.domElement);
 
-    // const axesHelper = new THREE.AxesHelper(10);
-    // scene.add(axesHelper);
-
-	const hemiLight = new THREE.HemisphereLight(0xffa95c, 0x080820, 1.5);
+    const hemiLight = new THREE.HemisphereLight(0xffa95c, 0x080820, 1.5);
     hemiLight.position.set(0, 200, 0);
     scene.add(hemiLight);
 
-	const dirLight = new THREE.DirectionalLight(0xffa95c, 1);
+    const dirLight = new THREE.DirectionalLight(0xffa95c, 1);
     dirLight.position.set(-13, 11, 11);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 4096;
@@ -78,115 +67,200 @@ function initGame() {
     dirLight.shadow.camera.right = 50;
     dirLight.shadow.camera.top = 50;
     dirLight.shadow.camera.bottom = -50;
-	dirLight.shadow.bias = -0.01;
+    dirLight.shadow.bias = -0.01;
     scene.add(dirLight);
 
-	const pointLight = new THREE.PointLight(0xffa95c, 0.5, 100);
+    const pointLight = new THREE.PointLight(0xffa95c, 0.5, 100);
     pointLight.position.set(0, 50, 50);
     scene.add(pointLight);
 
-	// const ambLight = new THREE.AmbientLight(0xffa95c, 1.5);
-    // scene.add(ambLight);
+    const ambLight = new THREE.AmbientLight(0xffa95c, 1.5);
+    scene.add(ambLight);
 
-    const textureLoader = new THREE.TextureLoader();
-    const texture = textureLoader.load('./png/nuages.png', function(texture) {
+    const logoTextureLoader = new THREE.TextureLoader();
+    const logoTexture = logoTextureLoader.load('./png/logoScreen.png', function(texture) {
+        const logoMaterial = new THREE.MeshBasicMaterial({ 
+            map: texture,
+            transparent: true,
+            opacity: 1
+        });
+        const logoGeometry = new THREE.PlaneGeometry(160, 100);
+        const logoMesh = new THREE.Mesh(logoGeometry, logoMaterial);
+        logoMesh.position.set(0, 0, 0);
+		logoMesh.rotation.set(-1.56, 0, 0);
+        scene.add(logoMesh);
 
-    const planeGeo = new THREE.PlaneGeometry(window.innerWidth / 2, window.innerHeight / 2, 100);
+        renderer.render(scene, camera);
 
-    nuagesMaterial = new THREE.MeshBasicMaterial({ 
-        map: texture,
-        transparent: true,
-        opacity: 2
+        setTimeout(() => {
+            fadeOutLogoAndStartAnimation(logoMesh, logoMaterial);
+        }, 2000);
     });
 
-    nuages = new THREE.Mesh(planeGeo, nuagesMaterial);
-    nuages.position.set(0,60,0);
-    nuages.rotation.set(-1.56,0,0)
-    scene.add(nuages);
-    });
+    function fadeOutLogoAndStartAnimation(logoMesh, logoMaterial) {
+        const fadeDuration = 2200; 
+        const startTime = performance.now();
 
-    const Light = new sunLight(0xfffff0, 2);
-    scene.add(Light);
+        function fadeOut() {
+            const elapsedTime = performance.now() - startTime;
+            const opacity = 1 - (elapsedTime / fadeDuration);
+            logoMaterial.opacity = Math.max(opacity, 0);
 
-    const Sun = new THREE.DirectionalLight(0xfffff0, 1);
+            if (elapsedTime < fadeDuration) {
+                requestAnimationFrame(fadeOut);
+            } else {
+                scene.remove(logoMesh);
+                logoMesh.geometry.dispose();
+                logoMesh.material.dispose();
+                startCameraAnimation();
+            }
 
-    Sun.position.set(-5, 20, -15);
-    //Sun.castShadow = true;
-    scene.add(Sun);
-
-    const ambientLight = new THREE.AmbientLight(0xfffff0, 0.5);
-    scene.add(ambientLight);
-
-
-	renderer.setPixelRatio(window.devicePixelRatio);
-
-    loadModel(scene, (loadedMixer, loadedAction) => {
-        mixer = loadedMixer;
-        action = loadedAction;
-    });
-
-    pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.10, 3.59, 0);
-    pad1.addToScene(scene);
-    
-    pad2 = new Pad(0x2040df, 0.045, 0.50, 16, 2.10, 3.59, 0);
-    pad2.addToScene(scene);
-    
-    const ball = new Ball(0.07, 32);
-    ball.addToScene(scene);
-
-    document.addEventListener('keydown', (event) => {
-        if (controlledPad === 1) {
-            if (event.key === 'w') pad1MoveUp = true;
-            if (event.key === 's') pad1MoveDown = true;
-        } else if (controlledPad === 2) {
-            if (event.key === 'ArrowUp') pad2MoveUp = true;
-            if (event.key === 'ArrowDown') pad2MoveDown = true;
+            renderer.render(scene, camera);
         }
-        else if (controlledPad === 3) {
-            if (event.key === 'w') pad3MoveUp = true;
-            if (event.key === 's') pad3MoveDown = true;
-        }
-        else if (controlledPad === 4) {
-            if (event.key === 'ArrowUp') pad4MoveUp = true;
-            if (event.key === 'ArrowDown') pad4MoveDown = true;
-        }
-        movePads();
-    });
-    
-    document.addEventListener('keyup', (event) => {
-        if (controlledPad === 1) {
-            if (event.key === 'w') pad1MoveUp = false;
-            if (event.key === 's') pad1MoveDown = false;
-        } else if (controlledPad === 2) {
-            if (event.key === 'ArrowUp') pad2MoveUp = false;
-            if (event.key === 'ArrowDown') pad2MoveDown = false;
-        }
-        else if (controlledPad === 3) {
-            if (event.key === 'w') pad3MoveUp = false;
-            if (event.key === 's') pad3MoveDown = false;
-        }
-        else if (controlledPad === 4) {
-            if (event.key === 'ArrowUp') pad4MoveUp = false;
-            if (event.key === 'ArrowDown') pad4MoveDown = false;
-        }
-        movePads();
-    });
-    
-    socket.on('initBall', (data) => {
-        ball.mesh.position.x = data.position.x;
-        ball.mesh.position.z = data.position.z;
-        console.log('Initial ball data received:', data);
-    });
-    
-    socket.on('moveBall', (data) => {
-        ball.mesh.position.x = data.position.x;
-        ball.mesh.position.z = data.position.z;
-        ball.speed = data.speed;
-    });
-    
-    
-    socket.on('movePad', (data) => {
-        console.log('Received movePad event:', data);
+
+        fadeOut();
+    }
+
+    function startCameraAnimation() {
+        const loader = new THREE.TextureLoader();
+        loader.load('png/ciel3.jpg', function(texture) {
+            scene.background = texture;
+        });
+
+        const textureLoader = new THREE.TextureLoader();
+        const texture = textureLoader.load('./png/nuages.png', function(texture) {
+            const planeGeo = new THREE.PlaneGeometry(window.innerWidth / 2, window.innerHeight / 2, 100);
+            nuagesMaterial = new THREE.MeshBasicMaterial({ 
+                map: texture,
+                transparent: true,
+                opacity: 2
+            });
+
+            nuages = new THREE.Mesh(planeGeo, nuagesMaterial);
+            nuages.position.set(0, 60, 0);
+            nuages.rotation.set(-1.56, 0, 0);
+            scene.add(nuages);
+
+            const startOpacity = 2;
+            const endOpacity = 0.0;
+            const startPosition = {
+                x: camera.position.x,
+                y: camera.position.y,
+                z: camera.position.z
+            };
+            const endPosition = {
+                x: 0,
+                y: 8,
+                z: 20
+            };
+            const duration = 4500;
+            const interval = 16;
+            let elapsedTime = 0;
+
+            const cameraAnimation = setInterval(() => {
+                elapsedTime += interval;
+
+                const newX = easeInOutExpo(elapsedTime, startPosition.x, endPosition.x - startPosition.x, duration);
+                const newY = easeInOutExpo(elapsedTime, startPosition.y, endPosition.y - startPosition.y, duration);
+                const newZ = easeInOutExpo(elapsedTime, startPosition.z, endPosition.z - startPosition.z, duration);
+                const newOpacity = easeInOutExpo(elapsedTime, startOpacity, endOpacity - startOpacity, duration);
+
+                camera.position.set(newX, newY, newZ);
+                nuagesMaterial.opacity = newOpacity;
+                camera.lookAt(0, 0, 0);
+
+                if (elapsedTime >= duration) {
+                    camera.position.set(endPosition.x, endPosition.y, endPosition.z);
+                    camera.lookAt(0, 0, 0);
+                    document.getElementById('menu').classList.add('active');
+                    clearInterval(cameraAnimation);
+                    scene.remove(nuages);
+                    nuages.geometry.dispose();
+                    nuages.material.dispose();
+                }
+
+                renderer.render(scene, camera);
+            }, interval);
+        });
+
+        const Light = new sunLight(0xffa95c, 2);
+        scene.add(Light);
+
+        const Sun = new THREE.DirectionalLight(0xfffff0, 1);
+        Sun.position.set(-5, 20, -15);
+        scene.add(Sun);
+
+        const ambientLight = new THREE.AmbientLight(0xfffff0, 0.5);
+        scene.add(ambientLight);
+
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        loadModel(scene, (loadedMixer, loadedAction) => {
+            mixer = loadedMixer;
+            action = loadedAction;
+        });
+
+        pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.10, 3.59, 0);
+        pad1.addToScene(scene);
+        
+        pad2 = new Pad(0x2040df, 0.045, 0.50, 16, 2.10, 3.59, 0);
+        pad2.addToScene(scene);
+        
+        const ball = new Ball(0.07, 32);
+        ball.addToScene(scene);
+
+        document.addEventListener('keydown', (event) => {
+            if (controlledPad === 1) {
+                if (event.key === 'w') pad1MoveUp = true;
+                if (event.key === 's') pad1MoveDown = true;
+            } else if (controlledPad === 2) {
+                if (event.key === 'ArrowUp') pad2MoveUp = true;
+                if (event.key === 'ArrowDown') pad2MoveDown = true;
+            }
+            else if (controlledPad === 3) {
+                if (event.key === 'w') pad3MoveUp = true;
+                if (event.key === 's') pad3MoveDown = true;
+            }
+            else if (controlledPad === 4) {
+                if (event.key === 'ArrowUp') pad4MoveUp = true;
+                if (event.key === 'ArrowDown') pad4MoveDown = true;
+            }
+            movePads();
+        });
+
+        document.addEventListener('keyup', (event) => {
+            if (controlledPad === 1) {
+                if (event.key === 'w') pad1MoveUp = false;
+                if (event.key === 's') pad1MoveDown = false;
+            } else if (controlledPad === 2) {
+                if (event.key === 'ArrowUp') pad2MoveUp = false;
+                if (event.key === 'ArrowDown') pad2MoveDown = false;
+            }
+            else if (controlledPad === 3) {
+                if (event.key === 'w') pad3MoveUp = false;
+                if (event.key === 's') pad3MoveDown = false;
+            }
+            else if (controlledPad === 4) {
+                if (event.key === 'ArrowUp') pad4MoveUp = false;
+                if (event.key === 'ArrowDown') pad4MoveDown = false;
+            }
+            movePads();
+        });
+
+        socket.on('initBall', (data) => {
+            ball.mesh.position.x = data.position.x;
+            ball.mesh.position.z = data.position.z;
+            console.log('Initial ball data received:', data);
+        });
+
+        socket.on('moveBall', (data) => {
+            ball.mesh.position.x = data.position.x;
+            ball.mesh.position.z = data.position.z;
+            ball.speed = data.speed;
+        });
+
+        socket.on('movePad', (data) => {
+            console.log('Received movePad event:', data);
             pad1.mesh.position.z = data.pad1;
             pad2.mesh.position.z = data.pad2;
             if (pad4)
@@ -194,71 +268,36 @@ function initGame() {
                 pad3.mesh.position.z = data.pad3;
                 pad4.mesh.position.z = data.pad4;
             }
-    });
+        });
 
-    socket.on('updateScores', (scores) => {
-        document.getElementById('scoreLeft').textContent = scores.score1;
-        document.getElementById('scoreRight').textContent = scores.score2;
-    });
+        socket.on('updateScores', (scores) => {
+            document.getElementById('scoreLeft').textContent = scores.score1;
+            document.getElementById('scoreRight').textContent = scores.score2;
+        });
 
-    socket.on('LeaveRoom', (room) => {
-        socket.emit('disconnect');
-    })
+        socket.on('LeaveRoom', (room) => {
+            socket.emit('disconnect');
+        });
 
-    const startOpacity = 2;
-    const endOpacity = 0.0;
+        document.getElementById('multi-button').addEventListener('click', () => {
+            socket.emit('multi');
+        });
 
-    const startPosition = {
-        x: camera.position.x,
-        y: camera.position.y,
-        z: camera.position.z
-    };
-    const endPosition = {
-        x: 0,
-        y: 8,
-        z: 20
-    };
-    const duration = 5000;
-    const interval = 16;
-    const step = {
-        x: (endPosition.x - startPosition.x) / (duration / interval),
-        y: (endPosition.y - startPosition.y) / (duration / interval),
-        z: (endPosition.z - startPosition.z) / (duration / interval),
-        o: (endOpacity - startOpacity) / (duration / interval)
-    };
+        document.getElementById('solo-button').addEventListener('click', () => {
+            socket.emit('solo');
+        });
 
-    const cameraAnimation = setInterval(() => {
-        camera.position.x += step.x;
-        camera.position.y += step.y;
-        camera.position.z += step.z;
-        nuagesMaterial.opacity += step.o * 1.2;
-        camera.lookAt(0,0,0);
+        document.getElementById('multi-four').addEventListener('click', () => {
+            socket.emit('multi-four');
+        });
 
-        if (camera.position.z <= endPosition.z) {
-            camera.position.set(endPosition.x, endPosition.y, endPosition.z);
-            camera.lookAt(0,0,0);
-            document.getElementById('menu').classList.add('active');
-            clearInterval(cameraAnimation);
-            scene.remove(nuages);
-            nuages.geometry.dispose();
-            nuages.material.dispose();
+        function easeInOutExpo(t, b, c, d) {
+            if (t == 0) return b;
+            if (t == d) return b + c;
+            if ((t /= d / 2) < 1) return c / 2 * Math.pow(2, 10 * (t - 1)) + b;
+            return c / 2 * (-Math.pow(2, -10 * --t) + 2) + b;
         }
-
-        renderer.render(scene, camera);
-    }, interval);
-
-    document.getElementById('multi-button').addEventListener('click', () => {
-        socket.emit('multi');
-    });
-
-    document.getElementById('solo-button').addEventListener('click', () => {
-        socket.emit('solo');
-    });
-
-    document.getElementById('multi-four').addEventListener('click', () => {
-        socket.emit('multi-four');
-    });
-    
+    }
 }
 
 function updateAnimation() {
@@ -266,6 +305,23 @@ function updateAnimation() {
     if (mixer) {
         mixer.update(delta);
     }
+
+    socket.on('gameOver', (data) => {
+        const winner = data.winner;
+        document.getElementById('score').classList.remove('score-container');
+        document.getElementById('menu').classList.add('active');
+        document.getElementById('menu').innerHTML = `<h1>${winner} Wins!</h1>
+            <button class="menu-button" id="replay-button">Replay</button>
+            <button class="menu-button" id="back-to-menu-button">Back to Menu</button>`;
+
+        document.getElementById('replay-button').addEventListener('click', () => {
+            socket.emit('Replay !');
+        });
+
+        document.getElementById('back-to-menu-button').addEventListener('click', () => {
+            socket.emit('Back to Menu');
+        });
+    });
 }
 
 initGame();
