@@ -63,6 +63,31 @@ function initGame() {
     // const axesHelper = new THREE.AxesHelper(10);
     // scene.add(axesHelper);
 
+	const hemiLight = new THREE.HemisphereLight(0xffa95c, 0x080820, 1.5);
+    hemiLight.position.set(0, 200, 0);
+    scene.add(hemiLight);
+
+	const dirLight = new THREE.DirectionalLight(0xffa95c, 1);
+    dirLight.position.set(-13, 11, 11);
+    dirLight.castShadow = true;
+    dirLight.shadow.mapSize.width = 4096;
+    dirLight.shadow.mapSize.height = 4096;
+    dirLight.shadow.camera.near = 0.5;
+    dirLight.shadow.camera.far = 500;
+    dirLight.shadow.camera.left = -50;
+    dirLight.shadow.camera.right = 50;
+    dirLight.shadow.camera.top = 50;
+    dirLight.shadow.camera.bottom = -50;
+	dirLight.shadow.bias = -0.01;
+    scene.add(dirLight);
+
+	const pointLight = new THREE.PointLight(0xffa95c, 0.5, 100);
+    pointLight.position.set(0, 50, 50);
+    scene.add(pointLight);
+
+	const ambLight = new THREE.AmbientLight(0xffa95c, 1.5);
+    scene.add(ambLight);
+
     const textureLoader = new THREE.TextureLoader();
     const texture = textureLoader.load('./png/nuages.png', function(texture) {
 
@@ -80,7 +105,7 @@ function initGame() {
     scene.add(nuages);
     });
 
-    const Light = new sunLight(0xfffff0, 2);
+    const Light = new sunLight(0xffa95c, 2);
     scene.add(Light);
 
     const Sun = new THREE.DirectionalLight(0xfffff0, 1);
@@ -91,6 +116,9 @@ function initGame() {
 
     const ambientLight = new THREE.AmbientLight(0xfffff0, 0.5);
     scene.add(ambientLight);
+
+
+	renderer.setPixelRatio(window.devicePixelRatio);
 
     loadModel(scene, (loadedMixer, loadedAction) => {
         mixer = loadedMixer;
@@ -294,6 +322,11 @@ function animate() {
     controls.update();
     //console.log(camera.position);
     renderer.render(scene, camera);
+		spotlight.position.set (
+		camera.position.x + 10,
+		camera.position.y + 10,
+		camera.position.z + 10
+	)
 }
 
 socket.on('start-game', (rooms) => {
@@ -323,4 +356,3 @@ socket.on('start-game', (rooms) => {
     console.log(controlledPad);
     animate();
 });
-
