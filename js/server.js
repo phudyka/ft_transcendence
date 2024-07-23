@@ -13,3 +13,7 @@ const pool = new Pool({
 });
 
 app.use(express.json());
+
+app.lisen(port , () => {  
+  console.log(`Server is running on port ${port}`);
+});
