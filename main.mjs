@@ -85,8 +85,8 @@ function initGame() {
     pointLight.position.set(0, 50, 50);
     scene.add(pointLight);
 
-	const ambLight = new THREE.AmbientLight(0xffa95c, 1.5);
-    scene.add(ambLight);
+	// const ambLight = new THREE.AmbientLight(0xffa95c, 1.5);
+    // scene.add(ambLight);
 
     const textureLoader = new THREE.TextureLoader();
     const texture = textureLoader.load('./png/nuages.png', function(texture) {
@@ -105,7 +105,7 @@ function initGame() {
     scene.add(nuages);
     });
 
-    const Light = new sunLight(0xffa95c, 2);
+    const Light = new sunLight(0xfffff0, 2);
     scene.add(Light);
 
     const Sun = new THREE.DirectionalLight(0xfffff0, 1);
