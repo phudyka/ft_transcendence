@@ -12,6 +12,7 @@ export class Pad {
         this.mesh.receiveShadow = true;
         this.mesh.castShadow = true;
         this.mesh.position.set(x, y, z);
+        this.mesh.rotation.set(1.56,0,0)
         this.targetY = this.mesh.position.y;
         this.speed = 0.04;
         this.score = 0;

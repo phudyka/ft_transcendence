@@ -17,11 +17,11 @@ export class Ball {
         this.mesh = new THREE.Mesh(ballGeometry, ballMaterial);
         this.mesh.receiveShadow = true;
         this.mesh.castShadow = true;
-        this.mesh.position.z = 0.03;
+        this.mesh.position.y = 3.59;
 
         this.radius = radius;
         this.speed = this.initialSpeed;
-        this.direction = new THREE.Vector2(Math.random() > 0.5 ? 1 : -1, Math.random() > 0.5 ? 1 : -1).normalize();
+        this.direction = new THREE.Vector3(Math.random() > 0.5 ? 1 : -1, Math.random() > 0.5 ? 1 : -1).normalize();
         this.collided = false;
 
         this.paddleBox = new THREE.Box3();
@@ -53,9 +53,9 @@ export class Ball {
     }
 
     resetPosition() {
-        this.mesh.position.set(0, 0, 0.05);
+        this.mesh.position.set(0, 3.59, 0);
         this.speed = this.initialSpeed;
-        this.direction.set(Math.random() > 0.5 ? 1 : -1, Math.random() > 0.5 ? 1 : -1).normalize();
+        this.direction.set(Math.random() > 0.5 ? 1 : -1, Math.random() > 0.5 ? 1 : -1, Math.random() > 0.5 ? 1 : -1).normalize();
     }
 
     checkCollision(paddle) {
