@@ -42,7 +42,7 @@ function initGame() {
     scene = new THREE.Scene();
     
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-    camera.position.set(0, -80, 150);
+    camera.position.set(0, 200, 50);
     
     const loader = new THREE.TextureLoader();
     loader.load('png/ciel3.jpg', function(texture) {
@@ -56,7 +56,7 @@ function initGame() {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.shadowMap.enabled = true;
-    //renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     //renderer.setClearColor(0x7EB6F7);
     document.body.appendChild(renderer.domElement);
 
@@ -71,12 +71,12 @@ function initGame() {
     nuagesMaterial = new THREE.MeshBasicMaterial({ 
         map: texture,
         transparent: true,
-        opacity: 1
+        opacity: 2
     });
 
     nuages = new THREE.Mesh(planeGeo, nuagesMaterial);
-    nuages.position.set(0, 0, 40);
-
+    nuages.position.set(0,60,0);
+    nuages.rotation.set(-1.56,0,0)
     scene.add(nuages);
     });
 
@@ -84,8 +84,9 @@ function initGame() {
     scene.add(Light);
 
     const Sun = new THREE.DirectionalLight(0xfffff0, 1);
+
+    Sun.position.set(-5, 20, -15);
     //Sun.castShadow = true;
-    Sun.position.set(10, 10, 15);
     scene.add(Sun);
 
     const ambientLight = new THREE.AmbientLight(0xfffff0, 0.5);
@@ -96,10 +97,10 @@ function initGame() {
         action = loadedAction;
     });
 
-    pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.13, 0, 0);
+    pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.10, 3.59, 0);
     pad1.addToScene(scene);
     
-    pad2 = new Pad(0x2040df, 0.045, 0.50, 16, 2.10, 0, 0);
+    pad2 = new Pad(0x2040df, 0.045, 0.50, 16, 2.10, 3.59, 0);
     pad2.addToScene(scene);
     
     const ball = new Ball(0.07, 32);
@@ -145,25 +146,25 @@ function initGame() {
     
     socket.on('initBall', (data) => {
         ball.mesh.position.x = data.position.x;
-        ball.mesh.position.y = data.position.y;
+        ball.mesh.position.z = data.position.z;
         console.log('Initial ball data received:', data);
     });
     
     socket.on('moveBall', (data) => {
         ball.mesh.position.x = data.position.x;
-        ball.mesh.position.y = data.position.y;
+        ball.mesh.position.z = data.position.z;
         ball.speed = data.speed;
     });
     
     
     socket.on('movePad', (data) => {
         console.log('Received movePad event:', data);
-            pad1.mesh.position.y = data.pad1;
-            pad2.mesh.position.y = data.pad2;
+            pad1.mesh.position.z = data.pad1;
+            pad2.mesh.position.z = data.pad2;
             if (pad4)
             {
-                pad3.mesh.position.y = data.pad3;
-                pad4.mesh.position.y = data.pad4;
+                pad3.mesh.position.z = data.pad3;
+                pad4.mesh.position.z = data.pad4;
             }
     });
 
@@ -176,7 +177,7 @@ function initGame() {
         socket.emit('disconnect');
     })
 
-    const startOpacity = 1;
+    const startOpacity = 2;
     const endOpacity = 0.0;
 
     const startPosition = {
@@ -186,8 +187,8 @@ function initGame() {
     };
     const endPosition = {
         x: 0,
-        y: -20,
-        z: 6
+        y: 8,
+        z: 20
     };
     const duration = 5000;
     const interval = 16;
@@ -229,58 +230,68 @@ function initGame() {
     document.getElementById('multi-four').addEventListener('click', () => {
         socket.emit('multi-four');
     });
+    
+}
+
+function updateAnimation() {
+    const delta = clock.getDelta();
+    if (mixer) {
+        mixer.update(delta);
+    }
 }
 
 initGame();
 
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
+controls.enableDamping = false;
 controls.dampingFactor = 0.25;
-controls.screenSpacePanning = false;
+controls.screenSpacePanning = true;
+controls.autoRotateSpeed = 0.3;
+controls.autoRotate = true;
 
 function movePads() {
     const padLimit = tableHeight / 2 - padHeight / 2;
 
-    if (pad1MoveUp && pad1.mesh.position.y + pad1.speed < padLimit) {
-        pad1.mesh.position.y = pad1.mesh.position.y + pad1.speed;
-        socket.emit('movePad', { pad: 1, position: pad1.mesh.position.y });
+    if (pad1MoveDown && pad1.mesh.position.z + pad1.speed < padLimit) {
+        pad1.mesh.position.z = pad1.mesh.position.z + pad1.speed;
+        socket.emit('movePad', { pad: 1, position: pad1.mesh.position.z });
     }
-    else if (pad1MoveDown && pad1.mesh.position.y - pad1.speed > -padLimit) {
-        pad1.mesh.position.y = pad1.mesh.position.y - pad1.speed;
-        socket.emit('movePad', { pad: 1, position: pad1.mesh.position.y });
+    else if (pad1MoveUp && pad1.mesh.position.z - pad1.speed > -padLimit) {
+        pad1.mesh.position.z = pad1.mesh.position.z - pad1.speed;
+        socket.emit('movePad', { pad: 1, position: pad1.mesh.position.z });
     }
-    else if (pad2MoveUp && pad2.mesh.position.y + pad2.speed < padLimit) {
-        pad2.mesh.position.y = pad2.mesh.position.y + pad2.speed;
-        socket.emit('movePad', { pad: 2, position: pad2.mesh.position.y });
+    else if (pad2MoveDown && pad2.mesh.position.z + pad2.speed < padLimit) {
+        pad2.mesh.position.z = pad2.mesh.position.z + pad2.speed;
+        socket.emit('movePad', { pad: 2, position: pad2.mesh.position.z });
     }
-    else if (pad2MoveDown && pad2.mesh.position.y - pad2.speed > -padLimit) {
-        pad2.mesh.position.y = pad2.mesh.position.y - pad2.speed;
-        socket.emit('movePad', { pad: 2, position: pad2.mesh.position.y });
+    else if (pad2MoveUp && pad2.mesh.position.z - pad2.speed > -padLimit) {
+        pad2.mesh.position.z = pad2.mesh.position.z - pad2.speed;
+        socket.emit('movePad', { pad: 2, position: pad2.mesh.position.z });
     }
-    else if (pad3MoveUp && pad3.mesh.position.y + pad3.speed < padLimit) {
-        pad3.mesh.position.y = pad3.mesh.position.y + pad3.speed;
-        socket.emit('movePad', { pad: 3, position: pad3.mesh.position.y });
+    else if (pad3MoveDown && pad3.mesh.position.z + pad3.speed < padLimit) {
+        pad3.mesh.position.z = pad3.mesh.position.z + pad3.speed;
+        socket.emit('movePad', { pad: 3, position: pad3.mesh.position.z });
     }
-    else if (pad3MoveDown && pad3.mesh.position.y - pad3.speed > -padLimit) {
-        pad3.mesh.position.y = pad3.mesh.position.y - pad3.speed;
-        socket.emit('movePad', { pad: 3, position: pad3.mesh.position.y });
+    else if (pad3MoveUp && pad3.mesh.position.z - pad3.speed > -padLimit) {
+        pad3.mesh.position.z = pad3.mesh.position.z - pad3.speed;
+        socket.emit('movePad', { pad: 3, position: pad3.mesh.position.z });
     }
-    else if (pad4MoveUp && pad4.mesh.position.y + pad4.speed < padLimit) {
-        pad4.mesh.position.y = pad4.mesh.position.y + pad4.speed;
-        socket.emit('movePad', { pad: 4, position: pad4.mesh.position.y });
+    else if (pad4MoveDown && pad4.mesh.position.z + pad4.speed < padLimit) {
+        pad4.mesh.position.z = pad4.mesh.position.z + pad4.speed;
+        socket.emit('movePad', { pad: 4, position: pad4.mesh.position.z });
     }
-    else if (pad4MoveDown && pad4.mesh.position.y - pad4.speed > -padLimit) {
-        pad4.mesh.position.y = pad4.mesh.position.y - pad4.speed;
-        socket.emit('movePad', { pad: 4, position: pad4.mesh.position.y });
+    else if (pad4MoveUp && pad4.mesh.position.z - pad4.speed > -padLimit) {
+        pad4.mesh.position.z = pad4.mesh.position.z - pad4.speed;
+        socket.emit('movePad', { pad: 4, position: pad4.mesh.position.z });
     }
 }
 
 function animate() {
     requestAnimationFrame(animate);
     movePads();
-    const delta = clock.getDelta();
-    if (mixer) mixer.update(delta);
-    //controls.update();
+    updateAnimation();
+    //camera.up.set( 1, -1, 0 );
+    controls.update();
     //console.log(camera.position);
     renderer.render(scene, camera);
 }
@@ -303,10 +314,10 @@ socket.on('start-game', (rooms) => {
         controlledPad = 4;
     }
     if (player4) {
-        pad3 = new Pad(0xcc7700, 0.045, 0.50, 16, -0.5, 0, 0);
+        pad3 = new Pad(0xcc7700, 0.045, 0.50, 16, -0.5, 3.59, 0);
         pad3.addToScene(scene);
     
-        pad4 = new Pad(0x2040df, 0.045, 0.50, 16, 0.5, 0, 0);
+        pad4 = new Pad(0x2040df, 0.045, 0.50, 16, 0.5, 3.59, 0);
         pad4.addToScene(scene);
     }
     console.log(controlledPad);

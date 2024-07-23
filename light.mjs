@@ -5,16 +5,20 @@ export class sunLight extends THREE.DirectionalLight {
         super(color, intensity);
         this.castShadow = true;
 
-        this.position.set(-13, 11, 11);
+        this.position.set(-6, 11, -10);
 
-        //const target = new THREE.Object3D();
-        //target.position.set(0, 0, 0);
-        //this.target = target;
+        const target = new THREE.Object3D();
+        target.position.set(0, 0, 0);
+        this.target = target;
 
-        // this.shadow.mapSize.width = 2048;
-        // this.shadow.mapSize.height = 2048;
-        // this.shadow.camera.near = 0.5;
-        // this.shadow.camera.far = 500;
+        this.shadow.mapSize.width = 2048;
+        this.shadow.mapSize.height = 2048;
+        this.shadow.camera.near = 0.5;
+        this.shadow.camera.far = 500;
 
+        this.shadow.camera.left = -10;
+        this.shadow.camera.right = 10;
+        this.shadow.camera.top = 10;
+        this.shadow.camera.bottom = -10;
     }
 }

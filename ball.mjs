@@ -10,12 +10,12 @@ export class Ball {
         this.mesh = new THREE.Mesh(ballGeometry, ballMaterial);
         this.mesh.receiveShadow = true;
         this.mesh.castShadow = true;
-        this.mesh.position.z = 0.03;
+        this.mesh.position.y = 3.59;
         this.maxSpeed = 0.06;
-        this.speed = 0.02;
+        this.speed = 0.04;
         this.collided = false;
         this.radius = Radius;
-        this.direction = new THREE.Vector2(1, 1).normalize();
+        this.direction = new THREE.Vector3(1, 3.59, 5).normalize();
     }
 
     addToScene(scene) {
@@ -24,12 +24,12 @@ export class Ball {
 
     updatePosition() {
         this.mesh.position.x += this.direction.x * this.speed;
-        this.mesh.position.y += this.direction.y * this.speed;
+        this.mesh.position.z += this.direction.z * this.speed;
     }
 
     resetPosition() {
-        this.mesh.position.set(0, 0, 0.05);
-        this.speed = 0.02;
+        this.mesh.position.set(0, 3.59, 0);
+        this.speed = 0.04;
         this.direction.set(Math.random() > 0.5 ? 1 : -1, Math.random() > 0.5 ? 1 : -1).normalize();
     }
 
@@ -43,7 +43,7 @@ export class Ball {
             
             const distance = ballPosition.distanceTo(paddleCenter);
             
-            if (distance <= this.radius + Math.max(paddle.mesh.scale.x, paddle.mesh.scale.y)) {
+            if (distance <= this.radius + Math.max(paddle.mesh.scale.x, paddle.mesh.scale.z)) {
                 const relativePosition = ballPosition.clone().sub(paddleCenter);
                 relativePosition.normalize();
                 

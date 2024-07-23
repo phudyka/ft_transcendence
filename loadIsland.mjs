@@ -12,7 +12,7 @@ export default async function loadModel(scene, onLoad) {
             if (child.isMesh) {
                 child.castShadow = true;
             }
-            if(child.isMesh && child.name === "socle_sable_parfait" || child.name === "eau" || child.name === "socle_turquoise_scene" || child.name === "Plan001"){
+            if(child.isMesh && child.name === "socle_sable_parfait" || child.name === "ile_sable_imparfait" || child.name === "eau" || child.name === "socle_turquoise_scene" || child.name === "Plan001"){
                 child.receiveShadow = true;
                 child.castShadow = false;
             }
@@ -27,9 +27,9 @@ export default async function loadModel(scene, onLoad) {
                 action.play();
             }
         });
-        model.position.set(0, -0.09, -3.59);
+        //model.position.set(0, -0.09, -3.59);
         model.scale.set(1.5, 1.5, 1.28);
-        model.rotation.set(1.56, 0, 0);
+        //model.rotation.set(1.56, 0, 0);
         scene.add(model);
         console.log(model);
         onLoad(mixer, action);

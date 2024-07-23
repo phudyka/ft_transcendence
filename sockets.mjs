@@ -65,21 +65,21 @@ export default function setupSockets(io) {
             socket.join(room);
 
             if (rooms[room].length === 1) {
-                const pad1 = new Pad(0xc4d418);
-                const pad2 = new Pad(0xb3261a, 0.045, 0.50, 16, 2.10, 0, 0);
+                const pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 3.59, 0);
+                const pad2 = new Pad(0xb3261a, 0.045, 0.50, 16, 2.10, 3.59, 0);
                 padsMap.set(room, { pad1, pad2 });
             }
 
             socket.on('movePad', (data) => {
                 const { pad1, pad2 } = padsMap.get(room);
                 if (data.pad === 1) {
-                    pad1.mesh.position.y = data.position;
+                    pad1.mesh.position.z = data.position;
                 } else if (data.pad === 2) {
-                    pad2.mesh.position.y = data.position;
+                    pad2.mesh.position.z = data.position;
                 }
                 io.in(room).emit('movePad', {
-                    pad1: pad1.mesh.position.y,
-                    pad2: pad2.mesh.position.y
+                    pad1: pad1.mesh.position.z,
+                    pad2: pad2.mesh.position.z
                 });
             });
 
@@ -93,8 +93,8 @@ export default function setupSockets(io) {
                 const { pad1, pad2 } = padsMap.get(room);
 
                 io.in(room).emit('initBall', {
-                    position: { x: ball.mesh.position.x, y: ball.mesh.position.y },
-                    direction: { x: ball.direction.x, y: ball.direction.y },
+                    position: { x: ball.mesh.position.x, z: ball.mesh.position.z },
+                    direction: { x: ball.direction.x, z: ball.direction.z },
                     speed: ball.speed,
                 });
 
@@ -139,28 +139,28 @@ export default function setupSockets(io) {
 
             if (rooms[room].length === 1) {
                 const pad1 = new Pad(0xc4d418);
-                const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 0, 0);
-                const pad3 = new Pad(0xfa00ff, 0.045, 0.50, 16, -0.5, 0, 0);
-                const pad4 = new Pad(0xfa00ff, 0.045, 0.50, 16, 0.5, 0, 0);
+                const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 3.59, 0);
+                const pad3 = new Pad(0xfa00ff, 0.045, 0.50, 16, -0.5, 3.59, 0);
+                const pad4 = new Pad(0xfa00ff, 0.045, 0.50, 16, 0.5, 3.59, 0);
                 padsMap.set(room, { pad1, pad2, pad3, pad4 });
             }
 
             socket.on('movePad', (data) => {
                 const { pad1, pad2, pad3, pad4 } = padsMap.get(room);
                 if (data.pad === 1) {
-                    pad1.mesh.position.y = data.position;
+                    pad1.mesh.position.z = data.position;
                 } else if (data.pad === 2) {
-                    pad2.mesh.position.y = data.position;
+                    pad2.mesh.position.z = data.position;
                 } else if (data.pad === 3) {
-                    pad3.mesh.position.y = data.position;
+                    pad3.mesh.position.z = data.position;
                 } else if (data.pad === 4) {
-                    pad4.mesh.position.y = data.position;
+                    pad4.mesh.position.z = data.position;
                 }
                 io.in(room).emit('movePad', {
-                    pad1: pad1.mesh.position.y,
-                    pad2: pad2.mesh.position.y,
-                    pad3: pad3.mesh.position.y,
-                    pad4: pad4.mesh.position.y
+                    pad1: pad1.mesh.position.z,
+                    pad2: pad2.mesh.position.z,
+                    pad3: pad3.mesh.position.z,
+                    pad4: pad4.mesh.position.z
                 });
             });
 
@@ -174,8 +174,8 @@ export default function setupSockets(io) {
                 const { pad1, pad2, pad3, pad4 } = padsMap.get(room);
 
                 io.in(room).emit('initBall', {
-                    position: { x: ball.mesh.position.x, y: ball.mesh.position.y },
-                    direction: { x: ball.direction.x, y: ball.direction.y },
+                    position: { x: ball.mesh.position.x, z: ball.mesh.position.z },
+                    direction: { x: ball.direction.x, z: ball.direction.z },
                     speed: ball.speed,
                 });
 
