@@ -358,7 +358,7 @@ footer {
 }
 
 
-.dropdown-menu {
+.dropdown-menu, .dropdown-menu_chat {
     display: none;
     position: absolute;
     border: 2px solid black;
@@ -366,7 +366,7 @@ footer {
     z-index: 1000;
 }
 
-.dropdown-menu::shadow {
+.dropdown-menu::shadow , .dropdown-menu_chat::shadow {
     display: block;
     background-color: #e3d6c1;
 }
@@ -454,10 +454,6 @@ div.input-container {
   transform: scale(1);
 }
 
-
-
-
-
 /* tchat 2 */
 
 div.input-container2 {
@@ -521,4 +517,30 @@ div.input-container2 {
     display: flex;
     flex-direction: column;
     height: 100%;
+}
+
+
+/* profile page */
+
+#login_card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 30px;
+    border: 3px solid black;
+    max-width: 60%;
+}
+
+.btn-dark {
+    background-color: #307f3d;
+    border: 3px solid black;
+    /* center, same weight of profile picture border radius 30px*/
+    margin-left: auto;
+    margin-right: auto;
+    width: 25%;
+    border-radius: 30px;
 }

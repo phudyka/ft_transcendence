@@ -97,7 +97,7 @@ function attachEventHandlers(navigateTo) {
 
 	  document.addEventListener("keydown", function (event) {
 		//if enter key is presset and login form is complete then submit the form
-		if (event.key === "Enter" && document.getElementById('username').value !== '' && document.getElementById('password').value !== '') {
+		if (event.key === "Enter") {
 			document.getElementById('loginForm').dispatchEvent(new Event('submit'));
 		}
 	});

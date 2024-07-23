@@ -20,7 +20,8 @@ document.addEventListener('DOMContentLoaded', function () {
     dashboard: (navigateTo, ...args) => dashboard(navigateTo, ...args),
     gameplay: (navigateTo, ...args) => gameplay(navigateTo, ...args),
     gameplay_friends: (navigateTo, ...args) => gameplay_friends(navigateTo, ...args),
-    chat: (navigateTo, playerName, friendName) => chat(navigateTo, playerName, friendName)
+    chat: (navigateTo, playerName, friendName) => chat(navigateTo, playerName, friendName),
+    profile: (navigateTo, playerName) => profile(navigateTo, playerName),
   };
 
   function showView(viewId, ...args) {
@@ -37,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Initial view display
-  const initialViewId = 'login';  // Default view to show on initial load
+  const initialViewId = 'dashboard';  // Default view to show on initial load
   showView(initialViewId);
 
   document.addEventListener('click', function (event) {

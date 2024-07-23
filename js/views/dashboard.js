@@ -16,7 +16,7 @@ function dashboard(navigateTo, $player_name) {
 		</div>
 		<div class="container-fluid">
 			<div class="row">
-			<div class="col-md-3 sidebar">
+			<div class="col-md-3 sidebar" style="margin-left: inherit;">
 				<ul id="friends" class="list-group">
 					<li class="list-group-item" data-friend="Friend1">Friend1</li>
 					<li class="list-group-item" data-friend="Friend2">Friend2</li>
@@ -25,6 +25,13 @@ function dashboard(navigateTo, $player_name) {
 				<div id="friendDropdown" class="dropdown-menu" style="display: none;">
 					<a class="dropdown-item" href="#" id="sendMessage">Send Private Message</a>
 					<a class="dropdown-item" href="#" id="startGame">Start a Game</a>
+					<a class="dropdown-item" href="#" id="viewProfile">View Profile</a>
+				</div>
+				<div id="friendDropdown_chat" class="dropdown-menu_chat" style="display: none;">
+					<a class="dropdown-item" href="#" id="sendMessage">Send Private Message</a>
+					<a class="dropdown-item" href="#" id="addToFriend">Add To Friend</a>
+					<a class="dropdown-item" href="#" id="blockUser">Block User</a>
+					<a class="dropdown-item" href="#" id="viewProfile">View Profile</a>
 				</div>
 				<div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="chatbox" aria-labelledby="chatboxLabel">
 					<div class="offcanvas-header">
@@ -74,6 +81,32 @@ function dashboard(navigateTo, $player_name) {
 				</div>
 			</div>
 		</div>
+	
+		
+		<div class="toast-container position-fixed bottom-0 end-0 p-3">
+		<div id="addFriendToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+			<div class="toast-header">
+				<strong class="me-auto">Friend Request</strong>
+				<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+			</div>
+			<div class="toast-body">
+				Friend request sent successfully!
+			</div>
+		</div>
+	</div>
+
+	<div class="toast-container position-fixed bottom-0 end-0 p-3">
+    <div id="blockUserToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <strong class="me-auto">Block User</strong>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            User blocked successfully!
+        </div>
+    </div>
+</div>
+
 		<footer class="py-3 my-4">
 			<p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
 		</footer>
@@ -108,11 +141,16 @@ function attachEventHandlers3(navigateTo, $player_name) {
             event.stopPropagation();
             const dropdown = document.getElementById('friendDropdown');
             const friendName = this.getAttribute('data-friend');
-            const rect = this.getBoundingClientRect();
+
+			// Hide all visible dropdowns
+			const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
+			visibleDropdowns.forEach(dropdown => {
+				dropdown.style.display = 'none';
+			});
             
             // Position the dropdown near the clicked friend item
-            dropdown.style.top = `${rect.bottom}px`;
-            dropdown.style.left = `${rect.left}px`;
+            dropdown.style.top = `${event.clientY}px`;
+            dropdown.style.left = `${event.clientX}px`;
             dropdown.style.display = 'block';
 
             // Store the clicked friend's name
@@ -126,26 +164,39 @@ function attachEventHandlers3(navigateTo, $player_name) {
 		if (dropdown) {
 			dropdown.style.display = 'none';
 		}
+		
+		const dropdown2 = document.getElementById('friendDropdown_chat');
+		if (dropdown2) {
+			dropdown2.style.display = 'none';
+		}
     });
+
 
     // Prevent the dropdown menu from closing when clicking inside it
     document.getElementById('friendDropdown').addEventListener('click', function (event) {
         event.stopPropagation();
     });
 
+	document.getElementById('friendDropdown_chat').addEventListener('click', function (event) {
+        event.stopPropagation();
+    });
+
     // Event handlers for dropdown menu actions
     document.getElementById('sendMessage').addEventListener('click', function (event) {
         event.preventDefault();
-        // const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
-        // console.log(`Send message to ${friendName}`);
-        // chat(navigateTo, $player_name, friendName);
 		var chatbox = new bootstrap.Offcanvas(document.getElementById('chatbox'));
 		if (!chatbox)
 			{console.log('chatbox is null');}
 		chatbox.show();
     });
 
-
+	document.getElementById('friendDropdown_chat').querySelector('#sendMessage').addEventListener('click', function (event) {
+		event.preventDefault();
+		var chatbox = new bootstrap.Offcanvas(document.getElementById('chatbox'));
+		if (!chatbox)
+			{console.log('chatbox is null');}
+		chatbox.show();
+	});
 
 
     document.getElementById('startGame').addEventListener('click', function (event) {
@@ -155,21 +206,60 @@ function attachEventHandlers3(navigateTo, $player_name) {
 		gameplay(navigateTo, $player_name);
     });
 
-	// Chat functionality
+	// Chat global
 	document.getElementById('send-button').addEventListener('click', function (event) {
 		event.preventDefault();
 		const messageInput = document.getElementById('message-input');
 		if (messageInput.value.trim() !== '') {
 			const message = formatMessage(messageInput.value, $player_name);
+	
 			const chatLog = document.getElementById('chat-log');
 			const messageElement = document.createElement('div');
-			messageElement.innerText = message;
+	
+			// Create the username element and set its attributes
+			const usernameElement = document.createElement('a');
+			usernameElement.href = '#';
+			usernameElement.classList.add('username-link');
+			usernameElement.dataset.friend = $player_name;
+			usernameElement.innerText = `[${$player_name}]`;
+			//active the dropdown menu when username is clicked 
+			usernameElement.addEventListener('click', function (event) {
+				event.stopPropagation();
+				const dropdown = document.getElementById('friendDropdown_chat');
+				const friendName = this.getAttribute('data-friend');
+				const rect = this.getBoundingClientRect();
+
+				// Hide all visible dropdowns
+				const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
+				visibleDropdowns.forEach(dropdown => {
+					dropdown.style.display = 'none';
+				});
+				
+				// Position the dropdown near the clicked friend item
+				dropdown.style.top = `${event.clientY}px`; //click position 
+				dropdown.style.left = `${event.clientX}px`;
+				dropdown.style.display = 'block';
+	
+				// Store the clicked friend's name
+				dropdown.setAttribute('data-friend', friendName);
+			});
+	
+			// Create the message element and set its text
+			const messageTextElement = document.createElement('span');
+			messageTextElement.innerText = ` : ${messageInput.value}`;
+	
+			// Append the username and message elements to the message element
+			messageElement.appendChild(usernameElement);
+			messageElement.appendChild(messageTextElement);
+	
 			chatLog.appendChild(messageElement);
 			messageInput.value = '';
 			scrollToBottom();
 		}
 	});
+	
 
+	//private message with friend 
 	document.getElementById('send-button2').addEventListener('click', function (event) {
 		event.preventDefault();
 		const messageInput2 = document.getElementById('message-input2');
@@ -199,6 +289,36 @@ function attachEventHandlers3(navigateTo, $player_name) {
 		}
 	});
 
+
+	// toast when add friend
+	document.getElementById('friendDropdown_chat').querySelector('#addToFriend').addEventListener('click', function (event) {
+		event.preventDefault();
+		var toast = new bootstrap.Toast(document.getElementById('addFriendToast'));
+		toast.show();
+	});
+
+	// toast when block user
+	document.getElementById('friendDropdown_chat').querySelector('#blockUser').addEventListener('click', function (event) {
+		event.preventDefault();
+		var toast = new bootstrap.Toast(document.getElementById('blockUserToast'));
+		toast.show();
+	});
+
+	//navigateTo profile page when view profile is clicked
+	document.getElementById('friendDropdown').querySelector('#viewProfile').addEventListener('click', function (event) {
+		event.preventDefault();
+		const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
+		console.log(`View profile of ${friendName}`);
+		navigateTo('profile', $player_name, friendName);
+	});
+
+	document.getElementById('friendDropdown_chat').querySelector('#viewProfile').addEventListener('click', function (event) {
+		event.preventDefault();
+		const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
+		console.log(`View profile of ${friendName}`);
+		navigateTo('profile', $player_name, friendName);
+	});
+
 }
 
 function scrollToBottom() {
@@ -211,6 +331,10 @@ function scrollToBottom2() {
 	chatLog2.scrollTop = chatLog2.scrollHeight;
   }
 
+function formatUsername(username) {
+    return `<a href="#" class="username-link" data-friend="${username}">${username}</a>`;
+}
+
 function formatMessage(message, playerName) {
 	/* for no html injection */
 	if (message.startsWith("```")) {
@@ -220,7 +344,8 @@ function formatMessage(message, playerName) {
 	/* syntax : [player_name] : message */
 	message = message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
 	message = message.replace(/(```[\s\S]*?```)/g, '<pre>$1</pre>');
-	return `[${playerName}] : ${message}`;
+
+	return `${message}`;
   }
 
   // Adjust the height of the input field based on its content
@@ -228,4 +353,5 @@ function adjustInputHeight() {
 	messageInput.style.height = 'auto';
 	messageInput.style.height = `${messageInput.scrollHeight}px`;
 }
+
 
