@@ -1,4 +1,4 @@
-function gameplay(navigateTo, $player_name) {
+function gameplay_friends(navigateTo, $player_name) {
 	document.getElementById('ft_transcendence').innerHTML = `
 	<ul class="nav navbar-expand-lg justify-content-center">
 		<a class="nav-link disabled">pongonline</a>
@@ -15,10 +15,10 @@ function gameplay(navigateTo, $player_name) {
   		</footer>
 	`;
 
-	attachEventHandlers2(navigateTo, $player_name);
+	attachEventHandlers11(navigateTo, $player_name);
   }
 
-  function attachEventHandlers2(navigateTo, $player_name) {
+  function attachEventHandlers11(navigateTo, $player_name) {
 	//Navigate to dashboard is exit is clicked
 	document.querySelector('.btn-danger').addEventListener('click', function (event) {
 		event.preventDefault();

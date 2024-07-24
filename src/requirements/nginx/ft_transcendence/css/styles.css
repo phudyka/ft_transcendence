@@ -1,13 +1,13 @@
 html, body {
     height: 100%;
     margin: 0;
-    background-color: #FFF9D0;
+    background-color: #e3d6c1;
 }
 
 body {
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Pousse le footer en bas */
+    justify-content: space-between; /*footer en bas */
     align-items: center;
 }
 
@@ -25,6 +25,11 @@ body {
     padding: 0;
 }
 
+
+#logo_pong_login {
+    display: block;
+    margin: 0 auto;
+}
 /* other existing styles */
 
 .login-register-page {
@@ -33,6 +38,12 @@ body {
     align-items: center;
     height: 90vh;
     margin: 0;
+    margin-left: 5%;
+    margin-right: 5%;
+}
+
+#create_account {
+    margin-top: 3%;
 }
 
 .view {
@@ -46,16 +57,18 @@ body {
 
 h1 {
     text-align: center;
-    margin-bottom: 7%;
-    margin-top: 7%;
+    margin-bottom: 3%;
+    margin-top: 2%;
     font-weight: 900;
+    /* margin-bottom: 220px; */
 }
 
 .login-container h1 {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 20px;
+    max-width: 150%;
+    max-height: 150%;
 }
 
 .container {
@@ -63,12 +76,13 @@ h1 {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    width: 100%;
-    padding: 50px;
-    background-color: #CAF4FF;
+    /* width: 100%; */
+    padding: 20px;
+    background-color: #307f3d;
     border-radius: 30px;
     box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
     border: 5px solid black;
+    max-width: 30%;
 }
 
 form {
@@ -82,7 +96,7 @@ p {
 label {
     display: block;
     text-align: center;
-    margin-bottom: 5px;
+    margin-bottom: 15px;
     width: 100%;
     font-weight: 900;
     box-sizing: border-box;
@@ -93,9 +107,12 @@ input[type="text"], input[type="password"] {
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid #ccc;
-    background-color: #5AB2FF;
+    background-color: #307f3d;
     border-radius: 30px;
     border: 1px solid black;
+    justify-content: center;
+    display: flex;
+    align-items: center;
 }
 
 .unmask {
@@ -108,14 +125,40 @@ input[type="text"], input[type="password"] {
 }
 
 .btn {
-    width: 100%;
+    width: 75%;
     padding: 10px;
-    background-color: #007bff;
+    background-color: #307f3d;
     border: none;
     border-radius: 30px;
     color: #ffffff;
     font-size: 16px;
 }
+
+.btn-primary {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #307f3d;
+    border: 3px solid black;
+    margin: 0 auto;
+    width: 75%;
+}
+
+.btn-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 3%;
+}
+
+#username {
+    width: 75%;
+    display: flex;
+    justify-content: center;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 
 .img-thumbnail {
     width: 100%;
@@ -124,12 +167,17 @@ input[type="text"], input[type="password"] {
 
 /* button */
 .btn-primary {
-    background-color: #007bff;
+    background-color: #307f3d;
+    border: 3px solid black;
+}
+
+.btn-primary:hover {
+    background-color: #e3d6c1;
     border: 3px solid black;
 }
 
 .btn-danger {
-    background-color: #FF0000;
+    background-color: red;
     border: 3px solid black;
 }
 
@@ -138,20 +186,29 @@ input[type="text"], input[type="password"] {
     width: 100%;
 }
 
+input::placeholder {
+    color: #e3d6c1;
+  }
+
 /* for password visibility toggle */
 .password-wrapper {
-    position: relative;
     display: flex;
+    justify-content: center;
     align-items: center;
-    width: 100%;
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    width: 75%;
+
 }
 
-.password-wrapper input[type="text"], 
+.password-wrapper input[type="text"],
 .password-wrapper input[type="password"] {
     width: calc(100% - 40px);
     width: 100%;
     padding-right: 40px;
     box-sizing: border-box;
+    display: flex;
 }
 
 .password-wrapper .unmask {
@@ -165,7 +222,7 @@ input[type="text"], input[type="password"] {
 }
 
 .navbar {
-    color: #FFF9D0;
+    color: #307f3d;
     /* mettre en haut de la page */
     position: fixed;
     /* top: 0;
@@ -189,6 +246,8 @@ input[type="text"], input[type="password"] {
 
 #registerbutton, #registerbutton42{
     margin-bottom: 10px;
+    width: 75%;
+
 }
 
 #profile-picture {
@@ -196,16 +255,11 @@ input[type="text"], input[type="password"] {
 	justify-content: center;
 	align-items: center;
 	margin-bottom: 50px;
-	margin-top: 50px;
-
+	margin-top: 30px;
 	margin-left:auto;
     margin-right:auto;
     border-radius: 100px;
-    border: 4px solid black;
-    
-	/* object-fit: cover; */
-    /* width: 150px; */
-    /* height: 150px; */
+    border: 3px solid black;
 }
 
 .img-thumbnail {
@@ -213,6 +267,7 @@ input[type="text"], input[type="password"] {
     height: 200px;
     /* object-fit: cover; */
     border-radius: 50%;
+    padding: 0;
 }
 
 #start_button {
@@ -221,12 +276,29 @@ input[type="text"], input[type="password"] {
 }
 
 #loginAlert {
-	/* display: none; */
-	margin-left: 300px;
-	margin-right: 300px;
+    margin-left: 36%;
+    margin-right: 36%;
 	border-radius: 30px;
 	text-align: center;
 	border: 2px solid black;
+    background-color:#d93d35;
+    border: 2px solid black;
+    color: white;
+    font-weight: 900;
+}
+
+#arrowbackregister {
+    font-weight: 800; 
+    /* aria-current="page"; */
+    display: flex;
+    justify-content: center;
+    margin-left: auto;
+	margin-right: auto;
+    margin-bottom: 1%;
+    border: 3px solid black;
+    max-width: 10%;
+    border-radius: 30px;
+
 }
 
 #title_dashboard {
@@ -244,6 +316,11 @@ input[type="text"], input[type="password"] {
 footer {
     text-align: center;
     width: 100%;
+    display: flex;
+    justify-content: space-evenly;
+    align-items: center; 
+    position: fixed;
+    bottom: -50px;
 }
 
 #friends {
@@ -251,17 +328,6 @@ footer {
     /* justify-content: center; */
     /* align-items: center; */
     margin-left: 5%;
-}
-
-/* liltle image picture for chose pp on register page*/
-#chose_pp {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    /* width : auto;
-    height : auto; */
-    width : 20px;
-    height : 15px;
 }
 
 
@@ -289,4 +355,192 @@ footer {
 
     /* margin-top: 50px; */
     /* margin-bottom: 50px; */
+}
+
+
+.dropdown-menu, .dropdown-menu_chat {
+    display: none;
+    position: absolute;
+    border: 2px solid black;
+    background-color: #307f3d;
+    z-index: 1000;
+}
+
+.dropdown-menu::shadow , .dropdown-menu_chat::shadow {
+    display: block;
+    background-color: #e3d6c1;
+}
+
+
+/* chat */
+
+div.input-container {
+    display: flex;
+    justify-content: center;
+    align-items: end;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+#send-button {
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: none;
+    background-color: #307f3d;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+#message-input {
+    flex: 1;
+    padding: 5px;
+    border-radius: 5px;
+    border: none;
+    resize: vertical;
+    margin-right: 10px;
+    min-height: 35px;
+    
+}
+
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: stretch;
+    border-radius: 10px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+    height: 270px;
+  }
+  
+  .chat-log {
+    flex: 1;
+    overflow-y: scroll;
+    padding: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+
+  .input-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+  } 
+
+  .avatar-image {
+    width: 250px;
+    height: 250px;
+    object-fit: cover;
+    transition: transform 2s ease, opacity 2s ease;
+}
+
+.carousel-item-next,
+.carousel-item-prev,
+.carousel-item.active {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.carousel-item-next.carousel-item-left,
+.carousel-item-prev.carousel-item-right,
+.carousel-item.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* tchat 2 */
+
+div.input-container2 {
+    display: flex;
+    justify-content: center;
+    align-items: end;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+}
+
+#send-button2 {
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: none;
+    background-color: #307f3d;
+    color: #ffffff;
+    cursor: pointer;
+}
+
+#message-input2 {
+    flex: 1;
+    padding: 5px;
+    border-radius: 5px;
+    border: none;
+    resize: vertical;
+    margin-right: 10px;
+    min-height: 35px;
+    
+}
+
+.chat-container2 {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: stretch;
+    border-radius: 10px;
+    margin : 10px;
+    flex : 1;
+
+  }
+  
+  .chat-log2 {
+    flex: 1;
+    overflow-y: scroll;
+    padding: 10px;
+    margin-left: 10px;
+    margin-right: 10px;
+  }
+
+  .input-container2 {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+  } 
+
+  .offcanvas-body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+
+/* profile page */
+
+#login_card {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 30px;
+    border: 3px solid black;
+    max-width: 60%;
+}
+
+.btn-dark {
+    background-color: #307f3d;
+    border: 3px solid black;
+    /* center, same weight of profile picture border radius 30px*/
+    margin-left: auto;
+    margin-right: auto;
+    width: 25%;
+    border-radius: 30px;
 }

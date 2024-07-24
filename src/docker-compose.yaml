@@ -3,10 +3,11 @@ networks:
     driver: bridge
   monitoring:
     driver: bridge
-  # db_network:
-  #   driver: bridge
+  db_network:
+    driver: bridge
   
-# volumes:
+volumes:
+  static_admin:
 #   prometheus_data:
 #     driver: local
 #     driver_opts:
@@ -19,34 +20,47 @@ services:
     build: requirements/nginx
     container_name: "nginx"
     restart: unless-stopped
+    volumes:
+      - static_admin:/static
     networks:
       - 42nice
+      - monitoring
     ports:
-      - "8080:443"
+      - "5454:443"
     depends_on:
       - grafana
       - django
-
-
-
-
   django:
     build: requirements/django
     container_name: "django"
     restart: unless-stopped
+    volumes:
+      - static_admin:/app/.env/lib/python3.11/site-packages/django/contrib/admin/static
     environment:
+      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
+      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
+      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
     networks:
       - 42nice
-      # - db_network
-    # depends_on:
-    #   - postgresql
-  # postgresql:
-  #   build: requirements/postgresql
-  #   container_name: "postgresql"
-  #   restart: unless-stopped
-  #   networks:
-  #     - db_network
+      - db_network
+    ports:
+      - "8000:443"
+    depends_on:
+      - postgresql
+  postgresql:
+    build: requirements/postgresql
+    container_name: "postgresql"
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+    networks:
+      - db_network
 
 
 
@@ -59,8 +73,8 @@ services:
     networks:
       - 42nice
       - monitoring
-    ports:
-      - "3000:3000"
+    # ports:
+    #   - "3000:3000"
     depends_on:
       - prometheus
     environment:

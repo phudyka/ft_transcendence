@@ -1,14 +1,14 @@
 function login(navigateTo) {
 	document.getElementById('ft_transcendence').innerHTML = `
-	<h1>ft_pong_online</h1>
+	<img src="content/logo_400_400.png" id="logo_pong_login" alt="Logo" width="320" height="320" style="margin-bot:10%;">
     	<div id="loginAlert" class="alert alert-danger d-none" role="alert">
       	Invalid username or password!
     	</div>
 	<div class="container login-container">
 	  <form id="loginForm">
 		<p>
-		  <label for="username">username</label>
-		  <input type="text" value="" placeholder="Enter Username" id="username">
+		  <label for="username" style="margin-top:3%;">username</label>
+		  <input type="text" class="value="" placeholder="Enter Username" id="username">
 		</p>
 		<p>
 		  <label for="password">password</label>
@@ -19,9 +19,9 @@ function login(navigateTo) {
 			</button>
 		  </div>
 		</p>
-		<button type="submit" class="btn btn-primary btn-block">Login</button>
+		<button type="submit" class="btn btn-primary">Login</button>
 		<div class="text-center">
-		  <a href="" data-link="/views/register">create account</a>
+			<button type="button" id="create_account" class="btn btn-outline-light">Create account</button>
 		</div>
 	  </form>
 	</div>
@@ -45,29 +45,60 @@ function login(navigateTo) {
 		<p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
 	</footer>
 	`;
-  
+	attachEventHandlers(navigateTo);
+}
+
+function attachEventHandlers(navigateTo) {
 	/* navigate to dashboard page when login is successful */
 	document.getElementById('loginForm').addEventListener('submit', function (event) {
 	  event.preventDefault();
+	  console.log('click to login button');
 	  const username = document.getElementById('username').value;
 	  const password = document.getElementById('password').value;
-  
+
 	  if (username === '' && password === '') {
 		console.log('Login successful');
 		navigateTo('dashboard', username);
+	  } else if (username === 'fab' && password === 'fab') {
+			console.log('Login successful');
+			navigateTo('dashboard', username);
 	  } else {
 		const loginAlert = document.getElementById('loginAlert');
 		loginAlert.classList.remove('d-none');
 	  }
 	});
-  
+
 	/* navigate to create account page when create account is clicked */
-	document.getElementById('create').addEventListener('click', function (event) {
-	  event.preventDefault();
-	  navigateTo('/views/register');
+	const createButton = document.getElementById('create_account');
+	if (createButton) {
+		createButton.addEventListener('click', function (event) {
+			event.preventDefault();
+			console.log('click to create account button');
+			navigateTo('register');
+		});
+	}
+
+	/* lock button */
+	document.addEventListener('click', function (event) {
+		if (event.target.classList.contains('unmask') || event.target.closest('.unmask')) {
+		  const button = event.target.closest('.unmask');  // Target the entire button
+		  const input = button.previousElementSibling;
+		  if (input.type === 'password') {
+			input.type = 'text';
+			button.querySelector('i').classList.remove('fa-lock');
+			button.querySelector('i').classList.add('fa-lock-open');
+		  } else {
+			input.type = 'password';
+			button.querySelector('i').classList.remove('fa-lock-open');
+			button.querySelector('i').classList.add('fa-lock');
+		  }
+		}
+	  });
+
+	  document.addEventListener("keydown", function (event) {
+		//if enter key is presset and login form is complete then submit the form
+		if (event.key === "Enter") {
+			document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+		}
 	});
-
-
-	
-
-  }
+}
