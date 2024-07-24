@@ -35,6 +35,8 @@ var nuagesMaterial;
 let mixer;
 let action;
 
+let choice = false;
+
 const clock = new THREE.Clock();
 
 function initGame() {
@@ -291,6 +293,8 @@ function initGame() {
             socket.emit('multi-four');
         });
 
+        animateChoice();
+
         function easeInOutExpo(t, b, c, d) {
             if (t == 0) return b;
             if (t == d) return b + c;
@@ -305,6 +309,7 @@ function updateAnimation() {
     if (mixer) {
         mixer.update(delta);
     }
+}
 
     socket.on('gameOver', (data) => {
         const winner = data.winner;
@@ -322,7 +327,6 @@ function updateAnimation() {
             socket.emit('Back to Menu');
         });
     });
-}
 
 initGame();
 
@@ -370,12 +374,21 @@ function movePads() {
     }
 }
 
+function animateChoice() {
+    if (choice === false){
+        requestAnimationFrame(animateChoice);
+        controls.update();
+        updateAnimation();
+        renderer.render(scene, camera);
+    }
+}
+
 function animate() {
     requestAnimationFrame(animate);
     movePads();
     updateAnimation();
     //camera.up.set( 1, -1, 0 );
-    controls.update();
+    //controls.update();
     //console.log(camera.position);
     renderer.render(scene, camera);
 		spotlight.position.set (
@@ -386,6 +399,7 @@ function animate() {
 }
 
 socket.on('start-game', (rooms) => {
+    choice = true;
     document.getElementById('waiting').classList.remove('active');
     document.getElementById('score').classList.add('score-container');
     const player1 = rooms[0];
