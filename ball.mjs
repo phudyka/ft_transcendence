@@ -73,8 +73,9 @@ export class Ball {
                 this.direction.copy(this.relativePosition);
 
                 this.speed = Math.min(this.maxSpeed, this.speed + this.acceleration);
-                this.collided = true;
+                return true;
             }
         }
+        return false;
     }
 }

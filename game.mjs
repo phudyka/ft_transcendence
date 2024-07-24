@@ -76,8 +76,12 @@ function updateBallPosition(ball, pad1, pad2, io, room, soloMode) {
     }
     ball.updatePosition();
     checkWallCollision(ball, pad1, pad2, io, room);
-    ball.checkCollision(pad1);
-    ball.checkCollision(pad2);
+    if (ball.checkCollision(pad1) === true) {
+        io.in(room).emit('hitPad');
+    }
+    if (ball.checkCollision(pad2) === true) {
+        io.in(room).emit('hitPad');
+    }
     io.in(room).emit('moveBall', {
         position: { x: ball.mesh.position.x, z: ball.mesh.position.z },
         direction: { x: ball.direction.x, z: ball.direction.z },

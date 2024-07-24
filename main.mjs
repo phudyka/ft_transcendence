@@ -28,6 +28,8 @@ const padHeight = 0.5;
 var scene;
 var camera;
 var renderer;
+var listener;
+var sound;
 
 var nuages;
 var nuagesMaterial;
@@ -195,11 +197,21 @@ function initGame() {
         const ambientLight = new THREE.AmbientLight(0xfffff0, 0.5);
         scene.add(ambientLight);
 
-        renderer.setPixelRatio(window.devicePixelRatio);
-
         loadModel(scene, (loadedMixer, loadedAction) => {
             mixer = loadedMixer;
             action = loadedAction;
+        });
+
+        listener = new THREE.AudioListener();
+        camera.add(listener);
+
+        sound = new THREE.Audio(listener);
+
+        var audioLoader = new THREE.AudioLoader();
+        audioLoader.load('/sound/Pong.wav', function(buffer) {
+            sound.setBuffer(buffer);
+            sound.setLoop(false);
+            sound.setVolume(0.3);
         });
 
         pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.10, 3.59, 0);
@@ -328,6 +340,23 @@ function updateAnimation() {
         });
     });
 
+    socket.on('hitPad', ()=> {
+        if (listener.context.state === 'suspended') {
+            listener.context.resume().then(() => {
+                console.log('AudioContext resumed');
+                if (sound.isPlaying){
+                    sound.stop();
+                }
+                sound.play();
+            });
+        } else {
+            if (sound.isPlaying){
+                sound.stop();
+            }
+            sound.play();
+        }
+    });
+
 initGame();
 
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -387,19 +416,21 @@ function animate() {
     requestAnimationFrame(animate);
     movePads();
     updateAnimation();
-    //camera.up.set( 1, -1, 0 );
-    //controls.update();
-    //console.log(camera.position);
+    console.log(camera.position);
     renderer.render(scene, camera);
-		spotlight.position.set (
-		camera.position.x + 10,
-		camera.position.y + 10,
-		camera.position.z + 10
-	)
+	// 	spotlight.position.set (
+	// 	camera.position.x + 10,
+	// 	camera.position.y + 10,
+	// 	camera.position.z + 10
+	// )
 }
 
 socket.on('start-game', (rooms) => {
     choice = true;
+    camera.position.set(0, 8.4, 7.2);
+    controls.target.set(0, 3, 0);
+    controls.autoRotate = false;
+    controls.update();
     document.getElementById('waiting').classList.remove('active');
     document.getElementById('score').classList.add('score-container');
     const player1 = rooms[0];
