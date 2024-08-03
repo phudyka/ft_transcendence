@@ -55,17 +55,33 @@ function attachEventHandlers(navigateTo) {
 	  console.log('click to login button');
 	  const username = document.getElementById('username').value;
 	  const password = document.getElementById('password').value;
+	  console.log('try to login with username:', username, 'and password:', password)
 
-	  if (username === '' && password === '') {
-		console.log('Login successful');
-		navigateTo('dashboard', username);
-	  } else if (username === 'fab' && password === 'fab') {
+	  fetch('http://localhost:8000/api/login/', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ username: username, password: password }),
+	})
+	.then(response => {
+		console.log('Response status:', response.status);
+		return response.json();
+	})
+	.then(data => {
+		console.log('Success:', data);
+		if (data.success) {
 			console.log('Login successful');
 			navigateTo('dashboard', username);
-	  } else {
+		} else {
+			const loginAlert = document.getElementById('loginAlert');
+			loginAlert.classList.remove('d-none');
+		}
+	})
+	.catch(error => {
+		console.error('Error:', error);
 		const loginAlert = document.getElementById('loginAlert');
 		loginAlert.classList.remove('d-none');
-	  }
 	});
 
 	/* navigate to create account page when create account is clicked */
