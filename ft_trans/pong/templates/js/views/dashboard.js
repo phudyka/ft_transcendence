@@ -1,4 +1,7 @@
 function dashboard(navigateTo, $player_name) {
+
+	$player_name = 'faperac';
+
 	document.getElementById('ft_transcendence').innerHTML = `
 	<div class="dashboard-container">
 		<ul class="nav justify-content-center">
@@ -41,8 +44,8 @@ function dashboard(navigateTo, $player_name) {
 				<div class="offcanvas-body">
 
 					<div class="chat-container2">
-						<div class="chat-log2" id="chat-log2"> 
-						</div>	
+						<div class="chat-log2" id="chat-log2">
+						</div>
 						<div class="input-container2">
 							<textarea id="message-input2" placeholder="Type your message..." rows="1"></textarea>
 							<button id="send-button2">Send</button>
@@ -70,8 +73,8 @@ function dashboard(navigateTo, $player_name) {
 					</div>
 					<div class="card">
 						<div class="chat-container">
-							<div class="chat-log" id="chat-log"> 
-							</div>	
+							<div class="chat-log" id="chat-log">
+							</div>
 								<div class="input-container">
 								<textarea id="message-input" placeholder="Type your message..." rows="1"></textarea>
 								<button id="send-button">Send</button>
@@ -81,8 +84,8 @@ function dashboard(navigateTo, $player_name) {
 				</div>
 			</div>
 		</div>
-	
-		
+
+
 		<div class="toast-container position-fixed bottom-0 end-0 p-3">
 		<div id="addFriendToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
 			<div class="toast-header">
@@ -116,6 +119,13 @@ function dashboard(navigateTo, $player_name) {
   }
 
 function attachEventHandlers3(navigateTo, $player_name) {
+	const socket = io('http://localhost:3000');
+
+
+
+	// Listen for messages from the server
+
+
     // Navigate to login page when logout is clicked
     document.getElementById('logoutLink').addEventListener('click', function (event) {
         event.preventDefault();
@@ -135,7 +145,7 @@ function attachEventHandlers3(navigateTo, $player_name) {
         navigateTo('gameplay_friends', $player_name);
     });
 
-    // friend menu 
+    // friend menu
     document.querySelectorAll('#friends .list-group-item').forEach(item => {
         item.addEventListener('click', function (event) {
             event.stopPropagation();
@@ -147,7 +157,7 @@ function attachEventHandlers3(navigateTo, $player_name) {
 			visibleDropdowns.forEach(dropdown => {
 				dropdown.style.display = 'none';
 			});
-            
+
             // Position the dropdown near the clicked friend item
             dropdown.style.top = `${event.clientY}px`;
             dropdown.style.left = `${event.clientX}px`;
@@ -164,7 +174,7 @@ function attachEventHandlers3(navigateTo, $player_name) {
 		if (dropdown) {
 			dropdown.style.display = 'none';
 		}
-		
+
 		const dropdown2 = document.getElementById('friendDropdown_chat');
 		if (dropdown2) {
 			dropdown2.style.display = 'none';
@@ -207,59 +217,118 @@ function attachEventHandlers3(navigateTo, $player_name) {
     });
 
 	// Chat global
+	// document.getElementById('send-button').addEventListener('click', function (event) {
+	// 	event.preventDefault();
+	// 	const messageInput = document.getElementById('message-input');
+	// 	if (messageInput.value.trim() !== '') {
+
+	// 		const message = formatMessage(messageInput.value, $player_name);
+	// 		const chatLog = document.getElementById('chat-log');
+	// 		const messageElement = document.createElement('div');
+
+	// 		// socket.emit('chat_message', {name : $player_name, message : message});
+
+	// 		// Create the username element and set its attributes
+	// 		const usernameElement = document.createElement('a');
+	// 		usernameElement.href = '#';
+	// 		usernameElement.classList.add('username-link');
+	// 		usernameElement.dataset.friend = $player_name;
+	// 		usernameElement.innerText = `[${$player_name}]`;
+	// 		//active the dropdown menu when username is clicked
+	// 		usernameElement.addEventListener('click', function (event) {
+	// 			event.stopPropagation();
+	// 			const dropdown = document.getElementById('friendDropdown_chat');
+	// 			const friendName = this.getAttribute('data-friend');
+	// 			const rect = this.getBoundingClientRect();
+
+	// 			// Hide all visible dropdowns
+	// 			const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
+	// 			visibleDropdowns.forEach(dropdown => {
+	// 				dropdown.style.display = 'none';
+	// 			});
+
+	// 			// Position the dropdown near the clicked friend item
+	// 			dropdown.style.top = `${event.clientY}px`; //click position
+	// 			dropdown.style.left = `${event.clientX}px`;
+	// 			dropdown.style.display = 'block';
+
+	// 			// Store the clicked friend's name
+	// 			dropdown.setAttribute('data-friend', friendName);
+	// 		});
+
+	// 		// Create the message element and set its text
+	// 		const messageTextElement = document.createElement('span');
+	// 		messageTextElement.innerText = ` : ${messageInput.value}`;
+
+	// 		// Append the username and message elements to the message element
+	// 		messageElement.appendChild(usernameElement);
+	// 		messageElement.appendChild(messageTextElement);
+
+	// 		chatLog.appendChild(messageElement);
+	// 		messageInput.value = '';
+	// 		scrollToBottom();
+	// 	}
+	// });
+
 	document.getElementById('send-button').addEventListener('click', function (event) {
-		event.preventDefault();
-		const messageInput = document.getElementById('message-input');
-		if (messageInput.value.trim() !== '') {
-			const message = formatMessage(messageInput.value, $player_name);
-	
-			const chatLog = document.getElementById('chat-log');
-			const messageElement = document.createElement('div');
-	
-			// Create the username element and set its attributes
-			const usernameElement = document.createElement('a');
-			usernameElement.href = '#';
-			usernameElement.classList.add('username-link');
-			usernameElement.dataset.friend = $player_name;
-			usernameElement.innerText = `[${$player_name}]`;
-			//active the dropdown menu when username is clicked 
-			usernameElement.addEventListener('click', function (event) {
-				event.stopPropagation();
-				const dropdown = document.getElementById('friendDropdown_chat');
-				const friendName = this.getAttribute('data-friend');
-				const rect = this.getBoundingClientRect();
+        event.preventDefault();
+        const messageInput = document.getElementById('message-input');
+        if (messageInput.value.trim() !== '') {
+            const message = formatMessage(messageInput.value, $player_name);
+            socket.emit('chat_message', {name : $player_name, message : message});
+        }
+		messageInput.value = '';
+    });
 
-				// Hide all visible dropdowns
-				const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
-				visibleDropdowns.forEach(dropdown => {
-					dropdown.style.display = 'none';
-				});
-				
-				// Position the dropdown near the clicked friend item
-				dropdown.style.top = `${event.clientY}px`; //click position 
-				dropdown.style.left = `${event.clientX}px`;
-				dropdown.style.display = 'block';
-	
-				// Store the clicked friend's name
-				dropdown.setAttribute('data-friend', friendName);
+	socket.on('chat_message', (msg) => {
+		const chatLog = document.getElementById('chat-log');
+		const messageElement = document.createElement('div');
+
+		// Créer l'élément username et définir ses attributs
+		const usernameElement = document.createElement('a');
+		usernameElement.href = '#';
+		usernameElement.classList.add('username-link');
+		usernameElement.dataset.friend = msg.name;
+		usernameElement.innerText = `[${msg.name}]`;
+
+		// Activer le menu déroulant lorsque le nom d'utilisateur est cliqué
+		usernameElement.addEventListener('click', function (event) {
+			event.stopPropagation();
+			const dropdown = document.getElementById('friendDropdown_chat');
+			const friendName = this.getAttribute('data-friend');
+
+			// Masquer tous les menus déroulants visibles
+			const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
+			visibleDropdowns.forEach(dropdown => {
+				dropdown.style.display = 'none';
 			});
-	
-			// Create the message element and set its text
-			const messageTextElement = document.createElement('span');
-			messageTextElement.innerText = ` : ${messageInput.value}`;
-	
-			// Append the username and message elements to the message element
-			messageElement.appendChild(usernameElement);
-			messageElement.appendChild(messageTextElement);
-	
-			chatLog.appendChild(messageElement);
-			messageInput.value = '';
-			scrollToBottom();
-		}
-	});
-	
 
-	//private message with friend 
+			// Positionner le menu déroulant près de l'élément ami cliqué
+			dropdown.style.top = `${event.clientY}px`;
+			dropdown.style.left = `${event.clientX}px`;
+			dropdown.style.display = 'block';
+
+			// Stocker le nom de l'ami cliqué
+			dropdown.setAttribute('data-friend', friendName);
+		});
+
+		// Créer l'élément message et définir son texte
+		const messageTextElement = document.createElement('span');
+		messageTextElement.innerText = `: ${msg.message}`;
+
+		// Ajouter les éléments username et message à l'élément message
+		messageElement.appendChild(usernameElement);
+		messageElement.appendChild(messageTextElement);
+
+		chatLog.appendChild(messageElement);
+
+		// Faire défiler jusqu'en bas du chat log
+		chatLog.scrollTop = chatLog.scrollHeight;
+	});
+
+
+
+	//private message with friend
 	document.getElementById('send-button2').addEventListener('click', function (event) {
 		event.preventDefault();
 		const messageInput2 = document.getElementById('message-input2');
@@ -289,6 +358,18 @@ function attachEventHandlers3(navigateTo, $player_name) {
 		}
 	});
 
+
+	//test
+
+    // socket.on('chat_message', (msg) => {
+    //     const chatLog = document.getElementById('chat-log');
+    //     const messageElement = document.createElement('div');
+    //     messageElement.innerHTML = `<strong>${msg.name}</strong>: ${msg.message}`;
+    //     chatLog.appendChild(messageElement);
+    //     chatLog.scrollTop = chatLog.scrollHeight;
+    // });
+
+	// test end
 
 	// toast when add friend
 	document.getElementById('friendDropdown_chat').querySelector('#addToFriend').addEventListener('click', function (event) {

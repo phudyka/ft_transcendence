@@ -1,37 +1,35 @@
+// node_server/server.js
 const express = require('express');
-const { Pool } = require('pg');
+const http = require('http');
+const socketIo = require('socket.io');
+const cors = require('cors');
 
 const app = express();
-const port = 8000;
-
-const pool = new Pool({
-  user: 'fabriciopa',
-  host: 'localhost',
-  database: 'db',
-  password: '5472',
-  port: 5432,
+const server = http.createServer(app);
+const io = socketIo(server, {
+    cors: {
+        origin: "*", // Permet toutes les origines, à ajuster selon vos besoins
+        methods: ["GET", "POST"]
+    }
 });
 
-app.use(express.json());
+// Utiliser le middleware CORS
+app.use(cors());
 
-app.lisen(port , () => {
-  console.log(`Server is running on port ${port}`);
+app.get('/', (req, res) => {
+    res.send('Socket.io server is running');
 });
 
+io.on('connection', (socket) => {
+    console.log('a user connected');
+    socket.on('disconnect', () => {
+        console.log('user disconnected');
+    });
+    socket.on('chat_message', (msg) => {
+        io.emit('chat_message', msg);
+    });
+});
 
-const data = { username: 'example' , password: 'example' };
-
-fetch('api/login', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify(data),
-})
-  .then((response) => response.json())
-  .then((data) => {
-    console.log('Success:', data);
-  })
-  .catch((error) => {
-    console.error('Error:', error);
-  });
+server.listen(3000, () => {
+    console.log('listening on *:3000');
+});
