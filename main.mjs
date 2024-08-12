@@ -209,9 +209,9 @@ function initGame() {
 
         var audioLoader = new THREE.AudioLoader();
         audioLoader.load('/sound/Pong.wav', function(buffer) {
-            sound.setBuffer(buffer);
+            sound.setVolume(0.2);
             sound.setLoop(false);
-            sound.setVolume(0.3);
+            sound.setBuffer(buffer);
         });
 
         pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.10, 3.59, 0);
