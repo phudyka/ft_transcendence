@@ -1,0 +1,85 @@
+
+export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
+
+    socket.on('initBall', (data) => {
+        ball.mesh.position.x = data.position.x;
+        ball.mesh.position.z = data.position.z;
+        console.log('Initial ball data received:', data);
+    });
+    
+    socket.on('moveBall', (data) => {
+        ball.mesh.position.x = data.position.x;
+        ball.mesh.position.z = data.position.z;
+        ball.speed = data.speed;
+    });
+    
+    socket.on('movePad', (data) => {
+        console.log('Received movePad event:', data);
+        pad1.mesh.position.z = data.pad1;
+        pad2.mesh.position.z = data.pad2;
+        if (pad4)
+        {
+            pad3.mesh.position.z = data.pad3;
+            pad4.mesh.position.z = data.pad4;
+        }
+    });
+    
+    socket.on('updateScores', (scores) => {
+        document.getElementById('scoreLeft').textContent = scores.score1;
+        document.getElementById('scoreRight').textContent = scores.score2;
+    });
+    
+    socket.on('LeaveRoom', (room) => {
+        socket.emit('disconnect');
+    });
+    
+    document.getElementById('multi-button').addEventListener('click', () => {
+        socket.emit('multi');
+    });
+    
+    document.getElementById('solo-button').addEventListener('click', () => {
+        socket.emit('solo');
+    });
+    
+    document.getElementById('multi-four').addEventListener('click', () => {
+        socket.emit('multi-four');
+    });
+
+    socket.on('gameOver', (data) => {
+        const winner = data.winner;
+        document.getElementById('score').classList.remove('score-container');
+        document.getElementById('menu').classList.add('active');
+        document.getElementById('menu').innerHTML = `<h1>${winner} Wins!</h1>
+            <button class="menu-button" id="replay-button">Replay</button>
+            <button class="menu-button" id="back-to-menu-button">Back to Menu</button>`;
+
+        document.getElementById('replay-button').addEventListener('click', () => {
+            socket.emit('Replay !');
+        });
+
+        document.getElementById('back-to-menu-button').addEventListener('click', () => {
+            socket.emit('Back to Menu');
+        });
+    });
+
+}
+
+export function hitPadEvent(socket, sound, listener){
+    socket.on('hitPad', ()=> {
+        if (listener.context.state === 'suspended') {
+            listener.context.resume().then(() => {
+                console.log('AudioContext resumed');
+                if (sound.isPlaying){
+                    sound.stop();
+                }
+                sound.play();
+            });
+        } else {
+            if (sound.isPlaying){
+                sound.stop();
+            }
+            sound.play();
+        }
+    });
+
+}

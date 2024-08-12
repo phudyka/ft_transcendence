@@ -17,6 +17,7 @@ import { OrbitControls } from './node_modules/three/examples/jsm/controls/OrbitC
 import loadModel from './loadIsland.mjs';
 import { Ball } from './ball.mjs';
 import { tableHeight } from './config.mjs';
+import { hitPadEvent, initSocketEvent } from './socketEvent.mjs'
 
 const socket = io();
 
@@ -72,30 +73,13 @@ function initGame() {
     hemiLight.position.set(0, 200, 0);
     scene.add(hemiLight);
 
-    // const dirLight = new THREE.DirectionalLight(0xfffff0, 1);
-    // dirLight.position.set(-13, 11, 11);
-    // dirLight.castShadow = true;
-    // dirLight.shadow.mapSize.width = 4096;
-    // dirLight.shadow.mapSize.height = 4096;
-    // dirLight.shadow.camera.near = 0.5;
-    // dirLight.shadow.camera.far = 500;
-    // dirLight.shadow.camera.left = -50;
-    // dirLight.shadow.camera.right = 50;
-    // dirLight.shadow.camera.top = 50;
-    // dirLight.shadow.camera.bottom = -50;
-    // dirLight.shadow.bias = -0.01;
-    // scene.add(dirLight);
-
     const pointLight = new THREE.PointLight(0xffa95c, 0.5, 100);
     pointLight.position.set(0, 50, 50);
     scene.add(pointLight);
 
-    // const ambLight = new THREE.AmbientLight(0xffa95c, 1.5);
-    // scene.add(ambLight);
-
     const logoTextureLoader = new THREE.TextureLoader();
     const logoTexture = logoTextureLoader.load('./png/logoScreen.png', function(texture) {
-        const logoMaterial = new THREE.MeshBasicMaterial({ 
+    const logoMaterial = new THREE.MeshBasicMaterial({ 
             map: texture,
             transparent: true,
             opacity: 1
@@ -220,7 +204,7 @@ function initGame() {
         sound = new THREE.Audio(listener);
 
         var audioLoader = new THREE.AudioLoader();
-        audioLoader.load('/sound/Pong.wav', function(buffer) {
+        audioLoader.load('/sound/pong.wav', function(buffer) {
             sound.setVolume(0.2);
             sound.setLoop(false);
             sound.setBuffer(buffer);
@@ -273,49 +257,8 @@ function initGame() {
             movePads();
         });
 
-        socket.on('initBall', (data) => {
-            ball.mesh.position.x = data.position.x;
-            ball.mesh.position.z = data.position.z;
-            console.log('Initial ball data received:', data);
-        });
-
-        socket.on('moveBall', (data) => {
-            ball.mesh.position.x = data.position.x;
-            ball.mesh.position.z = data.position.z;
-            ball.speed = data.speed;
-        });
-
-        socket.on('movePad', (data) => {
-            console.log('Received movePad event:', data);
-            pad1.mesh.position.z = data.pad1;
-            pad2.mesh.position.z = data.pad2;
-            if (pad4)
-            {
-                pad3.mesh.position.z = data.pad3;
-                pad4.mesh.position.z = data.pad4;
-            }
-        });
-
-        socket.on('updateScores', (scores) => {
-            document.getElementById('scoreLeft').textContent = scores.score1;
-            document.getElementById('scoreRight').textContent = scores.score2;
-        });
-
-        socket.on('LeaveRoom', (room) => {
-            socket.emit('disconnect');
-        });
-
-        document.getElementById('multi-button').addEventListener('click', () => {
-            socket.emit('multi');
-        });
-
-        document.getElementById('solo-button').addEventListener('click', () => {
-            socket.emit('solo');
-        });
-
-        document.getElementById('multi-four').addEventListener('click', () => {
-            socket.emit('multi-four');
-        });
+        initSocketEvent(socket, ball, pad1, pad2, pad3, pad4);
+        hitPadEvent(socket, sound, listener);
 
         animateChoice();
 
@@ -335,39 +278,6 @@ function updateAnimation() {
     }
 }
 
-    socket.on('gameOver', (data) => {
-        const winner = data.winner;
-        document.getElementById('score').classList.remove('score-container');
-        document.getElementById('menu').classList.add('active');
-        document.getElementById('menu').innerHTML = `<h1>${winner} Wins!</h1>
-            <button class="menu-button" id="replay-button">Replay</button>
-            <button class="menu-button" id="back-to-menu-button">Back to Menu</button>`;
-
-        document.getElementById('replay-button').addEventListener('click', () => {
-            socket.emit('Replay !');
-        });
-
-        document.getElementById('back-to-menu-button').addEventListener('click', () => {
-            socket.emit('Back to Menu');
-        });
-    });
-
-    socket.on('hitPad', ()=> {
-        if (listener.context.state === 'suspended') {
-            listener.context.resume().then(() => {
-                console.log('AudioContext resumed');
-                if (sound.isPlaying){
-                    sound.stop();
-                }
-                sound.play();
-            });
-        } else {
-            if (sound.isPlaying){
-                sound.stop();
-            }
-            sound.play();
-        }
-    });
 
 initGame();
 
@@ -430,11 +340,6 @@ function animate() {
     updateAnimation();
     console.log(camera.position);
     renderer.render(scene, camera);
-	// 	spotlight.position.set (
-	// 	camera.position.x + 10,
-	// 	camera.position.y + 10,
-	// 	camera.position.z + 10
-	// )
 }
 
 socket.on('start-game', (rooms) => {
