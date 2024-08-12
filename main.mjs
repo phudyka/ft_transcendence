@@ -6,7 +6,7 @@
 /*   By: phudyka <phudyka@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 16:25:09 by phudyka           #+#    #+#             */
-/*   Updated: 2024/08/12 16:21:12 by phudyka          ###   ########.fr       */
+/*   Updated: 2024/08/12 16:47:02 by phudyka          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,12 +125,22 @@ function initGame() {
     measureFPS(1000, function(fps) {
         console.log(`FPS: ${Math.round(fps)}`);
         
-        if (fps < 60) {
+        if (fps < 30) {
             console.log("LOW QUALITY MODE ON");
+            renderer.setPixelRatio(window.devicePixelRatio / 2.5);
+            renderer.shadowMap.enabled = false;
+        } 
+        else if (fps < 60) {
+            console.log("MID QUALITY MODE ON");
             renderer.setPixelRatio(window.devicePixelRatio / 2);
             renderer.shadowMap.enabled = false;
-        } else {
+        }
+        else if (fps < 90) {
             console.log("HIGH QUALITY MODE ON");
+            renderer.setPixelRatio(window.devicePixelRatio / 1.2);
+        }
+        else {
+            console.log("ULTRA QUALITY MODE ON");
         }
     });
 
