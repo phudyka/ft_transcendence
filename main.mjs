@@ -6,7 +6,7 @@
 /*   By: phudyka <phudyka@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 16:25:09 by phudyka           #+#    #+#             */
-/*   Updated: 2024/07/26 17:06:51 by phudyka          ###   ########.fr       */
+/*   Updated: 2024/08/12 16:21:12 by phudyka          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,31 @@ let action;
 let choice = false;
 
 const clock = new THREE.Clock();
+const fpsDisplay = document.getElementById('fpsDisplay');
+
+function updateFPSDisplay() {
+    measureFPS(1000, function(fps) {
+        fpsDisplay.innerText = `FPS: ${Math.round(fps)}`;
+    });
+}
+
+function measureFPS(duration = 1000, callback) {
+    let frameCount = 0;
+    let startTime = performance.now();
+
+    function countFrames() {
+        frameCount++;
+        const now = performance.now();
+        if (now - startTime < duration) {
+            requestAnimationFrame(countFrames);
+        } else {
+            const fps = (frameCount / (now - startTime)) * 1000;
+            callback(fps);
+        }
+    }
+
+    requestAnimationFrame(countFrames);
+}
 
 function initGame() {
     scene = new THREE.Scene();
@@ -95,6 +120,18 @@ function initGame() {
         setTimeout(() => {
             fadeOutLogoAndStartAnimation(logoMesh, logoMaterial);
         }, 2000);
+    });
+    
+    measureFPS(1000, function(fps) {
+        console.log(`FPS: ${Math.round(fps)}`);
+        
+        if (fps < 60) {
+            console.log("LOW QUALITY MODE ON");
+            renderer.setPixelRatio(window.devicePixelRatio / 2);
+            renderer.shadowMap.enabled = false;
+        } else {
+            console.log("HIGH QUALITY MODE ON");
+        }
     });
 
     function fadeOutLogoAndStartAnimation(logoMesh, logoMaterial) {
@@ -335,6 +372,7 @@ function animateChoice() {
 }
 
 function animate() {
+    updateFPSDisplay();
     requestAnimationFrame(animate);
     movePads();
     updateAnimation();
