@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   light.mjs                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: phudyka <phudyka@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/07/26 16:25:19 by phudyka           #+#    #+#             */
+/*   Updated: 2024/07/26 16:25:20 by phudyka          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 import * as THREE from './node_modules/three/build/three.module.js';
 
 export class sunLight extends THREE.DirectionalLight {

@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   loadIsland.mjs                                     :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: phudyka <phudyka@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/07/26 16:25:21 by phudyka           #+#    #+#             */
+/*   Updated: 2024/07/26 16:25:22 by phudyka          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 import * as THREE from './node_modules/three/build/three.module.js';
 import { GLTFLoader } from './node_modules/three/examples/jsm/loaders/GLTFLoader.js';
 

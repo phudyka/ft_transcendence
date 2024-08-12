@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.mjs                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: phudyka <phudyka@student.42.fr>            +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/07/26 16:25:09 by phudyka           #+#    #+#             */
+/*   Updated: 2024/07/26 17:06:51 by phudyka          ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 import * as THREE from './node_modules/three/build/three.module.js';
 import { sunLight } from './light.mjs';
 import { Pad } from './pad.mjs';
@@ -127,12 +139,12 @@ function initGame() {
 
     function startCameraAnimation() {
         const loader = new THREE.TextureLoader();
-        loader.load('png/ciel3.jpg', function(texture) {
+        loader.load('png/skybox.png', function(texture) {
             scene.background = texture;
         });
 
         const textureLoader = new THREE.TextureLoader();
-        const texture = textureLoader.load('./png/nuages.png', function(texture) {
+        const texture = textureLoader.load('./png/clouds.png', function(texture) {
             const planeGeo = new THREE.PlaneGeometry(window.innerWidth / 2, window.innerHeight / 2, 100);
             nuagesMaterial = new THREE.MeshBasicMaterial({ 
                 map: texture,
