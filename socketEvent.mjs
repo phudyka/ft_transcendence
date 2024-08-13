@@ -38,8 +38,26 @@ export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
         socket.emit('multi-four');
     });
 
+    document.getElementById('multi-tournament').addEventListener('click', () => {
+        socket.emit('return-list');
+    });
+
     document.getElementById('tournament').addEventListener('click', () => {
-        socket.emit('tournament');
+        socket.emit('create-tournament');
+    });
+
+    socket.on('tournament-list', (tournamentList) => {
+        const tournamentMenu = document.getElementById('tournament-list');
+        tournamentMenu.innerHTML = '';
+    
+        tournamentList.forEach(roomName => {
+            const listItem = document.createElement('li');
+            listItem.textContent = roomName;
+            listItem.addEventListener('click', () => {
+                socket.emit('join-tournament', { roomName });
+            });
+            tournamentMenu.appendChild(listItem);
+        });
     });
 
     socket.on('gameOver', (data) => {

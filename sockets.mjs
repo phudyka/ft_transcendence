@@ -155,36 +155,74 @@ export default function setupSockets(io) {
             }
         
         });
-        socket.on('tournament', () => {
-            //get pseudo
-            let room = `${socket.id}'s tournament`;
-            rooms[room] = [socket.id];
-            roomsTypes[room] = 'tournament';
+        socket.on('create-tournament', () => {
+            const roomName = `${socket.id}'s tournament`;
+            const room = findOrCreateRoom('tournament', roomName);
+            rooms[room].push(socket.id);
             socket.join(room);
+            
             console.log(`Player ${socket.id} joined ${room}`);
+            updateTournamentList();
+        });
+
+        socket.on('join-tournament', (data) => {
+            const { roomName } = data;
+            let room = null;
+
+            if (rooms[roomName]) {
+                room = roomName;
+            } else {
+                room = null;
+            }
+        
+            if (room && rooms[room].length < 8) {
+                rooms[room].push(socket.id);
+                socket.join(room);
+                console.log(`Player ${socket.id} joined ${room}`);
+            } else {
+                socket.emit('error', { message: 'Error' });
+            }
+        });
+
+        socket.on('return-list', () => {
+            updateTournamentList();
         });
     });
+
+    function updateTournamentList() {
+        const tournamentList = Object.keys(rooms).filter(room => roomsTypes[room] === 'tournament');
+        io.emit('tournament-list', tournamentList);
+    }
 }
 
-function findOrCreateRoom(type) {
+function findOrCreateRoom(type, name) {
     let room = null;
     let maxPlayers;
-
-    if (type === 'multi-four') {
+    
+    if (type === 'tournament') {
+        maxPlayers = 8;
+    } else if (type === 'multi-four') {
         maxPlayers = 4;
     } else {
         maxPlayers = 2;
     }
 
     for (const r in rooms) {
-        if (rooms[r].length < maxPlayers && roomsTypes[r] === type) {
+        if (type === 'tournament' && r === name) {
+            room = r;
+            break;
+        } else if (rooms[r].length < maxPlayers && roomsTypes[r] === type) {
             room = r;
             break;
         }
     }
 
     if (!room) {
-        room = `room-${roomCounter++}`;
+        if (type === 'tournament' && name) {
+            room = name;
+        } else {
+            room = `room-${roomCounter++}`;
+        }
         rooms[room] = [];
         roomsTypes[room] = type;
     }
