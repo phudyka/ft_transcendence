@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <title>ft_transcendence</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@300&display=swap');
 
         body {
             margin: 0;
@@ -12,8 +12,8 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background: #87CEEB;
-            font-family: 'Press Start 2P', Arial, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #1E90FF 100%);
+            font-family: 'Roboto', Arial, sans-serif;
             overflow: hidden;
             position: relative;
         }
@@ -28,43 +28,49 @@
             font-size: 14px;
         }
         #score {
-            display : none;
+            display: none;
         }
-        #menu, #waiting, #multi {
+        .menu, .waiting, .multi, .tournament {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.8);
+            background: rgba(255, 255, 255, 0.2); /* Fond transparent léger */
+            border: 5px solid #FFCC00; /* Jaune sable pour un look tropical */
             padding: 20px;
-            border-radius: 10px;
+            border-radius: 15px;
             text-align: center;
-            color: white;
-            backdrop-filter: blur(5px);
+            color: #333; /* Texte sombre pour un bon contraste */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Ombre douce pour un effet de profondeur */
             display: none;
             flex-direction: column;
             align-items: center;
             z-index: 10;
         }
         .menu-button {
-            background-color: #007BFF;
-            border: none;
+            background-color: #00BFFF; /* Bleu tropical pour les boutons */
+            border: 2px solid #FFD700; /* Jaune pour les bordures */
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             text-align: center;
             text-decoration: none;
-            display: inline-block;
-            font-size: 16px;
-            margin: 10px 2px;
+            display: block; /* En bloc pour s'assurer que les boutons sont en colonne */
+            font-size: 18px;
+            margin: 10px 0; /* Espacement vertical pour un alignement en colonne */
             cursor: pointer;
-            border-radius: 5px;
+            border-radius: 12px; /* Bords arrondis plus doux */
+            transition: background-color 0.3s, transform 0.3s;
+        }
+        .menu-button:hover {
+            background-color: #00CED1; /* Bleu clair pour l'effet au survol */
+            transform: scale(1.05); /* Légère augmentation de la taille au survol */
         }
         #spinner {
             margin-top: 20px;
-            width: 50px;
-            height: 50px;
-            border: 5px solid rgba(255, 255, 255, 0.3);
-            border-top-color: white;
+            width: 60px;
+            height: 60px;
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #00BFFF; /* Bleu tropical pour le spinner */
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -73,23 +79,27 @@
             top: 120px;
             text-align: center;
             font-size: 36px;
-            color: black;
+            color: #000;
             z-index: 10;
         }
         #scoreTitle {
             font-family: 'Press Start 2P', Arial, sans-serif;
-            font-size: 50px;
+            font-size: 60px;
             margin-bottom: 10px;
+            color: #FFCC00; /* Jaune sable pour les titres */
+        }
+        #scoreLeft, #scoreRight {
+            position: absolute;
+            top: 50px;
+            font-size: 48px;
+            font-weight: bold;
+            color: #00BFFF; /* Bleu tropical pour les scores */
         }
         #scoreLeft {
-            position: absolute;
-            left: 300px;
-            top: 50px;
+            left: 200px;
         }
         #scoreRight {
-            position: absolute;
-            right: 300px;
-            top: 50px;
+            right: 200px;
         }
         @keyframes spin {
             0% {
@@ -99,10 +109,7 @@
                 transform: rotate(360deg);
             }
         }
-        #menu.active, #waiting.active, #multi.active {
-            display: flex;
-        }
-        #score.score-container {
+        .active {
             display: flex;
         }
         canvas {
@@ -118,7 +125,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: black;
+            background: rgba(0, 0, 0, 0.8);
             color: white;
             display: none;
             justify-content: center;
@@ -128,18 +135,22 @@
     </style>
 </head>
 <body>
-    <div id="menu" class="active">
+    <div id="menu" class="menu active">
         <button class="menu-button" id="solo-ia">Solo vs IA</button>
         <button class="menu-button" id="multi-button">Multijoueur</button>
     </div>
-    <div id="multi">
+    <div id="multi" class="multi">
         <button class="menu-button" id="multi-2-local">2 Joueurs local</button>
         <button class="menu-button" id="multi-2-online">2 Joueurs en ligne</button>
         <button class="menu-button" id="multi-four">4 Joueurs en ligne</button>
         <button class="menu-button" id="multi-tournament">Tournois</button>
-        <button class="menu-button" id="back-button">Retour</button>
+        <button class="menu-button" id="multi-back-button">Retour</button>
     </div>
-    <div id="waiting">
+    <div id="tournament" class="tournament">
+        <button class="menu-button" id="create-tournament">Créer un tournoi</button>
+        <button class="menu-button" id="tournament-back-button">Retour</button>
+    </div>
+    <div id="waiting" class="waiting">
         <p>Waiting for another player...</p>
         <div id="spinner"></div>
     </div>
@@ -153,28 +164,38 @@
     </div>
     <script>
         // Cache les autres div au démarrage
-        document.getElementById('menu').classList.remove('active');
-        document.getElementById('multi').classList.remove('active');
-        document.getElementById('waiting').classList.remove('active');
+        document.querySelectorAll('.menu, .multi, .tournament, .waiting').forEach(el => el.classList.remove('active'));
         document.getElementById('score').classList.remove('score-container');
-        
+
         // Gestion du bouton Solo vs IA
         document.getElementById('solo-ia').addEventListener('click', () => {
             document.getElementById('menu').classList.remove('active');
         });
-        
+
         // Gestion du bouton Multijoueur
         document.getElementById('multi-button').addEventListener('click', () => {
             document.getElementById('menu').classList.remove('active');
             document.getElementById('multi').classList.add('active');
         });
-        
-        // Gestion du bouton Retour
-        document.getElementById('back-button').addEventListener('click', () => {
+
+        // Gestion du bouton Retour depuis le menu Multijoueur
+        document.getElementById('multi-back-button').addEventListener('click', () => {
             document.getElementById('multi').classList.remove('active');
             document.getElementById('menu').classList.add('active');
         });
-        
+
+        // Gestion du bouton Tournois
+        document.getElementById('multi-tournament').addEventListener('click', () => {
+            document.getElementById('multi').classList.remove('active');
+            document.getElementById('tournament').classList.add('active');
+        });
+
+        // Gestion du bouton Retour depuis le menu Tournois
+        document.getElementById('tournament-back-button').addEventListener('click', () => {
+            document.getElementById('tournament').classList.remove('active');
+            document.getElementById('multi').classList.add('active');
+        });
+
         // Gestion du mode multijoueur local
         document.getElementById('multi-2-local').addEventListener('click', () => {
             document.getElementById('multi').classList.remove('active');
@@ -185,7 +206,7 @@
             document.getElementById('multi').classList.remove('active');
             document.getElementById('waiting').classList.add('active');
         });
-        
+
         // Gestion du mode 4 joueurs en ligne
         document.getElementById('multi-four').addEventListener('click', () => {
             document.getElementById('multi').classList.remove('active');
