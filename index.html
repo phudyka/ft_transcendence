@@ -35,42 +35,42 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.2); /* Fond transparent léger */
-            border: 5px solid #FFCC00; /* Jaune sable pour un look tropical */
+            background: rgba(255, 255, 255, 0.2);
+            border: 5px solid #FFCC00;
             padding: 20px;
             border-radius: 15px;
             text-align: center;
-            color: #333; /* Texte sombre pour un bon contraste */
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); /* Ombre douce pour un effet de profondeur */
+            color: #333;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
             display: none;
             flex-direction: column;
             align-items: center;
             z-index: 10;
         }
         .menu-button {
-            background-color: #00BFFF; /* Bleu tropical pour les boutons */
-            border: 2px solid #FFD700; /* Jaune pour les bordures */
+            background-color: #00BFFF;
+            border: 2px solid #FFD700;
             color: white;
             padding: 12px 24px;
             text-align: center;
             text-decoration: none;
-            display: block; /* En bloc pour s'assurer que les boutons sont en colonne */
+            display: block;
             font-size: 18px;
-            margin: 10px 0; /* Espacement vertical pour un alignement en colonne */
+            margin: 10px 0;
             cursor: pointer;
-            border-radius: 12px; /* Bords arrondis plus doux */
+            border-radius: 12px;
             transition: background-color 0.3s, transform 0.3s;
         }
         .menu-button:hover {
-            background-color: #00CED1; /* Bleu clair pour l'effet au survol */
-            transform: scale(1.05); /* Légère augmentation de la taille au survol */
+            background-color: #00CED1;
+            transform: scale(1.05);
         }
         #spinner {
             margin-top: 20px;
             width: 60px;
             height: 60px;
             border: 6px solid rgba(255, 255, 255, 0.3);
-            border-top-color: #00BFFF; /* Bleu tropical pour le spinner */
+            border-top-color: #00BFFF;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -86,14 +86,14 @@
             font-family: 'Press Start 2P', Arial, sans-serif;
             font-size: 60px;
             margin-bottom: 10px;
-            color: #FFCC00; /* Jaune sable pour les titres */
+            color: #FFCC00;
         }
         #scoreLeft, #scoreRight {
             position: absolute;
             top: 50px;
             font-size: 48px;
             font-weight: bold;
-            color: #00BFFF; /* Bleu tropical pour les scores */
+            color: #00BFFF;
         }
         #scoreLeft {
             left: 200px;
@@ -163,7 +163,6 @@
         <h1>CREDITS</h1>
     </div>
     <script>
-        // Cache les autres div au démarrage
         document.querySelectorAll('.menu, .multi, .tournament, .waiting').forEach(el => el.classList.remove('active'));
         document.getElementById('score').classList.remove('score-container');
 

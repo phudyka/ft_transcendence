@@ -43,15 +43,13 @@ export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
         document.getElementById('score').classList.remove('score-container');
         document.getElementById('menu').classList.add('active');
         document.getElementById('menu').innerHTML = `<h1>${winner} Wins!</h1>
-            <button class="menu-button" id="replay-button">Replay</button>
             <button class="menu-button" id="back-to-menu-button">Back to Menu</button>`;
-
-        document.getElementById('replay-button').addEventListener('click', () => {
-            socket.emit('Replay !');
-        });
-
+        socket.disconnect();
         document.getElementById('back-to-menu-button').addEventListener('click', () => {
-            socket.emit('Back to Menu');
+            // Reconnecter le socket
+            socket.connect();
+            document.getElementById('menu').classList.remove('active');
+            document.getElementById('menu').classList.add('active');
         });
     });
 

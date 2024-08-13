@@ -14,7 +14,7 @@ import { tableHeight, tableWidth } from './config.mjs';
 import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
 
-let maxScore = 11; // (11 points to win)
+let maxScore = 3; // (11 points to win)
 
 function IApad(pad2, ball) {
     const speed = 0.1;

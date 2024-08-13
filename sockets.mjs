@@ -1,18 +1,5 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   sockets.mjs                                        :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: phudyka <phudyka@student.42.fr>            +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/07/26 16:25:34 by phudyka           #+#    #+#             */
-/*   Updated: 2024/07/26 16:27:09 by phudyka          ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
-import { tableHeight, tableWidth } from './config.mjs';
 import { setupSoloGame, setupMultiGame, setupMultiGameFour } from './game.mjs';
 
 const rooms = {};
@@ -26,13 +13,34 @@ export default function setupSockets(io) {
 
         socket.on('disconnect', () => {
             console.log('User disconnected:', socket.id);
+
+            for (let room in rooms) {
+                if (rooms[room].includes(socket.id)) {
+                    rooms[room] = rooms[room].filter(id => id !== socket.id);
+                    console.log(`Player ${socket.id} left ${room}`);
+
+                    if (rooms[room].length === 0 || (roomsTypes[room] === 'multi-2-online'
+                        && rooms[room].length === 1) || (roomsTypes[room] === 'multi-four'
+                            && rooms[room].length === 3)) {
+                        io.in(room).socketsLeave(room);
+                        delete rooms[room];
+                        delete roomsTypes[room];
+                        padsMap.delete(room);
+                        console.log(`Room ${room} has been removed`);
+                    } else if (rooms[room].length === 1 && roomsTypes[room] === 'multi-2-online') {
+                        io.to(rooms[room][0]).emit('gameOver', { winner: rooms[room][0] });
+                    }
+
+                    break;
+                }
+            }
         });
+
 
         socket.on('solo_vs_ia', () => {
             let room = `room-${roomCounter++}`;
-            rooms[room] = [];
+            rooms[room] = [socket.id];
             roomsTypes[room] = 'solo_vs_ia';
-            rooms[room].push(socket.id);
             socket.join(room);
 
             io.in(room).emit('start-game', rooms[room], roomsTypes[room]);
@@ -43,49 +51,18 @@ export default function setupSockets(io) {
 
         socket.on('multi-2-local', () => {
             let room = `room-${roomCounter++}`;
-            rooms[room] = [];
+            rooms[room] = [socket.id];
             roomsTypes[room] = 'multi-2-local';
-            rooms[room].push(socket.id);
             socket.join(room);
 
             io.in(room).emit('start-game', rooms[room], roomsTypes[room]);
             console.log(`Starting game in ${room}`);
-            
+
             setupSoloGame(io, room, socket, rooms, roomsTypes[room]);
         });
 
         socket.on('multi-2-online', () => {
-            let interval = null;
-
-            socket.on('disconnect', () => {
-                clearInterval(interval);
-                console.log('client disconnected!');
-                if (rooms[room]) {
-                    rooms[room] = rooms[room].filter(id => id !== socket.id);
-                    if (rooms[room].length === 1 && roomsTypes[room] === 'multi-2-online') {
-                        io.in(room).socketsLeave(room);
-                        delete rooms[room];
-                        delete roomsTypes[room];
-                        console.log('room removed');
-                    }
-                }
-            });
-
-            let room = null;
-
-            for (let r in rooms) {
-                if (rooms[r].length === 1 && roomsTypes[r] === 'multi-2-online') {
-                    room = r;
-                    break;
-                }
-            }
-
-            if (!room) {
-                room = `room-${roomCounter++}`;
-                rooms[room] = [];
-                roomsTypes[room] = 'multi-2-online';
-            }
-
+            let room = findOrCreateRoom(socket, 'multi-2-online');
             rooms[room].push(socket.id);
             socket.join(room);
 
@@ -123,47 +100,17 @@ export default function setupSockets(io) {
                     speed: ball.speed,
                 });
 
-                setupMultiGame(io, room, ball, pad1, pad2, interval);
+                setupMultiGame(io, room, ball, pad1, pad2);
             }
         });
 
         socket.on('multi-four', () => {
-            let interval = null;
-
-            socket.on('disconnect', () => {
-                clearInterval(interval);
-                console.log('client disconnected!');
-                if (rooms[room]) {
-                    rooms[room] = rooms[room].filter(id => id !== socket.id);
-                    if (rooms[room].length === 3 && roomsTypes[room] === 'multi-four') {
-                        io.in(room).socketsLeave(room);
-                        delete rooms[room];
-                        delete roomsTypes[room];
-                        console.log('room removed');
-                    }
-                }
-            });
-
-            let room = null;
-
-            for (let r in rooms) {
-                if (rooms[r].length < 4 && roomsTypes[r] === 'multi-four') {
-                    room = r;
-                    break;
-                }
-            }
-
-            if (!room) {
-                room = `room-${roomCounter++}`;
-                rooms[room] = [];
-                roomsTypes[room] = 'multi-four';
-            }
-
+            let room = findOrCreateRoom(socket, 'multi-four');
             rooms[room].push(socket.id);
             socket.join(room);
 
             if (rooms[room].length === 1) {
-                const pad1 = new Pad(0xc4d418);
+                const pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 3.59, 0);
                 const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 3.59, 0);
                 const pad3 = new Pad(0xfa00ff, 0.045, 0.50, 16, -0.5, 3.59, 0);
                 const pad4 = new Pad(0xfa00ff, 0.045, 0.50, 16, 0.5, 3.59, 0);
@@ -204,8 +151,24 @@ export default function setupSockets(io) {
                     speed: ball.speed,
                 });
 
-                setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, interval);
+                setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4);
             }
         });
     });
+}
+
+function findOrCreateRoom(socket, type) {
+    let room = null;
+    for (let r in rooms) {
+        if (rooms[r].length < (type === 'multi-four' ? 4 : 2) && roomsTypes[r] === type) {
+            room = r;
+            break;
+        }
+    }
+    if (!room) {
+        room = `room-${roomCounter++}`;
+        rooms[room] = [];
+        roomsTypes[room] = type;
+    }
+    return room;
 }
