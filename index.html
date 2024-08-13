@@ -146,6 +146,19 @@
             align-items: center;
             z-index: 20;
         }
+        #tournament-page {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f8f8f8;
+            text-align: center;
+        }
+        #tournament-page img {
+            max-width: 80%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -176,6 +189,9 @@
     </div>
     <div id="credits">
         <h1>CREDITS</h1>
+    </div>
+    <div id="tournament-page" style="display: none;">
+        <img src="png/tournamentMode.png" alt="Tournament Mode">
     </div>
     <script>
         document.querySelectorAll('.menu, .multi, .tournament, .waiting').forEach(el => el.classList.remove('active'));

@@ -58,9 +58,9 @@ export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
             listItem.addEventListener('click', () => {
                 socket.emit('join-tournament', { roomName });
             });
-    
-            tournamentMenu.appendChild(listItem);
+            document.getElementById('tournament-page').style.display = 'block';
         });
+        tournamentMenu.appendChild(listItem);
     });
 
     socket.on('gameOver', (data) => {
@@ -98,4 +98,3 @@ export function hitPadEvent(socket, sound, listener){
     });
 
 }
-
