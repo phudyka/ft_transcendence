@@ -71,7 +71,6 @@ export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
             <button class="menu-button" id="back-to-menu-button">Back to Menu</button>`;
         socket.disconnect();
         document.getElementById('back-to-menu-button').addEventListener('click', () => {
-            // Reconnecter le socket
             socket.connect();
             document.getElementById('menu').classList.remove('active');
             document.getElementById('menu').classList.add('active');
