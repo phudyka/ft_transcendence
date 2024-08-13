@@ -13,17 +13,6 @@ export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
         ball.speed = data.speed;
     });
     
-    socket.on('movePad', (data) => {
-        console.log('Received movePad event:', data);
-        pad1.mesh.position.z = data.pad1;
-        pad2.mesh.position.z = data.pad2;
-        if (pad4)
-        {
-            pad3.mesh.position.z = data.pad3;
-            pad4.mesh.position.z = data.pad4;
-        }
-    });
-    
     socket.on('updateScores', (scores) => {
         document.getElementById('scoreLeft').textContent = scores.score1;
         document.getElementById('scoreRight').textContent = scores.score2;

@@ -312,8 +312,6 @@ function initGame() {
             }
             movePads();
         });
-        
-
         initSocketEvent(socket, ball, pad1, pad2, pad3, pad4);
         hitPadEvent(socket, sound, listener);
 
@@ -435,4 +433,15 @@ socket.on('start-game', (rooms, roomsTypes) => {
     }
     console.log(controlledPad);
     animate();
+});
+
+socket.on('movePad', (data) => {
+    console.log('Received movePad event:', data);
+    pad1.mesh.position.z = data.pad1;
+    pad2.mesh.position.z = data.pad2;
+    if (pad4)
+    {
+        pad3.mesh.position.z = data.pad3;
+        pad4.mesh.position.z = data.pad4;
+    }
 });
