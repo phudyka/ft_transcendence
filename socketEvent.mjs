@@ -42,7 +42,7 @@ export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
         socket.emit('return-list');
     });
 
-    document.getElementById('tournament').addEventListener('click', () => {
+    document.getElementById('create-tournament').addEventListener('click', () => {
         socket.emit('create-tournament');
     });
 
@@ -53,9 +53,12 @@ export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
         tournamentList.forEach(roomName => {
             const listItem = document.createElement('li');
             listItem.textContent = roomName;
+            listItem.classList.add('tournament-item');
+            
             listItem.addEventListener('click', () => {
                 socket.emit('join-tournament', { roomName });
             });
+    
             tournamentMenu.appendChild(listItem);
         });
     });

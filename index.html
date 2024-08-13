@@ -30,6 +30,20 @@
         #score {
             display: none;
         }
+        #tournament-list {
+        list-style-type: none; /* Enlève les puces */
+        padding: 0;
+        }
+        .tournament-item {
+        cursor: pointer; /* Change le curseur pour indiquer que l'élément est cliquable */
+        padding: 10px;
+        margin: 5px 0;
+        border: 1px solid #ddd; /* Bordure légère pour chaque élément */
+        border-radius: 4px; /* Coins arrondis pour un meilleur aspect */
+        }
+        .tournament-item:hover {
+        background-color: #f0f0f0; /* Couleur de fond au survol */
+        }
         .menu, .waiting, .multi, .tournament {
             position: absolute;
             top: 50%;

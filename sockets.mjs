@@ -161,7 +161,7 @@ export default function setupSockets(io) {
             rooms[room].push(socket.id);
             socket.join(room);
             
-            console.log(`Player ${socket.id} joined ${room}`);
+            console.log(`Player ${socket.id} created ${room}`);
             updateTournamentList();
         });
 
@@ -178,7 +178,7 @@ export default function setupSockets(io) {
             if (room && rooms[room].length < 8) {
                 rooms[room].push(socket.id);
                 socket.join(room);
-                console.log(`Player ${socket.id} joined ${room}`);
+                console.log(`Player ${socket.id} joined caca ${room}`);
             } else {
                 socket.emit('error', { message: 'Error' });
             }
