@@ -153,22 +153,41 @@ export default function setupSockets(io) {
 
                 setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4);
             }
+        
+        });
+        socket.on('tournament', () => {
+            //get pseudo
+            let room = `${socket.id}'s tournament`;
+            rooms[room] = [socket.id];
+            roomsTypes[room] = 'tournament';
+            socket.join(room);
+            console.log(`Player ${socket.id} joined ${room}`);
         });
     });
 }
 
-function findOrCreateRoom(socket, type) {
+function findOrCreateRoom(type) {
     let room = null;
-    for (let r in rooms) {
-        if (rooms[r].length < (type === 'multi-four' ? 4 : 2) && roomsTypes[r] === type) {
+    let maxPlayers;
+
+    if (type === 'multi-four') {
+        maxPlayers = 4;
+    } else {
+        maxPlayers = 2;
+    }
+
+    for (const r in rooms) {
+        if (rooms[r].length < maxPlayers && roomsTypes[r] === type) {
             room = r;
             break;
         }
     }
+
     if (!room) {
         room = `room-${roomCounter++}`;
         rooms[room] = [];
         roomsTypes[room] = type;
     }
+
     return room;
 }

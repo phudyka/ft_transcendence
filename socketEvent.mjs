@@ -38,6 +38,10 @@ export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
         socket.emit('multi-four');
     });
 
+    document.getElementById('tournament').addEventListener('click', () => {
+        socket.emit('tournament');
+    });
+
     socket.on('gameOver', (data) => {
         const winner = data.winner;
         document.getElementById('score').classList.remove('score-container');
@@ -74,3 +78,4 @@ export function hitPadEvent(socket, sound, listener){
     });
 
 }
+
