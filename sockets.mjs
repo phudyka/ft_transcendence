@@ -127,7 +127,7 @@ export default function setupSockets(io) {
             }
         });
 
-        socket.on('multi-four-online', () => {
+        socket.on('multi-four', () => {
             let interval = null;
 
             socket.on('disconnect', () => {
@@ -135,7 +135,7 @@ export default function setupSockets(io) {
                 console.log('client disconnected!');
                 if (rooms[room]) {
                     rooms[room] = rooms[room].filter(id => id !== socket.id);
-                    if (rooms[room].length === 3 && roomsTypes[room] === 'multi-four-online') {
+                    if (rooms[room].length === 3 && roomsTypes[room] === 'multi-four') {
                         io.in(room).socketsLeave(room);
                         delete rooms[room];
                         delete roomsTypes[room];
@@ -147,7 +147,7 @@ export default function setupSockets(io) {
             let room = null;
 
             for (let r in rooms) {
-                if (rooms[r].length < 4 && roomsTypes[r] === 'multi-four-online') {
+                if (rooms[r].length < 4 && roomsTypes[r] === 'multi-four') {
                     room = r;
                     break;
                 }
@@ -156,7 +156,7 @@ export default function setupSockets(io) {
             if (!room) {
                 room = `room-${roomCounter++}`;
                 rooms[room] = [];
-                roomsTypes[room] = 'multi-four-online';
+                roomsTypes[room] = 'multi-four';
             }
 
             rooms[room].push(socket.id);
@@ -192,7 +192,7 @@ export default function setupSockets(io) {
             console.log(`Player ${socket.id} joined ${room}`);
 
             if (rooms[room].length === 4) {
-                io.in(room).emit('start-game', rooms[room]);
+                io.in(room).emit('start-game', rooms[room], roomsTypes[room]);
                 console.log(`Starting game in ${room}`);
 
                 const ball = new Ball(0.07, 32);

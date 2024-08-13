@@ -45,8 +45,8 @@ export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
         socket.emit('solo_vs_ia');
     });
     
-    document.getElementById('multi-four-online').addEventListener('click', () => {
-        socket.emit('multi-four-online');
+    document.getElementById('multi-four').addEventListener('click', () => {
+        socket.emit('multi-four');
     });
 
     socket.on('gameOver', (data) => {

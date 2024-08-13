@@ -413,10 +413,9 @@ socket.on('start-game', (rooms, roomsTypes) => {
     const player3 = rooms[2];
     const player4 = rooms[3];
 
-    if (roomsTypes === 'multi-2-local') {
+    if (roomsTypes === 'multi-2-local'){
         controlledPads = [1, 2]; // les deux pads contrôlés par un seul joueur
     } else {
-
         if (socket.id === player1) {
             controlledPad = 1;
         } else if (socket.id === player2) {
