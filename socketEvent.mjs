@@ -33,16 +33,20 @@ export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
         socket.emit('disconnect');
     });
     
-    document.getElementById('multi-button').addEventListener('click', () => {
-        socket.emit('multi');
+    document.getElementById('multi-2-local').addEventListener('click', () => {
+        socket.emit('multi-2-local');
+    });
+
+    document.getElementById('multi-2-online').addEventListener('click', () => {
+        socket.emit('multi-2-online');
     });
     
-    document.getElementById('solo-button').addEventListener('click', () => {
-        socket.emit('solo');
+    document.getElementById('solo-ia').addEventListener('click', () => {
+        socket.emit('solo_vs_ia');
     });
     
-    document.getElementById('multi-four').addEventListener('click', () => {
-        socket.emit('multi-four');
+    document.getElementById('multi-four-online').addEventListener('click', () => {
+        socket.emit('multi-four-online');
     });
 
     socket.on('gameOver', (data) => {

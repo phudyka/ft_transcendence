@@ -29,7 +29,9 @@ let pad3MoveUp = false;
 let pad3MoveDown = false;
 let pad4MoveUp = false;
 let pad4MoveDown = false;
+
 let controlledPad = null;
+let controlledPads = null;
 
 var pad1;
 var pad2;
@@ -127,7 +129,7 @@ function initGame() {
         
         if (fps < 60) {
             console.log("LOW QUALITY MODE ON");
-            renderer.setPixelRatio(window.devicePixelRatio / 2);
+            renderer.setPixelRatio(window.devicePixelRatio / 1.5);
             renderer.shadowMap.enabled = false;
         } else {
             console.log("HIGH QUALITY MODE ON");
@@ -257,42 +259,55 @@ function initGame() {
         ball.addToScene(scene);
 
         document.addEventListener('keydown', (event) => {
-            if (controlledPad === 1) {
+            if (controlledPads) {
+                // Contrôle des deux pads en mode local
                 if (event.key === 'w') pad1MoveUp = true;
                 if (event.key === 's') pad1MoveDown = true;
-            } else if (controlledPad === 2) {
                 if (event.key === 'ArrowUp') pad2MoveUp = true;
                 if (event.key === 'ArrowDown') pad2MoveDown = true;
-            }
-            else if (controlledPad === 3) {
-                if (event.key === 'w') pad3MoveUp = true;
-                if (event.key === 's') pad3MoveDown = true;
-            }
-            else if (controlledPad === 4) {
-                if (event.key === 'ArrowUp') pad4MoveUp = true;
-                if (event.key === 'ArrowDown') pad4MoveDown = true;
+            } else {
+                if (controlledPad === 1) {
+                    if (event.key === 'w') pad1MoveUp = true;
+                    if (event.key === 's') pad1MoveDown = true;
+                } else if (controlledPad === 2) {
+                    if (event.key === 'ArrowUp') pad2MoveUp = true;
+                    if (event.key === 'ArrowDown') pad2MoveDown = true;
+                } else if (controlledPad === 3) {
+                    if (event.key === 'w') pad3MoveUp = true;
+                    if (event.key === 's') pad3MoveDown = true;
+                } else if (controlledPad === 4) {
+                    if (event.key === 'ArrowUp') pad4MoveUp = true;
+                    if (event.key === 'ArrowDown') pad4MoveDown = true;
+                }
             }
             movePads();
         });
-
+        
         document.addEventListener('keyup', (event) => {
-            if (controlledPad === 1) {
+            if (controlledPads) {
+                // Contrôle des deux pads en mode local
                 if (event.key === 'w') pad1MoveUp = false;
                 if (event.key === 's') pad1MoveDown = false;
-            } else if (controlledPad === 2) {
                 if (event.key === 'ArrowUp') pad2MoveUp = false;
                 if (event.key === 'ArrowDown') pad2MoveDown = false;
-            }
-            else if (controlledPad === 3) {
-                if (event.key === 'w') pad3MoveUp = false;
-                if (event.key === 's') pad3MoveDown = false;
-            }
-            else if (controlledPad === 4) {
-                if (event.key === 'ArrowUp') pad4MoveUp = false;
-                if (event.key === 'ArrowDown') pad4MoveDown = false;
+            } else {
+                if (controlledPad === 1) {
+                    if (event.key === 'w') pad1MoveUp = false;
+                    if (event.key === 's') pad1MoveDown = false;
+                } else if (controlledPad === 2) {
+                    if (event.key === 'ArrowUp') pad2MoveUp = false;
+                    if (event.key === 'ArrowDown') pad2MoveDown = false;
+                } else if (controlledPad === 3) {
+                    if (event.key === 'w') pad3MoveUp = false;
+                    if (event.key === 's') pad3MoveDown = false;
+                } else if (controlledPad === 4) {
+                    if (event.key === 'ArrowUp') pad4MoveUp = false;
+                    if (event.key === 'ArrowDown') pad4MoveDown = false;
+                }
             }
             movePads();
         });
+        
 
         initSocketEvent(socket, ball, pad1, pad2, pad3, pad4);
         hitPadEvent(socket, sound, listener);
@@ -380,7 +395,7 @@ function animate() {
     renderer.render(scene, camera);
 }
 
-socket.on('start-game', (rooms) => {
+socket.on('start-game', (rooms, roomsTypes) => {
     choice = true;
     camera.position.set(0, 8.4, 7.2);
     controls.target.set(0, 3, 0);
@@ -393,14 +408,19 @@ socket.on('start-game', (rooms) => {
     const player3 = rooms[2];
     const player4 = rooms[3];
 
-    if (socket.id === player1) {
-        controlledPad = 1;
-    } else if (socket.id === player2) {
-        controlledPad = 2;
-    } else if (socket.id === player3) {
-        controlledPad = 3;
-    } else if (socket.id === player4) {
-        controlledPad = 4;
+    if (roomsTypes === 'multi-2-local') {
+        controlledPads = [1, 2]; // les deux pads contrôlés par un seul joueur
+    } else {
+
+        if (socket.id === player1) {
+            controlledPad = 1;
+        } else if (socket.id === player2) {
+            controlledPad = 2;
+        } else if (socket.id === player3) {
+            controlledPad = 3;
+        } else if (socket.id === player4) {
+            controlledPad = 4;
+        }
     }
     if (player4) {
         pad3 = new Pad(0xcc7700, 0.045, 0.50, 16, -0.5, 3.59, 0);

@@ -30,7 +30,7 @@
         #score {
             display : none;
         }
-        #menu, #waiting {
+        #menu, #waiting, #multi {
             position: absolute;
             top: 50%;
             left: 50%;
@@ -99,7 +99,7 @@
                 transform: rotate(360deg);
             }
         }
-        #menu.active, #waiting.active {
+        #menu.active, #waiting.active, #multi.active {
             display: flex;
         }
         #score.score-container {
@@ -129,9 +129,15 @@
 </head>
 <body>
     <div id="menu" class="active">
-        <button class="menu-button" id="solo-button">Solo</button>
+        <button class="menu-button" id="solo-ia">Solo vs IA</button>
         <button class="menu-button" id="multi-button">Multijoueur</button>
-        <button class="menu-button" id="multi-four"> 4 Joueurs</button>
+    </div>
+    <div id="multi">
+        <button class="menu-button" id="multi-2-local">2 Joueurs local</button>
+        <button class="menu-button" id="multi-2-online">2 Joueurs en ligne</button>
+        <button class="menu-button" id="multi-four-online">4 Joueurs en ligne</button>
+        <button class="menu-button" id="multi-tournament">Tournois</button>
+        <button class="menu-button" id="back-button">Retour</button>
     </div>
     <div id="waiting">
         <p>Waiting for another player...</p>
@@ -146,18 +152,43 @@
         <h1>CREDITS</h1>
     </div>
     <script>
+        // Cache les autres div au démarrage
         document.getElementById('menu').classList.remove('active');
+        document.getElementById('multi').classList.remove('active');
+        document.getElementById('waiting').classList.remove('active');
         document.getElementById('score').classList.remove('score-container');
-        document.getElementById('solo-button').addEventListener('click', () => {
+        
+        // Gestion du bouton Solo vs IA
+        document.getElementById('solo-ia').addEventListener('click', () => {
             document.getElementById('menu').classList.remove('active');
         });
         
+        // Gestion du bouton Multijoueur
         document.getElementById('multi-button').addEventListener('click', () => {
             document.getElementById('menu').classList.remove('active');
+            document.getElementById('multi').classList.add('active');
+        });
+        
+        // Gestion du bouton Retour
+        document.getElementById('back-button').addEventListener('click', () => {
+            document.getElementById('multi').classList.remove('active');
+            document.getElementById('menu').classList.add('active');
+        });
+        
+        // Gestion du mode multijoueur local
+        document.getElementById('multi-2-local').addEventListener('click', () => {
+            document.getElementById('multi').classList.remove('active');
+        });
+
+        // Gestion du mode multijoueur en ligne
+        document.getElementById('multi-2-online').addEventListener('click', () => {
+            document.getElementById('multi').classList.remove('active');
             document.getElementById('waiting').classList.add('active');
         });
-        document.getElementById('multi-four').addEventListener('click', () => {
-            document.getElementById('menu').classList.remove('active');
+        
+        // Gestion du mode 4 joueurs en ligne
+        document.getElementById('multi-four-online').addEventListener('click', () => {
+            document.getElementById('multi').classList.remove('active');
             document.getElementById('waiting').classList.add('active');
         });
     </script>

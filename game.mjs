@@ -117,16 +117,21 @@ export function setupSoloGame(io, room, socket, rooms, roomsTypes) {
         if (data.pad === 1) {
             pad1.mesh.position.z = data.position;
         }
+        if (data.pad === 2) {
+            pad2.mesh.position.z = data.position;
+        }
         io.in(room).emit('movePad', { pad1: pad1.mesh.position.z, pad2: pad2.mesh.position.z });
     });
-
-    const interval = setInterval(() => updateBallPosition(ball, pad1, pad2, io, room, true), 16);
+    let soloMode = false;
+    if (roomsTypes === 'solo_vs_ia')
+        soloMode = true;
+    const interval = setInterval(() => updateBallPosition(ball, pad1, pad2, io, room, soloMode), 16);
 
     socket.on('disconnect', () => {
         clearInterval(interval);
         if (rooms[room]) {
             rooms[room] = rooms[room].filter(id => id !== socket.id);
-            if (rooms[room].length === 0 && roomsTypes[room] === 'solo') {
+            if (rooms[room].length === 0 && roomsTypes[room] === 'solo_vs_ia' || roomsTypes[room] === 'multi-2-local') {
                 delete rooms[room];
                 delete roomsTypes[room];
             }
