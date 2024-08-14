@@ -267,76 +267,50 @@ function initGame() {
 
         document.addEventListener('keydown', (event) => {
             if (controlledPads) {
-                // Contrôle des deux pads en mode local
-                if (event.key === 'w') pad1MoveUp = true;
-                if (event.key === 's') pad1MoveDown = true;
-                if (event.key === 'ArrowUp') pad2MoveUp = true;
-                if (event.key === 'ArrowDown') pad2MoveDown = true;
+                if (event.key === 'w') socket.emit('padMove', { pad: 1, direction: 'up', moving: true });
+                if (event.key === 's') socket.emit('padMove', { pad: 1, direction: 'down', moving: true });
+                if (event.key === 'ArrowUp') socket.emit('padMove', { pad: 2, direction: 'up', moving: true });
+                if (event.key === 'ArrowDown') socket.emit('padMove', { pad: 2, direction: 'down', moving: true });
             } else {
                 if (controlledPad === 1) {
-                    if (event.key === 'w') pad1MoveUp = true;
-                    if (event.key === 's') pad1MoveDown = true;
+                    if (event.key === 'w') socket.emit('padMove', { pad: 1, direction: 'up', moving: true });
+                    if (event.key === 's') socket.emit('padMove', { pad: 1, direction: 'down', moving: true });
                 } else if (controlledPad === 2) {
-                    if (event.key === 'ArrowUp') pad2MoveUp = true;
-                    if (event.key === 'ArrowDown') pad2MoveDown = true;
+                    if (event.key === 'ArrowUp') socket.emit('padMove', { pad: 2, direction: 'up', moving: true });
+                    if (event.key === 'ArrowDown') socket.emit('padMove', { pad: 2, direction: 'down', moving: true });
                 } else if (controlledPad === 3) {
-                    if (event.key === 'w') pad3MoveUp = true;
-                    if (event.key === 's') pad3MoveDown = true;
+                    if (event.key === 'w') socket.emit('padMove', { pad: 3, direction: 'up', moving: true });
+                    if (event.key === 's') socket.emit('padMove', { pad: 3, direction: 'down', moving: true });
                 } else if (controlledPad === 4) {
-                    if (event.key === 'ArrowUp') pad4MoveUp = true;
-                    if (event.key === 'ArrowDown') pad4MoveDown = true;
+                    if (event.key === 'ArrowUp') socket.emit('padMove', { pad: 4, direction: 'up', moving: true });
+                    if (event.key === 'ArrowDown') socket.emit('padMove', { pad: 4, direction: 'down', moving: true });
                 }
             }
-            let PadState = {
-                pad1MoveUp: pad1MoveUp,
-                pad1MoveDown: pad1MoveDown,
-                pad2MoveUp: pad2MoveUp,
-                pad2MoveDown: pad2MoveDown,
-                pad3MoveUp: pad3MoveUp,
-                pad3MoveDown: pad3MoveDown,
-                pad4MoveUp: pad4MoveUp,
-                pad4MoveDown: pad4MoveDown,
-            };
-            socket.emit('keydown', controlledPad, PadState)
-            
-            // movePads();
         });
         
         document.addEventListener('keyup', (event) => {
             if (controlledPads) {
-                // Contrôle des deux pads en mode local
-                if (event.key === 'w') pad1MoveUp = false;
-                if (event.key === 's') pad1MoveDown = false;
-                if (event.key === 'ArrowUp') pad2MoveUp = false;
-                if (event.key === 'ArrowDown') pad2MoveDown = false;
+                if (event.key === 'w') socket.emit('padMove', { pad: 1, direction: 'up', moving: false });
+                if (event.key === 's') socket.emit('padMove', { pad: 1, direction: 'down', moving: false });
+                if (event.key === 'ArrowUp') socket.emit('padMove', { pad: 2, direction: 'up', moving: false });
+                if (event.key === 'ArrowDown') socket.emit('padMove', { pad: 2, direction: 'down', moving: false });
             } else {
                 if (controlledPad === 1) {
-                    if (event.key === 'w') pad1MoveUp = false;
-                    if (event.key === 's') pad1MoveDown = false;
+                    if (event.key === 'w') socket.emit('padMove', { pad: 1, direction: 'up', moving: false });
+                    if (event.key === 's') socket.emit('padMove', { pad: 1, direction: 'down', moving: false });
                 } else if (controlledPad === 2) {
-                    if (event.key === 'ArrowUp') pad2MoveUp = false;
-                    if (event.key === 'ArrowDown') pad2MoveDown = false;
+                    if (event.key === 'ArrowUp') socket.emit('padMove', { pad: 2, direction: 'up', moving: false });
+                    if (event.key === 'ArrowDown') socket.emit('padMove', { pad: 2, direction: 'down', moving: false });
                 } else if (controlledPad === 3) {
-                    if (event.key === 'w') pad3MoveUp = false;
-                    if (event.key === 's') pad3MoveDown = false;
+                    if (event.key === 'w') socket.emit('padMove', { pad: 3, direction: 'up', moving: false });
+                    if (event.key === 's') socket.emit('padMove', { pad: 3, direction: 'down', moving: false });
                 } else if (controlledPad === 4) {
-                    if (event.key === 'ArrowUp') pad4MoveUp = false;
-                    if (event.key === 'ArrowDown') pad4MoveDown = false;
+                    if (event.key === 'ArrowUp') socket.emit('padMove', { pad: 4, direction: 'up', moving: false });
+                    if (event.key === 'ArrowDown') socket.emit('padMove', { pad: 4, direction: 'down', moving: false });
                 }
             }
-            let PadState = {
-                pad1MoveUp: pad1MoveUp,
-                pad1MoveDown: pad1MoveDown,
-                pad2MoveUp: pad2MoveUp,
-                pad2MoveDown: pad2MoveDown,
-                pad3MoveUp: pad3MoveUp,
-                pad3MoveDown: pad3MoveDown,
-                pad4MoveUp: pad4MoveUp,
-                pad4MoveDown: pad4MoveDown,
-            };
-            socket.emit('keyup', controlledPad, PadState)
-           // movePads();
         });
+        
         initSocketEvent(socket, ball, pad1, pad2, pad3, pad4);
         hitPadEvent(socket, sound, listener);
 
@@ -368,43 +342,6 @@ controls.screenSpacePanning = true;
 controls.autoRotateSpeed = 0.3;
 controls.autoRotate = true;
 
-function movePads() {
-    const padLimit = tableHeight / 2 - padHeight / 2;
-
-    if (pad1MoveDown && pad1.mesh.position.z + pad1.speed < padLimit) {
-        pad1.mesh.position.z = pad1.mesh.position.z + pad1.speed;
-        socket.emit('movePad', { pad: 1, position: pad1.mesh.position.z });
-    }
-    else if (pad1MoveUp && pad1.mesh.position.z - pad1.speed > -padLimit) {
-        pad1.mesh.position.z = pad1.mesh.position.z - pad1.speed;
-        socket.emit('movePad', { pad: 1, position: pad1.mesh.position.z });
-    }
-    else if (pad2MoveDown && pad2.mesh.position.z + pad2.speed < padLimit) {
-        pad2.mesh.position.z = pad2.mesh.position.z + pad2.speed;
-        socket.emit('movePad', { pad: 2, position: pad2.mesh.position.z });
-    }
-    else if (pad2MoveUp && pad2.mesh.position.z - pad2.speed > -padLimit) {
-        pad2.mesh.position.z = pad2.mesh.position.z - pad2.speed;
-        socket.emit('movePad', { pad: 2, position: pad2.mesh.position.z });
-    }
-    else if (pad3MoveDown && pad3.mesh.position.z + pad3.speed < padLimit) {
-        pad3.mesh.position.z = pad3.mesh.position.z + pad3.speed;
-        socket.emit('movePad', { pad: 3, position: pad3.mesh.position.z });
-    }
-    else if (pad3MoveUp && pad3.mesh.position.z - pad3.speed > -padLimit) {
-        pad3.mesh.position.z = pad3.mesh.position.z - pad3.speed;
-        socket.emit('movePad', { pad: 3, position: pad3.mesh.position.z });
-    }
-    else if (pad4MoveDown && pad4.mesh.position.z + pad4.speed < padLimit) {
-        pad4.mesh.position.z = pad4.mesh.position.z + pad4.speed;
-        socket.emit('movePad', { pad: 4, position: pad4.mesh.position.z });
-    }
-    else if (pad4MoveUp && pad4.mesh.position.z - pad4.speed > -padLimit) {
-        pad4.mesh.position.z = pad4.mesh.position.z - pad4.speed;
-        socket.emit('movePad', { pad: 4, position: pad4.mesh.position.z });
-    }
-}
-
 function animateChoice() {
     if (choice === false){
         requestAnimationFrame(animateChoice);
@@ -417,7 +354,6 @@ function animateChoice() {
 function animate() {
     updateFPSDisplay();
     requestAnimationFrame(animate);
-    movePads();
     updateAnimation();
     console.log(camera.position);
     renderer.render(scene, camera);
@@ -461,7 +397,6 @@ socket.on('start-game', (rooms, roomsTypes) => {
 });
 
 socket.on('movePad', (data) => {
-    console.log('Received movePad event:', data);
     pad1.mesh.position.z = data.pad1;
     pad2.mesh.position.z = data.pad2;
     if (pad4)
@@ -470,5 +405,23 @@ socket.on('movePad', (data) => {
         pad4.mesh.position.z = data.pad4;
     }
 });
+
+// socket.on('movePad', (data) => {
+//     const { pad, position } = data;
+//     switch (pad) {
+//         case 1:
+//             pad1.mesh.position.z = position;
+//             break;
+//         case 2:
+//             pad2.mesh.position.z = position;
+//             break;
+//         case 3:
+//             pad3.mesh.position.z = position;
+//             break;
+//         case 4:
+//             pad4.mesh.position.z = position;
+//             break;
+//     }
+// });
 
     

@@ -10,7 +10,7 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import { tableHeight, tableWidth } from './config.mjs';
+import { tableHeight, tableWidth, padHeight } from './config.mjs';
 import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
 
@@ -84,15 +84,12 @@ function checkWallCollision(ball, pad1, pad2, io, room) {
     }
 }
 
-function updateBallPosition(ball, pad1, pad2, io, room, soloMode, interval) {
-    let endGame = false;
+function updateBallPosition(ball, pad1, pad2, io, room, soloMode, keysPressed) {
     if (soloMode) {
         IApad(pad2, ball);
     }
     ball.updatePosition();
-    endGame = checkWallCollision(ball, pad1, pad2, io, room);
-    if (endGame)
-        clearInterval(interval);
+    checkWallCollision(ball, pad1, pad2, io, room);
     if (ball.checkCollision(pad1) === true) {
         io.in(room).emit('hitPad');
     }
@@ -103,8 +100,8 @@ function updateBallPosition(ball, pad1, pad2, io, room, soloMode, interval) {
         position: { x: ball.mesh.position.x, z: ball.mesh.position.z },
         direction: { x: ball.direction.x, z: ball.direction.z },
         speed: ball.speed,
-    });
-    io.in(room).emit('movePad', { pad1: pad1.mesh.position.z, pad2: pad2.mesh.position.z });
+    }); 
+    Movepad(pad1, pad2, keysPressed, room, io)
 }
 
 export function setupSoloGame(io, room, socket, rooms, roomsTypes) {
@@ -159,10 +156,32 @@ function updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room) {
         io.in(room).emit('movePad', { pad1: pad1.mesh.position.z, pad2: pad2.mesh.position.z, pad3: pad3.mesh.position.z, pad4: pad4.mesh.position.z });
 }
 
-export function setupMultiGame(io, room, ball, pad1, pad2, interval) {
-    interval = setInterval(() => updateBallPosition(ball, pad1, pad2, io, room, false, interval), 16);
+export function setupMultiGame(io, room, ball, pad1, pad2, keysPressed) {
+    const interval = setInterval(() => updateBallPosition(ball, pad1, pad2, io, room, false, keysPressed), 16);
 }
 
-export function setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, interval) {
-    interval = setInterval(() => updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room), 16);
+export function setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4) {
+    const interval = setInterval(() => updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room), 16);
+}
+
+function Movepad(pad1, pad2, keysPressed, room, io) {
+
+    const padLimit = tableHeight / 2 - padHeight / 2;
+    
+            if (keysPressed.pad1MoveDown && pad1.mesh.position.z + pad1.speed < padLimit) {
+                pad1.mesh.position.z += pad1.speed;
+            }
+            if (keysPressed.pad1MoveUp && pad1.mesh.position.z - pad1.speed > -padLimit) {
+                pad1.mesh.position.z -= pad1.speed;
+            }
+            if (keysPressed.pad2MoveDown && pad2.mesh.position.z + pad2.speed < padLimit) {
+                pad2.mesh.position.z += pad2.speed;
+            }
+            if (keysPressed.pad2MoveUp && pad2.mesh.position.z - pad2.speed > -padLimit) {
+                pad2.mesh.position.z -= pad2.speed;
+            }
+            io.in(room).emit('movePad', {
+                pad1: pad1.mesh.position.z,
+                pad2: pad2.mesh.position.z
+            });
 }

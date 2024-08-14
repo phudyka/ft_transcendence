@@ -1,6 +1,7 @@
 import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
 import { setupSoloGame, setupMultiGame, setupMultiGameFour } from './game.mjs';
+import { padHeight, tableHeight } from './config.mjs';
 
 const rooms = {};
 const roomsTypes = {};
@@ -71,20 +72,23 @@ export default function setupSockets(io) {
                 padsMap.set(room, { pad1, pad2 });
             }
 
-            // socket.on('movePad', (data) => {
-            //     const { pad1, pad2 } = padsMap.get(room);
-            //     if (data.pad === 1) {
-            //         pad1.mesh.position.z = data.position;
-            //     } else if (data.pad === 2) {
-            //         pad2.mesh.position.z = data.position;
-            //     }
-            //     io.in(room).emit('movePad', {
-            //         pad1: pad1.mesh.position.z,
-            //         pad2: pad2.mesh.position.z
-            //     });
-            // });
-
-            socket.on('keydown', controlledPad, PadState)
+            const keysPressed = {
+                pad1MoveUp: false,
+                pad1MoveDown: false,
+                pad2MoveUp: false,
+                pad2MoveDown: false
+            };
+    
+            // Gestion des événements de touche
+            socket.on('padMove', (data) => {
+                if (data.pad === 1) {
+                    keysPressed.pad1MoveUp = data.direction === 'up' ? data.moving : keysPressed.pad1MoveUp;
+                    keysPressed.pad1MoveDown = data.direction === 'down' ? data.moving : keysPressed.pad1MoveDown;
+                } else if (data.pad === 2) {
+                    keysPressed.pad2MoveUp = data.direction === 'up' ? data.moving : keysPressed.pad2MoveUp;
+                    keysPressed.pad2MoveDown = data.direction === 'down' ? data.moving : keysPressed.pad2MoveDown;
+                }
+            });
 
             console.log(`Player ${socket.id} joined ${room}`);
 
@@ -100,8 +104,7 @@ export default function setupSockets(io) {
                     direction: { x: ball.direction.x, z: ball.direction.z },
                     speed: ball.speed,
                 });
-
-                setupMultiGame(io, room, ball, pad1, pad2);
+                setupMultiGame(io, room, ball, pad1, pad2, keysPressed);
             }
         });
 
@@ -179,7 +182,7 @@ export default function setupSockets(io) {
             if (room && rooms[room].length < 8) {
                 rooms[room].push(socket.id);
                 socket.join(room);
-                console.log(`Player ${socket.id} joined caca ${room}`);
+                console.log(`Player ${socket.id} joined ${room}`);
             } else {
                 socket.emit('error', { message: 'Error' });
             }
