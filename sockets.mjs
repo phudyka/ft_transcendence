@@ -7,6 +7,12 @@ const rooms = {};
 const roomsTypes = {};
 let roomCounter = 1;
 const padsMap = new Map();
+const keysPressed = {
+    pad1MoveUp: false,
+    pad1MoveDown: false,
+    pad2MoveUp: false,
+    pad2MoveDown: false
+};
 
 export default function setupSockets(io) {
     io.on('connection', (socket) => {
@@ -65,22 +71,15 @@ export default function setupSockets(io) {
             let room = findOrCreateRoom('multi-2-online');
             rooms[room].push(socket.id);
             socket.join(room);
-
+        
             if (rooms[room].length === 1) {
                 const pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 3.59, 0);
                 const pad2 = new Pad(0xb3261a, 0.045, 0.50, 16, 2.10, 3.59, 0);
                 padsMap.set(room, { pad1, pad2 });
             }
-
-            const keysPressed = {
-                pad1MoveUp: false,
-                pad1MoveDown: false,
-                pad2MoveUp: false,
-                pad2MoveDown: false
-            };
-    
-            // Gestion des événements de touche
+        
             socket.on('padMove', (data) => {
+                console.log(`Received padMove for pad ${data.pad} in direction ${data.direction} moving: ${data.moving}`);
                 if (data.pad === 1) {
                     keysPressed.pad1MoveUp = data.direction === 'up' ? data.moving : keysPressed.pad1MoveUp;
                     keysPressed.pad1MoveDown = data.direction === 'down' ? data.moving : keysPressed.pad1MoveDown;
@@ -88,25 +87,29 @@ export default function setupSockets(io) {
                     keysPressed.pad2MoveUp = data.direction === 'up' ? data.moving : keysPressed.pad2MoveUp;
                     keysPressed.pad2MoveDown = data.direction === 'down' ? data.moving : keysPressed.pad2MoveDown;
                 }
+                console.log('keysPressed:', keysPressed);
             });
-
+        
             console.log(`Player ${socket.id} joined ${room}`);
-
+        
             if (rooms[room].length === 2) {
                 io.in(room).emit('start-game', rooms[room]);
                 console.log(`Starting game in ${room}`);
-
+        
                 const ball = new Ball(0.07, 32);
                 const { pad1, pad2 } = padsMap.get(room);
-
+        
                 io.in(room).emit('initBall', {
                     position: { x: ball.mesh.position.x, z: ball.mesh.position.z },
                     direction: { x: ball.direction.x, z: ball.direction.z },
                     speed: ball.speed,
                 });
+        
+                // Gestion des événements de touche
                 setupMultiGame(io, room, ball, pad1, pad2, keysPressed);
             }
         });
+        
 
         socket.on('multi-four', () => {
             let room = findOrCreateRoom('multi-four');
@@ -207,7 +210,7 @@ function findOrCreateRoom(type, name = null) {
         maxPlayers = 8;
     } else if (type === 'multi-four') {
         maxPlayers = 4;
-    } else {
+    } else if (type === 'multi-2-online'){
         maxPlayers = 2;
     }
 

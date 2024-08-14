@@ -406,22 +406,5 @@ socket.on('movePad', (data) => {
     }
 });
 
-// socket.on('movePad', (data) => {
-//     const { pad, position } = data;
-//     switch (pad) {
-//         case 1:
-//             pad1.mesh.position.z = position;
-//             break;
-//         case 2:
-//             pad2.mesh.position.z = position;
-//             break;
-//         case 3:
-//             pad3.mesh.position.z = position;
-//             break;
-//         case 4:
-//             pad4.mesh.position.z = position;
-//             break;
-//     }
-// });
 
     

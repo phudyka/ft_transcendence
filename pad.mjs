@@ -26,7 +26,7 @@ export class Pad {
         this.mesh.position.set(x, y, z);
         this.mesh.rotation.set(1.56,0,0)
         this.targetY = this.mesh.position.y;
-        this.speed = 0.02;
+        this.speed = 0.03;
         this.score = 0;
     }
 
