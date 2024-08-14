@@ -27,12 +27,26 @@
             font-family: Arial, sans-serif;
             font-size: 14px;
         }
-        #score {
-            display: none;
-        }
         #tournament-list {
         list-style-type: none; /* Enlève les puces */
         padding: 0;
+        }
+        #game-over {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(255, 255, 255, 0.9);
+        border: 5px solid #FFCC00;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        color: #333;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        z-index: 10;
         }
         .tournament-item {
         cursor: pointer; /* Change le curseur pour indiquer que l'élément est cliquable */
@@ -107,7 +121,7 @@
             top: 50px;
             font-size: 48px;
             font-weight: bold;
-            color: #00BFFF;
+            color: hwb(60 3% 97%);
         }
         #scoreLeft {
             left: 200px;
@@ -174,11 +188,17 @@
         <div id="scoreLeft">0</div>
         <div id="scoreRight">0</div>
     </div>
+    <div id="game-over" class="game-over">
+        <div id="winner-message"></div>
+        <button class="menu-button" id="back-to-menu-button">Retour au Menu</button>
+    </div>
     <div id="credits">
         <h1>CREDITS</h1>
     </div>
     <script>
-        document.querySelectorAll('.menu, .multi, .tournament, .waiting').forEach(el => el.classList.remove('active'));
+        document.getElementById('menu').classList.remove('active');
+        document.getElementById('multi').classList.remove('active');
+        document.getElementById('tournament').classList.remove('active');
         document.getElementById('score').classList.remove('score-container');
 
         // Gestion du bouton Solo vs IA

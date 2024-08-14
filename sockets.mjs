@@ -36,6 +36,19 @@ export default function setupSockets(io) {
             }
         });
 
+        socket.on('endGame', () => {
+            const room = findRoomForSocket(socket.id);
+            if (room) {
+                io.in(room).emit('gameEnded');
+                io.in(room).socketsLeave(room);
+
+                delete rooms[room];
+                delete roomsTypes[room];
+                padsMap.delete(room);
+                console.log(`Room ${room} has been removed`);
+            }
+        });
+
 
         socket.on('solo_vs_ia', () => {
             let room = `room-${roomCounter++}`;
@@ -62,7 +75,7 @@ export default function setupSockets(io) {
         });
 
         socket.on('multi-2-online', () => {
-            let room = findOrCreateRoom(socket, 'multi-2-online');
+            let room = findOrCreateRoom('multi-2-online');
             rooms[room].push(socket.id);
             socket.join(room);
 
@@ -105,7 +118,7 @@ export default function setupSockets(io) {
         });
 
         socket.on('multi-four', () => {
-            let room = findOrCreateRoom(socket, 'multi-four');
+            let room = findOrCreateRoom('multi-four');
             rooms[room].push(socket.id);
             socket.join(room);
 
@@ -162,7 +175,7 @@ export default function setupSockets(io) {
             socket.join(room);
             
             console.log(`Player ${socket.id} created ${room}`);
-            updateTournamentList();
+            //updateTournamentList();
         });
 
         socket.on('join-tournament', (data) => {
@@ -195,10 +208,10 @@ export default function setupSockets(io) {
     }
 }
 
-function findOrCreateRoom(type, name) {
+function findOrCreateRoom(type, name = null) {
     let room = null;
     let maxPlayers;
-    
+
     if (type === 'tournament') {
         maxPlayers = 8;
     } else if (type === 'multi-four') {
@@ -208,10 +221,7 @@ function findOrCreateRoom(type, name) {
     }
 
     for (const r in rooms) {
-        if (type === 'tournament' && r === name) {
-            room = r;
-            break;
-        } else if (rooms[r].length < maxPlayers && roomsTypes[r] === type) {
+        if (roomsTypes[r] === type && rooms[r].length < maxPlayers) {
             room = r;
             break;
         }
@@ -228,4 +238,13 @@ function findOrCreateRoom(type, name) {
     }
 
     return room;
+}
+
+function findRoomForSocket(socketId) {
+    for (const room in rooms) {
+        if (rooms[room].includes(socketId)) {
+            return room;
+        }
+    }
+    return null;
 }

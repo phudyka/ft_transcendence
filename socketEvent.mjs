@@ -65,14 +65,18 @@ export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
 
     socket.on('gameOver', (data) => {
         const winner = data.winner;
-        document.getElementById('score').classList.remove('score-container');
-        document.getElementById('menu').classList.add('active');
-        document.getElementById('menu').innerHTML = `<h1>${winner} Wins!</h1>
-            <button class="menu-button" id="back-to-menu-button">Back to Menu</button>`;
-        socket.disconnect();
+        const gameOverSection = document.getElementById('game-over');
+        const winnerMessage = document.getElementById('winner-message');
+        winnerMessage.textContent = `Le gagnant est ${winner}!`;
+        gameOverSection.style.display = 'flex';
+        socket.emit('endGame');
+    
+        document.getElementById('score').style.display = 'none';
+        //document.getElementById('menu').classList.add('active');
+        document.getElementById('tournament').classList.remove('active');
+    
         document.getElementById('back-to-menu-button').addEventListener('click', () => {
-            socket.connect();
-            document.getElementById('menu').classList.remove('active');
+            gameOverSection.style.display = 'none';
             document.getElementById('menu').classList.add('active');
         });
     });

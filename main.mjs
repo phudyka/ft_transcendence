@@ -54,6 +54,8 @@ let action;
 
 let choice = false;
 
+let protectEvent = false;
+
 const clock = new THREE.Clock();
 const fpsDisplay = document.getElementById('fpsDisplay');
 
@@ -312,7 +314,7 @@ function initGame() {
             }
             movePads();
         });
-        initSocketEvent(socket, ball, pad1, pad2, pad3, pad4);
+        // initSocketEvent(socket, ball, pad1, pad2, pad3, pad4);
         hitPadEvent(socket, sound, listener);
 
         animateChoice();
@@ -412,7 +414,7 @@ socket.on('start-game', (rooms, roomsTypes) => {
     const player4 = rooms[3];
 
     if (roomsTypes === 'multi-2-local'){
-        controlledPads = [1, 2]; // les deux pads contrôlés par un seul joueur
+        controlledPads = [1, 2];
     } else {
         if (socket.id === player1) {
             controlledPad = 1;
@@ -435,13 +437,15 @@ socket.on('start-game', (rooms, roomsTypes) => {
     animate();
 });
 
-socket.on('movePad', (data) => {
-    console.log('Received movePad event:', data);
-    pad1.mesh.position.z = data.pad1;
-    pad2.mesh.position.z = data.pad2;
-    if (pad4)
-    {
-        pad3.mesh.position.z = data.pad3;
-        pad4.mesh.position.z = data.pad4;
-    }
-});
+    socket.on('movePad', (data) => {
+        console.log('Received movePad event:', data);
+        pad1.mesh.position.z = data.pad1;
+        pad2.mesh.position.z = data.pad2;
+        if (pad4)
+        {
+            pad3.mesh.position.z = data.pad3;
+            pad4.mesh.position.z = data.pad4;
+        }
+    });
+
+    
