@@ -36,20 +36,6 @@ export default function setupSockets(io) {
             }
         });
 
-        socket.on('endGame', () => {
-            const room = findRoomForSocket(socket.id);
-            if (room) {
-                io.in(room).emit('gameEnded');
-                io.in(room).socketsLeave(room);
-
-                delete rooms[room];
-                delete roomsTypes[room];
-                padsMap.delete(room);
-                console.log(`Room ${room} has been removed`);
-            }
-        });
-
-
         socket.on('solo_vs_ia', () => {
             let room = `room-${roomCounter++}`;
             rooms[room] = [socket.id];
@@ -85,18 +71,20 @@ export default function setupSockets(io) {
                 padsMap.set(room, { pad1, pad2 });
             }
 
-            socket.on('movePad', (data) => {
-                const { pad1, pad2 } = padsMap.get(room);
-                if (data.pad === 1) {
-                    pad1.mesh.position.z = data.position;
-                } else if (data.pad === 2) {
-                    pad2.mesh.position.z = data.position;
-                }
-                io.in(room).emit('movePad', {
-                    pad1: pad1.mesh.position.z,
-                    pad2: pad2.mesh.position.z
-                });
-            });
+            // socket.on('movePad', (data) => {
+            //     const { pad1, pad2 } = padsMap.get(room);
+            //     if (data.pad === 1) {
+            //         pad1.mesh.position.z = data.position;
+            //     } else if (data.pad === 2) {
+            //         pad2.mesh.position.z = data.position;
+            //     }
+            //     io.in(room).emit('movePad', {
+            //         pad1: pad1.mesh.position.z,
+            //         pad2: pad2.mesh.position.z
+            //     });
+            // });
+
+            socket.on('keydown', controlledPad, PadState)
 
             console.log(`Player ${socket.id} joined ${room}`);
 

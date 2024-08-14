@@ -69,12 +69,11 @@ export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
         const winnerMessage = document.getElementById('winner-message');
         winnerMessage.textContent = `Le gagnant est ${winner}!`;
         gameOverSection.style.display = 'flex';
-        socket.emit('endGame');
-    
+        
         document.getElementById('score').style.display = 'none';
         //document.getElementById('menu').classList.add('active');
         document.getElementById('tournament').classList.remove('active');
-    
+        
         document.getElementById('back-to-menu-button').addEventListener('click', () => {
             gameOverSection.style.display = 'none';
             document.getElementById('menu').classList.add('active');

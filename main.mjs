@@ -287,7 +287,19 @@ function initGame() {
                     if (event.key === 'ArrowDown') pad4MoveDown = true;
                 }
             }
-            movePads();
+            let PadState = {
+                pad1MoveUp: pad1MoveUp,
+                pad1MoveDown: pad1MoveDown,
+                pad2MoveUp: pad2MoveUp,
+                pad2MoveDown: pad2MoveDown,
+                pad3MoveUp: pad3MoveUp,
+                pad3MoveDown: pad3MoveDown,
+                pad4MoveUp: pad4MoveUp,
+                pad4MoveDown: pad4MoveDown,
+            };
+            socket.emit('keydown', controlledPad, PadState)
+            
+            // movePads();
         });
         
         document.addEventListener('keyup', (event) => {
@@ -312,9 +324,20 @@ function initGame() {
                     if (event.key === 'ArrowDown') pad4MoveDown = false;
                 }
             }
-            movePads();
+            let PadState = {
+                pad1MoveUp: pad1MoveUp,
+                pad1MoveDown: pad1MoveDown,
+                pad2MoveUp: pad2MoveUp,
+                pad2MoveDown: pad2MoveDown,
+                pad3MoveUp: pad3MoveUp,
+                pad3MoveDown: pad3MoveDown,
+                pad4MoveUp: pad4MoveUp,
+                pad4MoveDown: pad4MoveDown,
+            };
+            socket.emit('keyup', controlledPad, PadState)
+           // movePads();
         });
-        // initSocketEvent(socket, ball, pad1, pad2, pad3, pad4);
+        initSocketEvent(socket, ball, pad1, pad2, pad3, pad4);
         hitPadEvent(socket, sound, listener);
 
         animateChoice();
@@ -437,15 +460,15 @@ socket.on('start-game', (rooms, roomsTypes) => {
     animate();
 });
 
-    socket.on('movePad', (data) => {
-        console.log('Received movePad event:', data);
-        pad1.mesh.position.z = data.pad1;
-        pad2.mesh.position.z = data.pad2;
-        if (pad4)
-        {
-            pad3.mesh.position.z = data.pad3;
-            pad4.mesh.position.z = data.pad4;
-        }
-    });
+socket.on('movePad', (data) => {
+    console.log('Received movePad event:', data);
+    pad1.mesh.position.z = data.pad1;
+    pad2.mesh.position.z = data.pad2;
+    if (pad4)
+    {
+        pad3.mesh.position.z = data.pad3;
+        pad4.mesh.position.z = data.pad4;
+    }
+});
 
     

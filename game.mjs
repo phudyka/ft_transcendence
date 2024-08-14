@@ -68,6 +68,7 @@ function checkWallCollision(ball, pad1, pad2, io, room) {
             io.in(room).emit('gameOver', { winner: 'Player 2', score1: pad1.score, score2: pad2.score });
             pad1.score = 0;
             pad2.score = 0;
+            return true;
         }
     }
     if (ball.mesh.position.x < -tableWidth / 2 - ball.radius) {
@@ -78,16 +79,20 @@ function checkWallCollision(ball, pad1, pad2, io, room) {
             io.in(room).emit('gameOver', { winner: 'Player 1', score1: pad1.score, score2: pad2.score });
             pad1.score = 0;
             pad2.score = 0;
+            return true;
         }
     }
 }
 
-function updateBallPosition(ball, pad1, pad2, io, room, soloMode) {
+function updateBallPosition(ball, pad1, pad2, io, room, soloMode, interval) {
+    let endGame = false;
     if (soloMode) {
         IApad(pad2, ball);
     }
     ball.updatePosition();
-    checkWallCollision(ball, pad1, pad2, io, room);
+    endGame = checkWallCollision(ball, pad1, pad2, io, room);
+    if (endGame)
+        clearInterval(interval);
     if (ball.checkCollision(pad1) === true) {
         io.in(room).emit('hitPad');
     }
@@ -155,7 +160,7 @@ function updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room) {
 }
 
 export function setupMultiGame(io, room, ball, pad1, pad2, interval) {
-    interval = setInterval(() => updateBallPosition(ball, pad1, pad2, io, room, false), 16);
+    interval = setInterval(() => updateBallPosition(ball, pad1, pad2, io, room, false, interval), 16);
 }
 
 export function setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, interval) {
