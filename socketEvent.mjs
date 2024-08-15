@@ -58,9 +58,27 @@ export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
             listItem.addEventListener('click', () => {
                 socket.emit('join-tournament', { roomName });
             });
-            document.getElementById('tournament-page').style.display = 'block';
+            tournamentMenu.appendChild(listItem);
         });
-        tournamentMenu.appendChild(listItem);
+    });
+
+    socket.on('tournament-created', () => {
+        displayTournamentPage();
+    });
+    
+    socket.on('tournament-joined', () => {
+        displayTournamentPage();
+    });
+    
+    function displayTournamentPage() {
+        document.getElementById('tournament').classList.remove('active');
+        document.getElementById('tournament-page').style.display = 'flex';
+    }
+    
+    document.getElementById('tournament-back-button').addEventListener('click', () => {
+        document.getElementById('tournament').classList.remove('active');
+        document.getElementById('multi').classList.add('active');
+        document.getElementById('tournament-page').style.display = 'none';
     });
 
     socket.on('gameOver', (data) => {

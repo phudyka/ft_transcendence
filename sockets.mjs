@@ -172,7 +172,7 @@ export default function setupSockets(io) {
             socket.join(room);
             
             console.log(`Player ${socket.id} created ${room}`);
-            //updateTournamentList();
+            socket.emit('tournament-created');
         });
 
         socket.on('join-tournament', (data) => {
@@ -196,6 +196,9 @@ export default function setupSockets(io) {
 
         socket.on('return-list', () => {
             updateTournamentList();
+        });
+        socket.on('join-tournament', (data) => {
+            socket.emit('tournament-joined');
         });
     });
 

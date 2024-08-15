@@ -123,7 +123,7 @@ function initGame() {
 
         setTimeout(() => {
             fadeOutLogoAndStartAnimation(logoMesh, logoMaterial);
-        }, 2000);
+        }, 500);
     });
     
     measureFPS(1000, function(fps) {
@@ -144,7 +144,7 @@ function initGame() {
     });
 
     function fadeOutLogoAndStartAnimation(logoMesh, logoMaterial) {
-        const fadeDuration = 2200; 
+        const fadeDuration = 500; 
         const startTime = performance.now();
 
         function fadeOut() {
@@ -199,7 +199,7 @@ function initGame() {
                 y: 8,
                 z: 20
             };
-            const duration = 4500;
+            const duration = 2000;
             const interval = 16;
             let elapsedTime = 0;
 
