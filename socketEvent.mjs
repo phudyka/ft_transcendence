@@ -78,6 +78,7 @@ export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
             gameOverSection.style.display = 'none';
             document.getElementById('menu').classList.add('active');
         });
+        socket.emit('endGame');
     });
 
 }

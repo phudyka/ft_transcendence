@@ -53,6 +53,7 @@ function IApad(pad2, ball) {
 }
 
 function checkWallCollision(ball, pad1, pad2, io, room) {
+
     if (ball.mesh.position.z + ball.direction.z * ball.speed > tableHeight / 2 - ball.radius - 0.02) {
         ball.direction.z *= -1;
         ball.mesh.position.z = tableHeight / 2 - ball.radius - 0.02;
@@ -104,7 +105,7 @@ function updateBallPosition(ball, pad1, pad2, io, room, soloMode, keysPressed) {
     Movepad(pad1, pad2, keysPressed, room, io)
 }
 
-export function setupSoloGame(io, room, socket, rooms, roomsTypes) {
+export function setupSoloGame(io, room, socket, rooms, roomsTypes, keysPressed) {
     const ball = new Ball(0.07, 32);
     const pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 3.59, 0);
     const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 3.59, 0); // 2.10
@@ -115,19 +116,10 @@ export function setupSoloGame(io, room, socket, rooms, roomsTypes) {
         speed: ball.speed,
     });
 
-    socket.on('movePad', (data) => {
-        if (data.pad === 1) {
-            pad1.mesh.position.z = data.position;
-        }
-        if (data.pad === 2) {
-            pad2.mesh.position.z = data.position;
-        }
-        io.in(room).emit('movePad', { pad1: pad1.mesh.position.z, pad2: pad2.mesh.position.z });
-    });
     let soloMode = false;
     if (roomsTypes === 'solo_vs_ia')
         soloMode = true;
-    const interval = setInterval(() => updateBallPosition(ball, pad1, pad2, io, room, soloMode), 16);
+    const interval = setInterval(() => updateBallPosition(ball, pad1, pad2, io, room, soloMode, keysPressed), 16);
 
     socket.on('disconnect', () => {
         clearInterval(interval);
@@ -141,7 +133,7 @@ export function setupSoloGame(io, room, socket, rooms, roomsTypes) {
     });
 }
 
-function updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room) {
+function updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room, keysPressed) {
         ball.updatePosition();
         checkWallCollision(ball, pad1, pad2, io, room);
         ball.checkCollision(pad1);
@@ -153,18 +145,18 @@ function updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room) {
             direction: { x: ball.direction.x, z: ball.direction.z },
             speed: ball.speed,
         });
-        io.in(room).emit('movePad', { pad1: pad1.mesh.position.z, pad2: pad2.mesh.position.z, pad3: pad3.mesh.position.z, pad4: pad4.mesh.position.z });
+        Movepad(pad1, pad2, keysPressed, room, io, pad3, pad4)
 }
 
 export function setupMultiGame(io, room, ball, pad1, pad2, keysPressed) {
     const interval = setInterval(() => updateBallPosition(ball, pad1, pad2, io, room, false, keysPressed), 16);
 }
 
-export function setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4) {
-    const interval = setInterval(() => updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room), 16);
+export function setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, keysPressed) {
+    const interval = setInterval(() => updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room, keysPressed), 16);
 }
 
-function Movepad(pad1, pad2, keysPressed, room, io) {
+function Movepad(pad1, pad2, keysPressed, room, io, pad3, pad4) {
 
     const padLimit = tableHeight / 2 - padHeight / 2;
     
@@ -180,8 +172,32 @@ function Movepad(pad1, pad2, keysPressed, room, io) {
             if (keysPressed.pad2MoveUp && pad2.mesh.position.z - pad2.speed > -padLimit) {
                 pad2.mesh.position.z -= pad2.speed;
             }
-            io.in(room).emit('movePad', {
-                pad1: pad1.mesh.position.z,
-                pad2: pad2.mesh.position.z
-            });
+            if (pad4){
+                if (keysPressed.pad3MoveDown && pad3.mesh.position.z + pad3.speed < padLimit) {
+                    pad3.mesh.position.z += pad3.speed;
+                }
+                if (keysPressed.pad3MoveUp && pad3.mesh.position.z - pad3.speed > -padLimit) {
+                    pad3.mesh.position.z -= pad3.speed;
+                }
+                if (keysPressed.pad4MoveDown && pad4.mesh.position.z + pad4.speed < padLimit) {
+                    pad4.mesh.position.z += pad4.speed;
+                }
+                if (keysPressed.pad4MoveUp && pad4.mesh.position.z - pad4.speed > -padLimit) {
+                    pad4.mesh.position.z -= pad4.speed;
+                }
+            }
+            if (pad4)
+            {
+                io.in(room).emit('movePad', {
+                    pad1: pad1.mesh.position.z,
+                    pad2: pad2.mesh.position.z,
+                    pad3: pad3.mesh.position.z,
+                    pad4: pad4.mesh.position.z
+                });   
+            } else {
+                io.in(room).emit('movePad', {
+                    pad1: pad1.mesh.position.z,
+                    pad2: pad2.mesh.position.z
+                });
+            }
 }

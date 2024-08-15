@@ -11,7 +11,11 @@ const keysPressed = {
     pad1MoveUp: false,
     pad1MoveDown: false,
     pad2MoveUp: false,
-    pad2MoveDown: false
+    pad2MoveDown: false,
+    pad3MoveUp: false,
+    pad3MoveDown: false,
+    pad4MoveUp: false,
+    pad4MoveDown: false
 };
 
 export default function setupSockets(io) {
@@ -43,6 +47,36 @@ export default function setupSockets(io) {
             }
         });
 
+        socket.on('padMove', (data) => {
+            console.log(`Received padMove for pad ${data.pad} in direction ${data.direction} moving: ${data.moving}`);
+            if (data.pad === 1) {
+                keysPressed.pad1MoveUp = data.direction === 'up' ? data.moving : keysPressed.pad1MoveUp;
+                keysPressed.pad1MoveDown = data.direction === 'down' ? data.moving : keysPressed.pad1MoveDown;
+            } else if (data.pad === 2) {
+                keysPressed.pad2MoveUp = data.direction === 'up' ? data.moving : keysPressed.pad2MoveUp;
+                keysPressed.pad2MoveDown = data.direction === 'down' ? data.moving : keysPressed.pad2MoveDown;
+            } else if (data.pad === 3) {
+                keysPressed.pad3MoveUp = data.direction === 'up' ? data.moving : keysPressed.pad3MoveUp;
+                keysPressed.pad3MoveDown = data.direction === 'down' ? data.moving : keysPressed.pad3MoveDown;
+            } else if (data.pad === 4) {
+                keysPressed.pad4MoveUp = data.direction === 'up' ? data.moving : keysPressed.pad4MoveUp;
+                keysPressed.pad4MoveDown = data.direction === 'down' ? data.moving : keysPressed.pad4MoveDown;
+            }
+        });
+
+        socket.on('endGame', () => {
+            const room = findRoomForSocket(socket.id);
+            if (room) {
+                io.in(room).emit('gameEnded');
+                io.in(room).socketsLeave(room);
+
+                delete rooms[room];
+                delete roomsTypes[room];
+                padsMap.delete(room);
+                console.log(`Room ${room} has been removed`);
+            }
+        });
+
         socket.on('solo_vs_ia', () => {
             let room = `room-${roomCounter++}`;
             rooms[room] = [socket.id];
@@ -52,7 +86,7 @@ export default function setupSockets(io) {
             io.in(room).emit('start-game', rooms[room], roomsTypes[room]);
             console.log(`Starting game in ${room}`);
 
-            setupSoloGame(io, room, socket, rooms, roomsTypes[room]);
+            setupSoloGame(io, room, socket, rooms, roomsTypes[room], keysPressed);
         });
 
         socket.on('multi-2-local', () => {
@@ -64,7 +98,7 @@ export default function setupSockets(io) {
             io.in(room).emit('start-game', rooms[room], roomsTypes[room]);
             console.log(`Starting game in ${room}`);
 
-            setupSoloGame(io, room, socket, rooms, roomsTypes[room]);
+            setupSoloGame(io, room, socket, rooms, roomsTypes[room], keysPressed);
         });
 
         socket.on('multi-2-online', () => {
@@ -77,18 +111,6 @@ export default function setupSockets(io) {
                 const pad2 = new Pad(0xb3261a, 0.045, 0.50, 16, 2.10, 3.59, 0);
                 padsMap.set(room, { pad1, pad2 });
             }
-        
-            socket.on('padMove', (data) => {
-                console.log(`Received padMove for pad ${data.pad} in direction ${data.direction} moving: ${data.moving}`);
-                if (data.pad === 1) {
-                    keysPressed.pad1MoveUp = data.direction === 'up' ? data.moving : keysPressed.pad1MoveUp;
-                    keysPressed.pad1MoveDown = data.direction === 'down' ? data.moving : keysPressed.pad1MoveDown;
-                } else if (data.pad === 2) {
-                    keysPressed.pad2MoveUp = data.direction === 'up' ? data.moving : keysPressed.pad2MoveUp;
-                    keysPressed.pad2MoveDown = data.direction === 'down' ? data.moving : keysPressed.pad2MoveDown;
-                }
-                console.log('keysPressed:', keysPressed);
-            });
         
             console.log(`Player ${socket.id} joined ${room}`);
         
@@ -124,25 +146,6 @@ export default function setupSockets(io) {
                 padsMap.set(room, { pad1, pad2, pad3, pad4 });
             }
 
-            socket.on('movePad', (data) => {
-                const { pad1, pad2, pad3, pad4 } = padsMap.get(room);
-                if (data.pad === 1) {
-                    pad1.mesh.position.z = data.position;
-                } else if (data.pad === 2) {
-                    pad2.mesh.position.z = data.position;
-                } else if (data.pad === 3) {
-                    pad3.mesh.position.z = data.position;
-                } else if (data.pad === 4) {
-                    pad4.mesh.position.z = data.position;
-                }
-                io.in(room).emit('movePad', {
-                    pad1: pad1.mesh.position.z,
-                    pad2: pad2.mesh.position.z,
-                    pad3: pad3.mesh.position.z,
-                    pad4: pad4.mesh.position.z
-                });
-            });
-
             console.log(`Player ${socket.id} joined ${room}`);
 
             if (rooms[room].length === 4) {
@@ -158,7 +161,7 @@ export default function setupSockets(io) {
                     speed: ball.speed,
                 });
 
-                setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4);
+                setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, keysPressed);
             }
         
         });
