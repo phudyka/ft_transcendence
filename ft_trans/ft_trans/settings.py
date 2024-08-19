@@ -54,6 +54,8 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
+	'django.contrib.sessions.middleware.SessionMiddleware', # for session
+    'django.contrib.auth.middleware.AuthenticationMiddleware', # for session
 ]
 
 CORS_ALLOWED_ORIGINS = [

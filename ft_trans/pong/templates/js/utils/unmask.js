@@ -1,4 +1,4 @@
-function changeType(x, type) {
+export function changeType(x, type) {
   if (x.type === type) {
     return x;
   }

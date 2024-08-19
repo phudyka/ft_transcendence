@@ -1,4 +1,7 @@
-function gameplay(navigateTo, $player_name) {
+export function gameplay() {
+	$player_name = localStorage.getItem('player_name');
+	console.log('gameplay view');
+
 	document.getElementById('ft_transcendence').innerHTML = `
 	<ul class="nav navbar-expand-lg justify-content-center">
 		<a class="nav-link disabled">pongonline</a>
@@ -9,10 +12,10 @@ function gameplay(navigateTo, $player_name) {
 		<div class="game-area">
 		  <!-- Your game logic here (canvas, etc.) -->
 		</div>
-	  </div>
-	  <footer class="py-3 my-4">
-	  	<p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
-  		</footer>
+	</div>
+		<footer class="py-3 my-4">
+			<p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
+		</footer>
 	`;
 
 	attachEventHandlers2(navigateTo, $player_name);

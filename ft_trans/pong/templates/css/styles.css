@@ -288,7 +288,7 @@ input::placeholder {
 }
 
 #arrowbackregister {
-    font-weight: 800; 
+    font-weight: 800;
     /* aria-current="page"; */
     display: flex;
     justify-content: center;
@@ -318,7 +318,7 @@ footer {
     width: 100%;
     display: flex;
     justify-content: space-evenly;
-    align-items: center; 
+    align-items: center;
     position: fixed;
     bottom: -50px;
 }
@@ -401,7 +401,7 @@ div.input-container {
     resize: vertical;
     margin-right: 10px;
     min-height: 35px;
-    
+
 }
 
 .chat-container {
@@ -416,7 +416,7 @@ div.input-container {
     margin-right: 10px;
     height: 270px;
   }
-  
+
   .chat-log {
     flex: 1;
     overflow-y: scroll;
@@ -431,7 +431,7 @@ div.input-container {
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-  } 
+  }
 
   .avatar-image {
     width: 250px;
@@ -483,7 +483,7 @@ div.input-container2 {
     resize: vertical;
     margin-right: 10px;
     min-height: 35px;
-    
+
 }
 
 .chat-container2 {
@@ -496,7 +496,7 @@ div.input-container2 {
     flex : 1;
 
   }
-  
+
   .chat-log2 {
     flex: 1;
     overflow-y: scroll;
@@ -511,7 +511,7 @@ div.input-container2 {
     justify-content: space-between;
     align-items: center;
     padding: 10px;
-  } 
+  }
 
   .offcanvas-body {
     display: flex;

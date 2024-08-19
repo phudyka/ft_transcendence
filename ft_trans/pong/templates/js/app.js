@@ -1,50 +1,55 @@
+import { login } from './views/login.js';
+import { register } from './views/register.js';
+import { dashboard } from './views/dashboard.js';
+import { gameplay } from './views/gameplay.js';
+import { profile } from './views/profile.js';
+
 document.addEventListener('DOMContentLoaded', function () {
-
-  function navigateTo(viewId, ...args) {
-    console.log('Navigating to', viewId);
-    hideCurrentView();
-    showView(viewId, ...args);
-  }
-
-  function hideCurrentView() {
-    const activeView = document.querySelector('.active-view');
-    if (activeView) {
-      activeView.classList.remove('active-view');
-      activeView.style.display = 'none';
+  function router() {
+    const path = window.location.pathname;
+    switch(path) {
+        case '/':
+            login();
+            break;
+        case '/login':
+            login();
+            break;
+        case '/register':
+            register();
+            break;
+        case '/dashboard':
+            dashboard();
+            break;
+        case '/gameplay':
+            gameplay();
+            break;
+        case '/gameplay_friends':
+            gameplay_friends();
+            break;
+        case '/profile':
+            profile();
+            break;
+        default:
+            console.log('404: Page not found');
     }
-  }
+}
 
-  const viewActions = {
-    register: (navigateTo) => register(navigateTo),
-    login: (navigateTo) => login(navigateTo),
-    dashboard: (navigateTo, ...args) => dashboard(navigateTo, ...args),
-    gameplay: (navigateTo, ...args) => gameplay(navigateTo, ...args),
-    gameplay_friends: (navigateTo, ...args) => gameplay_friends(navigateTo, ...args),
-    profile: (navigateTo, playerName) => profile(navigateTo, playerName),
-  };
+  window.addEventListener('popstate', router);
+  document.addEventListener('DOMContentLoaded', router);
 
-  function showView(viewId, ...args) {
-    const view = document.getElementById(viewId);
-
-    if (view) {
-      view.classList.add('active-view');
-      view.style.display = 'block';
-    } else if (viewActions[viewId]) {
-      viewActions[viewId](navigateTo, ...args);
-    } else {
-      console.error(`View with ID "${viewId}" not found`);
-    }
-  }
-
-  // Initial view display
-  const initialViewId = 'dashboard';  // Default view to show on initial load
-  showView(initialViewId);
-
-  document.addEventListener('click', function (event) {
-    if (event.target.matches('[data-link]')) {
-      event.preventDefault();
-      const link = event.target.getAttribute('data-link');
-      navigateTo(link);
-    }
+  // Gestionnaire pour les clics sur les liens
+  document.body.addEventListener('click', e => {
+      if (e.target.matches('[data-link]')) {
+          e.preventDefault();
+          navigateTo(e.target.getAttribute('href'));
+      }
   });
+
+  // Initial route call
+  router();
 });
+
+export function navigateTo(pathname) {
+  window.history.pushState({}, pathname, window.location.origin + pathname);
+  router();
+}

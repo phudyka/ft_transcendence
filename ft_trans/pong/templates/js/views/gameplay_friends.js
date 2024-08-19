@@ -1,4 +1,4 @@
-function gameplay_friends(navigateTo, $player_name) {
+export function gameplay_friends(navigateTo, $player_name) {
 	document.getElementById('ft_transcendence').innerHTML = `
 	<ul class="nav navbar-expand-lg justify-content-center">
 		<a class="nav-link disabled">pongonline</a>

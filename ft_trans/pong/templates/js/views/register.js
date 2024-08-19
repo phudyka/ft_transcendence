@@ -1,4 +1,4 @@
-function register(navigateTo) {
+export function register() {
   document.getElementById('ft_transcendence').innerHTML = `
   <ul class="nav navbar-expand-lg justify-content-center">
   </ul>
@@ -20,7 +20,7 @@ function register(navigateTo) {
           </div>
           </p>
           <p>
-            
+
           <div class="choose-avatar">
             <div id="carouselExampleControls" class="carousel slide" data-ride="carousel" data-interval="false" keyboard="true">
           <div class="carousel-inner">
@@ -81,7 +81,7 @@ function register(navigateTo) {
     navigateTo('login');
   });
 
-  //carrousel 
+  //carrousel
   document.getElementById('carousel-control-next-icon').addEventListener('click', function(event) {
     event.preventDefault();
     $('#carouselExampleControls').carousel('next');

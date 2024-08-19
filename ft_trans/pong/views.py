@@ -14,8 +14,7 @@ def create_user(request):
 	else:
 		return JsonResponse({'error': 'invalid request'}, status=400)
 
-
-def index(request):
+def index(request, path=''):
 	return render(request, 'index.html')
 
 def login(request):
@@ -30,13 +29,13 @@ def login_view(request):
 		user = authenticate(request, username=username, password=password)
 		if user is not None:
 			# Login successful
+			login(request, user)
+			request.session['user_id'] = user.id
+			request.session['username'] = user.username
 			return JsonResponse({'success': True})
 		else:
-			# Invalid credentials
-			return JsonResponse({'success': False, 'error': 'Invalid credentials'})
-	else:
-		# Invalid request method
-		return JsonResponse({'success': False, 'error': 'Invalid request method'})
+			# Login failed
+			return JsonResponse({'success': False})
 
 
 def content(request):

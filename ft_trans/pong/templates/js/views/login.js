@@ -1,9 +1,12 @@
-function login(navigateTo) {
+import { navigateTo } from '../app.js';
+
+export function login() {
+	console.log('login view');
 	document.getElementById('ft_transcendence').innerHTML = `
 	<img src="content/logo_400_400.png" id="logo_pong_login" alt="Logo" width="320" height="320" style="margin-bot:10%;">
-    	<div id="loginAlert" class="alert alert-danger d-none" role="alert">
-      	Invalid username or password!
-    	</div>
+		<div id="loginAlert" class="alert alert-danger d-none" role="alert">
+	  	Invalid username or password!
+		</div>
 	<div class="container login-container">
 	  <form id="loginForm">
 		<p>
@@ -25,20 +28,17 @@ function login(navigateTo) {
 		</div>
 	  </form>
 	</div>
-	<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
-	  <div class="modal-dialog">
-		<div class="modal-content">
-		  <div class="modal-header">
-			<h5 class="modal-title" id="errorModalLabel">Login Error</h5>
-			<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-		  </div>
-		  <div class="modal-body">
-			Invalid username or password
-		  </div>
-		  <div class="modal-footer">
-			<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-		  </div>
+	<div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 11">
+		<div id="loginToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+		<div class="toast-header bg-danger text-white">
+		  <strong class="me-auto">Login Error</strong>
+		  <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
 		</div>
+		<div class="toast-body">
+		  Invalid username or password
+		</div>
+		</div>
+	</div>
 	  </div>
 	</div>
 	<footer class="py-3 my-4">
@@ -50,38 +50,12 @@ function login(navigateTo) {
 
 function attachEventHandlers(navigateTo) {
 	/* navigate to dashboard page when login is successful */
-	document.getElementById('loginForm').addEventListener('submit', function (event) {
-	  event.preventDefault();
-	  console.log('click to login button');
-	  const username = document.getElementById('username').value;
-	  const password = document.getElementById('password').value;
-	  console.log('try to login with username:', username, 'and password:', password)
 
-	  fetch('http://localhost:8000/api/login/', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ username: username, password: password }),
-	})
-	.then(response => {
-		console.log('Response status:', response.status);
-		return response.json();
-	})
-	.then(data => {
-		console.log('Success:', data);
-		if (data.success) {
-			console.log('Login successful');
-			navigateTo('dashboard', username);
-		} else {
-			const loginAlert = document.getElementById('loginAlert');
-			loginAlert.classList.remove('d-none');
-		}
-	})
-	.catch(error => {
-		console.error('Error:', error);
-		const loginAlert = document.getElementById('loginAlert');
-		loginAlert.classList.remove('d-none');
+	document.getElementById('loginForm').addEventListener('submit', handleLogin);
+
+	document.getElementById('create_account').addEventListener('click', function (event) {
+		event.preventDefault();
+		navigateTo('/register');
 	});
 
 	/* navigate to create account page when create account is clicked */
@@ -90,7 +64,7 @@ function attachEventHandlers(navigateTo) {
 		createButton.addEventListener('click', function (event) {
 			event.preventDefault();
 			console.log('click to create account button');
-			navigateTo('register');
+			navigateTo('/register');
 		});
 	}
 
@@ -117,4 +91,36 @@ function attachEventHandlers(navigateTo) {
 			document.getElementById('loginForm').dispatchEvent(new Event('submit'));
 		}
 	});
+}
+
+function handleLogin(event) {
+	event.preventDefault();
+	const username = document.getElementById('username').value;
+	const password = document.getElementById('password').value;
+
+	fetch('http://localhost:8000/api/login/', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ username: username, password: password }),
+	})
+	.then(response => response.json())
+	.then(data => {
+		if (data.success) {
+			navigateTo('/dashboard');
+		} else {
+			showLoginToast();
+		}
+	})
+	.catch(error => {
+		console.error('Error:', error);
+		showLoginToast();
+	});
+}
+
+function showLoginToast() {
+	const toastEl = document.getElementById('loginToast');
+	const toast = new bootstrap.Toast(toastEl);
+	toast.show();
 }

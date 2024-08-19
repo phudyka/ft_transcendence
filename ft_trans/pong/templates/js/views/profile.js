@@ -1,4 +1,4 @@
-function profile(navigateTo, $player_name, profile_name) {
+export function profile(navigateTo, $player_name, profile_name) {
 
     const wins = 10;
     const losses = 5;
@@ -44,10 +44,10 @@ function profile(navigateTo, $player_name, profile_name) {
     </div>
 	`;
 
-	attachEventHandlers2(navigateTo, $player_name, profile_name);
+	attachEventHandlers2(navigateTo, $player_name);
 }
 
-function attachEventHandlers2(navigateTo, $player_name, profile_name) {
+function attachEventHandlers2(navigateTo, $player_name) {
     document.getElementById('arrowbackregister').addEventListener('click', function(event) {
         event.preventDefault();
         navigateTo('dashboard', $player_name);
@@ -57,12 +57,12 @@ function attachEventHandlers2(navigateTo, $player_name, profile_name) {
     // Initialize friendship status (replace with your own logic)
     let isFriend = false;
     let requestSent = false;
-      
+
     // Get the button element
     const friendButton = document.getElementById('friendButton');
-      
+
     // Update the button text and style based on the friendship status
-    function updateFriendButton() { 
+    function updateFriendButton() {
         if (isFriend) {
             friendButton.innerText = 'Already Friends';
             friendButton.classList.remove('btn-dark');
@@ -77,7 +77,7 @@ function attachEventHandlers2(navigateTo, $player_name, profile_name) {
             friendButton.classList.add('btn-dark');
         }
     }
-    
+
     // Add an event listener to the button
     friendButton.addEventListener('click', () => {
         if (isFriend) {
@@ -92,7 +92,7 @@ function attachEventHandlers2(navigateTo, $player_name, profile_name) {
         }
         updateFriendButton();
     });
-    
+
     // Call the function to initialize the button text and style
     updateFriendButton();
 }
