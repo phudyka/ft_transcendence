@@ -1,5 +1,7 @@
 
-export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
+import * as THREE from './node_modules/three/build/three.module.js';
+
+export function initSocketEvent(socket, ball){
 
     socket.on('initBall', (data) => {
         ball.mesh.position.x = data.position.x;
@@ -21,7 +23,7 @@ export function initSocketEvent(socket, ball, pad1, pad2, pad3, pad4){
     socket.on('LeaveRoom', (room) => {
         socket.emit('disconnect');
     });
-    
+
     document.getElementById('multi-2-local').addEventListener('click', () => {
         socket.emit('multi-2-local');
     });
