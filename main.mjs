@@ -20,14 +20,15 @@ import { Pad } from './pad.mjs';
 import { OrbitControls } from './node_modules/three/examples/jsm/controls/OrbitControls.js';
 import loadModel from './loadIsland.mjs';
 import { Ball } from './ball.mjs';
-import { hitPadEvent, initSocketEvent } from './socketEvent.mjs';
+import { hitPadEvent, initSocketEvent, SoundLobby } from './socketEvent.mjs';
+import Sound from './sounds.mjs';
 
 const socket = io();
 
 let controlledPad = null;
 let controlledPads = null;
 let pad1, pad2, pad3, pad4;
-let scene, camera, renderer, listener, sound;
+let scene, camera, renderer, listener;
 let logo
 let mixer, action;
 let choice = false;
@@ -77,16 +78,7 @@ logo = new Logo(scene);
 fadeOutLogoAndStartAnimation(logo, scene, camera, renderer);
 
 
-listener = new THREE.AudioListener();
-camera.add(listener);
-
-sound = new THREE.Audio(listener);
-const audioLoader = new THREE.AudioLoader();
-audioLoader.load('/sound/pong.wav', (buffer) => {
-    sound.setVolume(0.2);
-    sound.setLoop(false);
-    sound.setBuffer(buffer);
-});
+const sounds = new Sound(camera);
 
 pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.10, 3.59, 0);
 pad1.addToScene(scene);
@@ -146,7 +138,9 @@ document.addEventListener('keyup', (event) => {
 });
 
 initSocketEvent(socket, ball);
-hitPadEvent(socket, sound, listener);
+SoundLobby(socket, sounds);
+hitPadEvent(socket, sounds);
+socket.emit('lobby ready');
 
 
 function updateAnimation() {

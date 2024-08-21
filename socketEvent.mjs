@@ -103,22 +103,36 @@ export function initSocketEvent(socket, ball){
 
 }
 
-export function hitPadEvent(socket, sound, listener){
-    socket.on('hitPad', ()=> {
-        if (listener.context.state === 'suspended') {
-            listener.context.resume().then(() => {
+export function hitPadEvent(socket, sounds) {
+    socket.on('hitPad', () => {
+        const audioContext = sounds.listener.context;
+
+        if (audioContext.state === 'suspended') {
+            audioContext.resume().then(() => {
                 console.log('AudioContext resumed');
-                if (sound.isPlaying){
-                    sound.stop();
-                }
-                sound.play();
+                sounds.play('pong');
+            }).catch((err) => {
+                console.error('Failed to resume AudioContext:', err);
             });
         } else {
-            if (sound.isPlaying){
-                sound.stop();
-            }
-            sound.play();
+            sounds.play('pong');
         }
     });
+}
 
+export function SoundLobby(socket, sounds) {
+    socket.on('lobby', () => {
+        const audioContext = sounds.listener.context;
+
+        if (audioContext.state === 'suspended') {
+            audioContext.resume().then(() => {
+                console.log('AudioContext resumed');
+                sounds.play('lobby');
+            }).catch((err) => {
+                console.error('Failed to resume AudioContext:', err);
+            });
+        } else {
+            sounds.play('lobby');
+        }
+    });
 }

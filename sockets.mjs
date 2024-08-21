@@ -47,6 +47,10 @@ export default function setupSockets(io) {
             }
         });
 
+        socket.on('lobby ready', () =>{
+            socket.emit('lobby');
+        });
+
         socket.on('padMove', (data) => {
             console.log(`Received padMove for pad ${data.pad} in direction ${data.direction} moving: ${data.moving}`);
             if (data.pad === 1) {

@@ -49,14 +49,14 @@
         z-index: 10;
         }
         .tournament-item {
-        cursor: pointer; /* Change le curseur pour indiquer que l'élément est cliquable */
+        cursor: pointer;
         padding: 10px;
         margin: 5px 0;
-        border: 1px solid #ddd; /* Bordure légère pour chaque élément */
-        border-radius: 4px; /* Coins arrondis pour un meilleur aspect */
+        border: 1px solid #ddd;
+        border-radius: 4px;
         }
         .tournament-item:hover {
-        background-color: #f0f0f0; /* Couleur de fond au survol */
+        background-color: #f0f0f0;
         }
         .menu, .waiting, .multi, .tournament {
             position: absolute;
@@ -181,6 +181,8 @@
     </style>
 </head>
 <body>
+    <button id="start-game-button" class="start-game-button">Start Game</button>
+
     <div id="menu" class="menu active">
         <button class="menu-button" id="solo-ia">Solo vs IA</button>
         <button class="menu-button" id="multi-button">Multijoueur</button>
