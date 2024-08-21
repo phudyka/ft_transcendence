@@ -19,9 +19,10 @@ body {
 .dashboard-container {
     display: flex;
     flex-direction: column;
-    flex: 1; /* Permet à cet élément de prendre tout l'espace disponible */
-    width: 95%;
-    margin: 0;
+    flex: 1;
+    margin-bottom: 2%;
+    margin-left: 2%;
+    margin-right: 2%;
     padding: 0;
 }
 
@@ -255,7 +256,6 @@ input::placeholder {
 	justify-content: center;
 	align-items: center;
 	margin-bottom: 50px;
-	margin-top: 30px;
 	margin-left:auto;
     margin-right:auto;
     border-radius: 100px;
@@ -273,18 +273,6 @@ input::placeholder {
 #start_button {
 	margin-top: 10px;
 	margin-bottom: 10px;
-}
-
-#loginAlert {
-    margin-left: 36%;
-    margin-right: 36%;
-	border-radius: 30px;
-	text-align: center;
-	border: 2px solid black;
-    background-color:#d93d35;
-    border: 2px solid black;
-    color: white;
-    font-weight: 900;
 }
 
 #arrowbackregister {
@@ -325,11 +313,13 @@ footer {
 
 #friends {
     display: flex;
-    /* justify-content: center; */
-    /* align-items: center; */
-    margin-left: 5%;
 }
 
+#chartContainer {
+    position: relative;
+    height: 200px;
+    width: 100%;
+}
 
 .game-container {
     display: flex;
@@ -357,18 +347,26 @@ footer {
     /* margin-bottom: 50px; */
 }
 
-
 .dropdown-menu, .dropdown-menu_chat {
     display: none;
     position: absolute;
     border: 2px solid black;
     background-color: #307f3d;
     z-index: 1000;
+    border-radius: 5px;
+    padding: 10px;
 }
 
-.dropdown-menu::shadow , .dropdown-menu_chat::shadow {
+.dropdown-menu .dropdown-item, .dropdown-menu_chat .dropdown-item {
+    color: white;
+    padding: 5px 10px;
+    text-decoration: none;
     display: block;
+}
+
+.dropdown-menu .dropdown-item:hover, .dropdown-menu_chat .dropdown-item:hover {
     background-color: #e3d6c1;
+    color: #307f3d;
 }
 
 
@@ -519,6 +517,18 @@ div.input-container2 {
     height: 100%;
 }
 
+/* username in tchat */
+
+.username-link {
+    cursor: pointer;
+    font-weight: bold;
+    color: #307f3d; /* ou la couleur de votre choix */
+}
+
+.bold-username {
+    font-weight: bold;
+}
+
 
 /* profile page */
 
@@ -544,3 +554,5 @@ div.input-container2 {
     width: 25%;
     border-radius: 30px;
 }
+
+

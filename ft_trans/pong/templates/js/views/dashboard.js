@@ -1,17 +1,28 @@
 import { navigateTo } from '../app.js';
 
-export function dashboard($player_name) {
-	$player_name = 'faperac';
+let $player_name;
+
+export function dashboard(player_name) {
+	$player_name = player_name;
+	$player_name = 'Player';
 
 	document.getElementById('ft_transcendence').innerHTML = `
 	<div class="dashboard-container">
-		<ul class="nav justify-content-center">
-			<a class="navbar-brand" href"#">
-				<img src="content/logo2.png" alt="Logo" width="30" height="30" class="d-inline-block align-text-top">
-				<a class="nav-link disabled">pongonline</a>
-				<a class="nav-link disabled">${$player_name}</a>
-				<a class="nav-link" href="" id="logoutLink">Logout</a>
-		</ul>
+
+
+        <ul class="nav justify-content-between align-items-center">
+                <a class="navbar-brand" href="#">
+                    <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="30" height="30">
+                </a>
+            <li class="nav-item">
+                <a class="nav-link disabled">${player_name}</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" id="logoutLink">Logout</a>
+            </li>
+        </ul>
+
+
 		<h3 id="header-dashboard" class="text-center">
 			${$player_name}'s Dashboard
 		</h3>
@@ -116,7 +127,7 @@ export function dashboard($player_name) {
 
 const socket = io('http://localhost:3000');
 
-function setupDashboardEvents(navigateTo, $player_name) {
+function setupDashboardEvents(navigateTo, player_name) {
 	//Logout
 	document.getElementById('logoutLink').addEventListener('click', function (event) {
 		event.preventDefault();
@@ -128,14 +139,14 @@ function setupDashboardEvents(navigateTo, $player_name) {
 	document.getElementById('game_alone').addEventListener('click', function (event) {
 		event.preventDefault();
 		console.log('Play game_alone button clicked');
-		navigateTo('/gameplay', $player_name);
+		navigateTo('/gameplay');
 	});
 
 	//Game with friend
 	document.getElementById('game_friend').addEventListener('click', function (event) {
 		event.preventDefault();
 		console.log('Play game_friend button clicked');
-		navigateTo('gameplay_friends', $player_name);
+		navigateTo('/gameplay_friends');
 	});
 
 	// Friend menu
@@ -209,7 +220,6 @@ function formatMessage(message) {
   }
 
 function handleFriendClick() {
-	item.addEventListener('click', function (event) {
 		event.stopPropagation();
 		const dropdown = document.getElementById('friendDropdown');
 		const friendName = this.getAttribute('data-friend');
@@ -227,7 +237,6 @@ function handleFriendClick() {
 
 		// Store the clicked friend's name
 		dropdown.setAttribute('data-friend', friendName);
-	});
 }
 
 function hideDropdowns() {
@@ -270,17 +279,18 @@ function receiveMessage(msg) {
 	const messageElement = document.createElement('div');
 
 	// Créer l'élément username et définir ses attributs
-	const usernameElement = document.createElement('a');
-	usernameElement.href = '#';
+	const usernameElement = document.createElement('span'); // Changé de 'a' à 'span'
 	usernameElement.classList.add('username-link');
 	usernameElement.dataset.friend = msg.name;
 	usernameElement.innerText = `[${msg.name}]`;
 
 	// Activer le menu déroulant lorsque le nom d'utilisateur est cliqué
 	usernameElement.addEventListener('click', function (event) {
+		event.preventDefault(); // Ajouté pour empêcher le comportement par défaut
 		event.stopPropagation();
 		const dropdown = document.getElementById('friendDropdown_chat');
-		const friendName = this.getAttribute('data-friend');
+		const friendName = this.dataset.friend; // Utilisez dataset au lieu de getAttribute
+		usernameElement.classList.add('username-link', 'bold-username');
 
 		// Masquer tous les menus déroulants visibles
 		const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
@@ -294,7 +304,7 @@ function receiveMessage(msg) {
 		dropdown.style.display = 'block';
 
 		// Stocker le nom de l'ami cliqué
-		dropdown.setAttribute('data-friend', friendName);
+		dropdown.dataset.friend = friendName; // Utilisez dataset au lieu de setAttribute
 	});
 
 	// Créer l'élément message et définir son texte
@@ -313,22 +323,37 @@ function receiveMessage(msg) {
 
 function sendPrivateMessage(event) {
 	event.preventDefault();
-		const messageInput2 = document.getElementById('message-input2');
-		if (messageInput2.value.trim() !== '') {
-		  const message = formatMessage(messageInput2.value);
-		  const chatLog2 = document.getElementById('chat-log2');
-		  const messageElement = document.createElement('div');
-		  messageElement.innerText = message;
-		  chatLog2.appendChild(messageElement);
-		  messageInput2.value = '';
-		  scrollToBottom2();
-		}
+	const messageInput2 = document.getElementById('message-input2');
+	if (messageInput2.value.trim() !== '') {
+		const message = formatMessage(messageInput2.value);
+		const chatLog2 = document.getElementById('chat-log2');
+		const messageElement = document.createElement('div');
+
+		// Créer l'élément username
+		const usernameElement = document.createElement('span');
+		usernameElement.classList.add('username-link');
+		usernameElement.dataset.friend = $player_name;
+		usernameElement.innerText = `[${$player_name}]`;
+
+		// Créer l'élément message
+		const messageTextElement = document.createElement('span');
+		messageTextElement.innerText = `: ${message}`;
+
+		usernameElement.classList.add('username-link', 'bold-username');
+		// Ajouter les éléments username et message à l'élément message
+		messageElement.appendChild(usernameElement);
+		messageElement.appendChild(messageTextElement);
+
+		chatLog2.appendChild(messageElement);
+		messageInput2.value = '';
+		scrollToBottom2();
+	}
 }
 
 function handleEnterKey(event) {
 	if (event.key === 'Enter' && !event.shiftKey) {
 		event.preventDefault();
-		document.getElementById('send-button').click();
+		sendMessage(event);
 	}
 }
 
@@ -348,10 +373,10 @@ function viewProfile(event) {
 	event.preventDefault();
 	const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
 	console.log(`View profile of ${friendName}`);
-	navigateTo('profile', $player_name, friendName);
+	navigateTo(`/profile/${friendName}`);
 }
 
 socket.on('connect_error', (error) => {
-    console.error('Connection error:', error);
-    // Gérez l'erreur de manière appropriée
+	console.error('Connection error:', error);
+	// Gérez l'erreur de manière appropriée
 });

@@ -16,8 +16,12 @@
 </head>
 <body>
     <div id="ft_transcendence"></div>
+    <script>
+        var staticUrl = "{% static '' %}";
+    </script>
 
     <script type="module" src="{% static 'js/app.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{% static 'js/utils/unmask.js' %}"></script>
     <script src="{% static 'js/utils/register_avatar.js' %}"></script>
     <script type="module" src="{% static 'js/views/login.js' %}"></script>

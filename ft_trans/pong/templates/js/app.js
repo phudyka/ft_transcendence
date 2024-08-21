@@ -4,52 +4,61 @@ import { dashboard } from './views/dashboard.js';
 import { gameplay } from './views/gameplay.js';
 import { profile } from './views/profile.js';
 
-document.addEventListener('DOMContentLoaded', function () {
-  function router() {
-    const path = window.location.pathname;
-    switch(path) {
-        case '/':
-            login();
-            break;
-        case '/login':
-            login();
-            break;
-        case '/register':
-            register();
-            break;
-        case '/dashboard':
-            dashboard();
-            break;
-        case '/gameplay':
-            gameplay();
-            break;
-        case '/gameplay_friends':
-            gameplay_friends();
-            break;
-        case '/profile':
-            profile();
-            break;
-        default:
-            console.log('404: Page not found');
-    }
+// Déclaration de router comme une variable globale au module
+let router;
+
+function initRouter() {
+    router = function() {
+        const path = window.location.pathname;
+
+        if (path.startsWith('/profile/')) {
+            const friendName = decodeURIComponent(path.split('/').pop());
+            profile(friendName);
+        } else {
+            switch (path) {
+                case '/':
+                case '/dashboard':
+                    dashboard();
+                    break;
+                case '/login':
+                    login();
+                    break;
+                case '/register':
+                    register();
+                    break;
+                case '/gameplay':
+                    gameplay();
+                    break;
+                case '/gameplay_friends':
+                    gameplay_friends();
+                    break;
+                default:
+                    console.log('404: Page not found');
+            }
+        }
+    };
+
+    window.addEventListener('popstate', router);
+
+    // Gestionnaire pour les clics sur les liens
+    document.body.addEventListener('click', e => {
+        if (e.target.matches('[data-link]')) {
+            e.preventDefault();
+            navigateTo(e.target.getAttribute('href'));
+        }
+    });
+
+    // Initial route call
+    router();
 }
-
-  window.addEventListener('popstate', router);
-  document.addEventListener('DOMContentLoaded', router);
-
-  // Gestionnaire pour les clics sur les liens
-  document.body.addEventListener('click', e => {
-      if (e.target.matches('[data-link]')) {
-          e.preventDefault();
-          navigateTo(e.target.getAttribute('href'));
-      }
-  });
-
-  // Initial route call
-  router();
-});
 
 export function navigateTo(pathname) {
-  window.history.pushState({}, pathname, window.location.origin + pathname);
-  router();
+    const fullPath = window.location.origin + pathname;
+    window.history.pushState({}, pathname, fullPath);
+    router();
 }
+
+document.addEventListener('DOMContentLoaded', initRouter);
+
+// Exportez également initRouter si vous en avez besoin ailleurs
+export { initRouter };

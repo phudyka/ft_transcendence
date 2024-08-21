@@ -1,5 +1,8 @@
 export function gameplay() {
 	$player_name = localStorage.getItem('player_name');
+	if ($player_name == null) {
+		$player_name = 'Player';
+	}
 	console.log('gameplay view');
 
 	document.getElementById('ft_transcendence').innerHTML = `

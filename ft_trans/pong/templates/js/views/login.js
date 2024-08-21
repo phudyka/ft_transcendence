@@ -3,10 +3,7 @@ import { navigateTo } from '../app.js';
 export function login() {
 	console.log('login view');
 	document.getElementById('ft_transcendence').innerHTML = `
-	<img src="content/logo_400_400.png" id="logo_pong_login" alt="Logo" width="320" height="320" style="margin-bot:10%;">
-		<div id="loginAlert" class="alert alert-danger d-none" role="alert">
-	  	Invalid username or password!
-		</div>
+	<img src="${staticUrl}content/logo_400_400.png" id="logo_pong_login" alt="Logo" width="250" height="250" style="margin-bot:10%;">
 	<div class="container login-container">
 	  <form id="loginForm">
 		<p>
