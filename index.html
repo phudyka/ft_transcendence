@@ -3,273 +3,178 @@
 <head>
     <meta charset="utf-8">
     <title>ft_transcendence</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@300&display=swap');
-
-        body {
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: linear-gradient(to bottom, #87CEEB 0%, #1E90FF 100%);
-            font-family: 'Roboto', Arial, sans-serif;
-            overflow: hidden;
-            position: relative;
-        }
-        #fpsDisplay {
-            position: fixed;
-            top: 0;
-            right: 0;
-            background: rgba(0, 0, 0, 0.7);
-            color: #fff;
-            padding: 5px;
-            font-family: Arial, sans-serif;
-            font-size: 14px;
-        }
-        #tournament-list {
-        list-style-type: none; /* Enlève les puces */
-        padding: 0;
-        }
-        #game-over {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(255, 255, 255, 0.9);
-        border: 5px solid #FFCC00;
-        padding: 20px;
-        border-radius: 15px;
-        text-align: center;
-        color: #333;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        z-index: 10;
-        }
-        .tournament-item {
-        cursor: pointer;
-        padding: 10px;
-        margin: 5px 0;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        }
-        .tournament-item:hover {
-        background-color: #f0f0f0;
-        }
-        .menu, .waiting, .multi, .tournament {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(255, 255, 255, 0.2);
-            border: 5px solid #FFCC00;
-            padding: 20px;
-            border-radius: 15px;
-            text-align: center;
-            color: #333;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            z-index: 10;
-        }
-        .menu-button {
-            background-color: #00BFFF;
-            border: 2px solid #FFD700;
-            color: white;
-            padding: 12px 24px;
-            text-align: center;
-            text-decoration: none;
-            display: block;
-            font-size: 18px;
-            margin: 10px 0;
-            cursor: pointer;
-            border-radius: 12px;
-            transition: background-color 0.3s, transform 0.3s;
-        }
-        .menu-button:hover {
-            background-color: #00CED1;
-            transform: scale(1.05);
-        }
-        #spinner {
-            margin-top: 20px;
-            width: 60px;
-            height: 60px;
-            border: 6px solid rgba(255, 255, 255, 0.3);
-            border-top-color: #00BFFF;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        .score-container {
-            position: absolute;
-            top: 120px;
-            text-align: center;
-            font-size: 36px;
-            color: #000;
-            z-index: 10;
-        }
-        #scoreTitle {
-            font-family: 'Press Start 2P', Arial, sans-serif;
-            font-size: 60px;
-            margin-bottom: 10px;
-            color: #FFCC00;
-        }
-        #scoreLeft, #scoreRight {
-            position: absolute;
-            top: 50px;
-            font-size: 48px;
-            font-weight: bold;
-            color: hwb(60 3% 97%);
-        }
-        #scoreLeft {
-            left: 200px;
-        }
-        #scoreRight {
-            right: 200px;
-        }
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-        .active {
-            display: flex;
-        }
-        canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-        }
-        #credits {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 20;
-        }
-        #tournament-page {
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        background-color: rgba(0, 0, 0, 0.7);
-        text-align: center;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        z-index: 100;
-        }
-        #tournament-page img {
-            max-width: 80%;
-            height: 80;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <button id="start-game-button" class="start-game-button">Start Game</button>
+    <button id="start-game-button" class="start-game-button hidden">Start Game</button>
 
-    <div id="menu" class="menu active">
-        <button class="menu-button" id="solo-ia">Solo vs IA</button>
-        <button class="menu-button" id="multi-button">Multijoueur</button>
+    <div id="menu" class="menu hidden">
+        <button class="menu-button hidden" id="solo-ia">Solo vs IA</button>
+        <button class="menu-button hidden" id="multi-button">Multijoueur</button>
     </div>
-    <div id="multi" class="multi">
+    
+    <div id="multi" class="multi hidden">
         <button class="menu-button" id="multi-2-local">2 Joueurs local</button>
         <button class="menu-button" id="multi-2-online">2 Joueurs en ligne</button>
         <button class="menu-button" id="multi-four">4 Joueurs en ligne</button>
         <button class="menu-button" id="multi-tournament">Tournois</button>
         <button class="menu-button" id="multi-back-button">Retour</button>
     </div>
-    <div id="tournament" class="tournament">
+    
+    <div id="tournament" class="tournament hidden">
         <ul id="tournament-list"></ul>
         <button class="menu-button" id="create-tournament">Créer un tournoi</button>
         <button class="menu-button" id="tournament-back-button">Retour</button>
     </div>
-    <div id="waiting" class="waiting">
+
+    <div id="tournament-details" class="hidden">
+        <div class="colonne">
+            <span id="player-1"></span>
+            <div class="ligne">
+            <span id="player-2"></span>
+            </div>
+            <span id="player-3"></span>
+            <div class="ligne">
+            <span id="player-4"></span>
+            </div>
+            <span id="player-5"></span>
+            <div class="ligne">
+            <span id="player-6"></span>
+            </div>
+            <span id="player-7"></span>
+            <div class="ligne">
+            <span id="player-8"></span>
+            </div>
+        </div>
+        <div class="colonne">
+            <span>Winner 1</span>
+            <div class="ligne">
+            <span>Winner 2</span>
+            </div>
+            <span>Winner 3</span>
+            <div class="ligne">
+            <span>Winner 4</span>
+            </div>
+        </div>
+        <div class="colonne">
+            <span>Winner 1</span>
+            <div class="ligne">
+            <span>Winner 2</span>
+            </div>
+        </div>
+        <div class="colonne">
+            <span>Winner</span>
+            <div class="ligne"></div>
+        </div>
+        <button class="menu-button" id="quit-tournament">Quitter le tournoi</button>
+    </div>
+
+
+    <div id="waiting" class="waiting hidden">
         <p>Waiting for another player...</p>
         <div id="spinner"></div>
     </div>
-    <div id="score" class="score-container">
+    
+    <div id="score" class="score-container hidden">
         <div id="scoreTitle">PONG</div>
         <div id="scoreLeft">0</div>
         <div id="scoreRight">0</div>
     </div>
-    <div id="game-over" class="game-over">
+    
+    <div id="game-over" class="game-over hidden">
         <div id="winner-message"></div>
         <button class="menu-button" id="back-to-menu-button">Retour au Menu</button>
     </div>
+    
     <div id="credits">
         <h1>CREDITS</h1>
     </div>
-    <div id="tournament-page" style="display: none;">
-        <img src="png/tournamentMode.png" alt="Tournament Mode">
-    </div>
+
     <script>
-        document.getElementById('menu').classList.remove('active');
-        document.getElementById('multi').classList.remove('active');
-        document.getElementById('tournament').classList.remove('active');
-        document.getElementById('score').classList.remove('score-container');
+        document.addEventListener('DOMContentLoaded', () => {
+            const startButton = document.getElementById('start-game-button');
+            const menu = document.getElementById('menu');
+            const soloIaButton = document.getElementById('solo-ia');
+            const multiButton = document.getElementById('multi-button');
+            const multiMenu = document.getElementById('multi');
+            const tournament = document.getElementById('tournament');
+            const tournamentDetails = document.getElementById('tournament-details');
+            const waiting = document.getElementById('waiting');
 
-        // Gestion du bouton Solo vs IA
-        document.getElementById('solo-ia').addEventListener('click', () => {
-            document.getElementById('menu').classList.remove('active');
-        });
+            // Afficher le bouton Start Game
+            startButton.classList.add('hidden');
+            tournamentDetails.classList.add('hidden');
+            tournamentDetails.classList.remove('flex');
 
-        // Gestion du bouton Multijoueur
-        document.getElementById('multi-button').addEventListener('click', () => {
-            document.getElementById('menu').classList.remove('active');
-            document.getElementById('multi').classList.add('active');
-        });
+            // Lorsqu'on clique sur Start Game, le menu principal apparaît
+            startButton.addEventListener('click', () => {
+                menu.classList.remove('hidden');
+                startButton.classList.add('hidden');
+                soloIaButton.classList.remove('hidden');
+                multiButton.classList.remove('hidden');
+            });
 
-        // Gestion du bouton Retour depuis le menu Multijoueur
-        document.getElementById('multi-back-button').addEventListener('click', () => {
-            document.getElementById('multi').classList.remove('active');
-            document.getElementById('menu').classList.add('active');
-        });
+            // Gestion du bouton Solo vs IA
+            soloIaButton.addEventListener('click', () => {
+                menu.classList.add('hidden');
+            });
 
-        // Gestion du bouton Tournois
-        document.getElementById('multi-tournament').addEventListener('click', () => {
-            document.getElementById('multi').classList.remove('active');
-            document.getElementById('tournament').classList.add('active');
-        });
+            // Gestion du bouton Multijoueur
+            multiButton.addEventListener('click', () => {
+                menu.classList.add('hidden');
+                multiMenu.classList.remove('hidden');
+            });
 
-        // Gestion du bouton Retour depuis le menu Tournois
-        document.getElementById('tournament-back-button').addEventListener('click', () => {
-            document.getElementById('tournament').classList.remove('active');
-            document.getElementById('multi').classList.add('active');
-        });
+            // Gestion du bouton Retour depuis le menu Multijoueur
+            document.getElementById('multi-back-button').addEventListener('click', () => {
+                multiMenu.classList.add('hidden');
+                menu.classList.remove('hidden');
+            });
 
-        // Gestion du mode multijoueur local
-        document.getElementById('multi-2-local').addEventListener('click', () => {
-            document.getElementById('multi').classList.remove('active');
-        });
+            // Gestion du bouton Tournois
+            document.getElementById('multi-tournament').addEventListener('click', () => {
+                multiMenu.classList.add('hidden');
+                tournament.classList.remove('hidden');
+            });
 
-        // Gestion du mode multijoueur en ligne
-        document.getElementById('multi-2-online').addEventListener('click', () => {
-            document.getElementById('multi').classList.remove('active');
-            document.getElementById('waiting').classList.add('active');
-        });
+            // Gestion du bouton Retour depuis le menu Tournois
+            document.getElementById('tournament-back-button').addEventListener('click', () => {
+                tournament.classList.add('hidden');
+                multiMenu.classList.remove('hidden');
+            });
 
-        // Gestion du mode 4 joueurs en ligne
-        document.getElementById('multi-four').addEventListener('click', () => {
-            document.getElementById('multi').classList.remove('active');
-            document.getElementById('waiting').classList.add('active');
+            // Gestion du bouton Créer un tournoi
+            document.getElementById('create-tournament').addEventListener('click', () => {
+                tournament.classList.add('hidden');
+                tournamentDetails.classList.remove('hidden');
+                tournamentDetails.classList.add('flex');
+            });
+
+            document.getElementById('quit-tournament').addEventListener('click', () => {
+                tournament.classList.remove('hidden');
+                tournamentDetails.classList.add('hidden');
+                tournamentDetails.classList.remove('flex');
+            });
+
+            // Gestion du mode multijoueur local
+            document.getElementById('multi-2-local').addEventListener('click', () => {
+                multiMenu.classList.add('hidden');
+            });
+
+            // Gestion du mode multijoueur en ligne
+            document.getElementById('multi-2-online').addEventListener('click', () => {
+                multiMenu.classList.add('hidden');
+                waiting.classList.remove('hidden');
+            });
+
+            // Gestion du mode 4 joueurs en ligne
+            document.getElementById('multi-four').addEventListener('click', () => {
+                multiMenu.classList.add('hidden');
+                waiting.classList.remove('hidden');
+            });
         });
     </script>
+    
     <script src="./node_modules/socket.io/client-dist/socket.io.js"></script>
     <script type="module" src="/main.mjs"></script>
 </body>

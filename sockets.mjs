@@ -131,7 +131,6 @@ export default function setupSockets(io) {
                     speed: ball.speed,
                 });
         
-                // Gestion des événements de touche
                 setupMultiGame(io, room, ball, pad1, pad2, keysPressed);
             }
         });
@@ -177,6 +176,9 @@ export default function setupSockets(io) {
             
             console.log(`Player ${socket.id} created ${room}`);
             socket.emit('tournament-created');
+            socket.emit('tournament-updated', {
+                room: rooms[room]
+            });
         });
 
         socket.on('join-tournament', (data) => {
@@ -193,6 +195,9 @@ export default function setupSockets(io) {
                 rooms[room].push(socket.id);
                 socket.join(room);
                 console.log(`Player ${socket.id} joined ${room}`);
+                io.to(room).emit('tournament-updated', {
+                    room: rooms[room]
+                });
             } else {
                 socket.emit('error', { message: 'Error' });
             }
@@ -201,9 +206,33 @@ export default function setupSockets(io) {
         socket.on('return-list', () => {
             updateTournamentList();
         });
-        socket.on('join-tournament', (data) => {
-            socket.emit('tournament-joined');
+
+        socket.on('quit-tournament', () => {
+            const room = findRoomForSocket(socket.id);
+        
+            if (room) {
+                const index = rooms[room].indexOf(socket.id);
+                if (index !== -1) {
+                    rooms[room].splice(index, 1);
+                }
+                socket.leave(room);
+        
+                io.to(room).emit('tournament-updated', {
+                    room: rooms[room]
+                });
+        
+                if (rooms[room].length === 0) {
+                    delete rooms[room];
+                    delete roomsTypes[room];
+                    padsMap.delete(room);
+                    console.log(`Room ${room} has been removed`);
+                }
+            }   
         });
+
+        // socket.on('join-tournament', (data) => {
+        //     socket.emit('tournament-joined');
+        // });
     });
 
     function updateTournamentList() {

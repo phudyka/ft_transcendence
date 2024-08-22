@@ -48,6 +48,10 @@ export function initSocketEvent(socket, ball){
         socket.emit('create-tournament');
     });
 
+    document.getElementById('quit-tournament').addEventListener('click', () => {
+        socket.emit('quit-tournament');
+    });
+
     socket.on('tournament-list', (tournamentList) => {
         const tournamentMenu = document.getElementById('tournament-list');
         tournamentMenu.innerHTML = '';
@@ -59,6 +63,7 @@ export function initSocketEvent(socket, ball){
             
             listItem.addEventListener('click', () => {
                 socket.emit('join-tournament', { roomName });
+
             });
             tournamentMenu.appendChild(listItem);
         });
@@ -68,13 +73,23 @@ export function initSocketEvent(socket, ball){
         displayTournamentPage();
     });
     
-    socket.on('tournament-joined', () => {
-        displayTournamentPage();
+    socket.on('tournament-updated', (socketIds) => {
+        displayTournamentPage(socketIds);
+        document.getElementById('multi-tournament').classList.add('hidden');
     });
     
-    function displayTournamentPage() {
-        document.getElementById('tournament').classList.remove('active');
-        document.getElementById('tournament-page').style.display = 'flex';
+    function displayTournamentPage(socketIds) {
+        document.getElementById('tournament-details').classList.remove('hidden');
+        document.getElementById('tournament-details').classList.add('flex');
+        document.getElementById('multi-tournament').classList.add('hidden');
+        document.getElementById('player-1').textContent = socketIds.room[0];
+        document.getElementById('player-2').textContent = socketIds.room[1];
+        document.getElementById('player-3').textContent = socketIds.room[2];
+        document.getElementById('player-4').textContent = socketIds.room[3];
+        document.getElementById('player-5').textContent = socketIds.room[4];
+        document.getElementById('player-6').textContent = socketIds.room[5];
+        document.getElementById('player-7').textContent = socketIds.room[6];
+        document.getElementById('player-8').textContent = socketIds.room[7];
     }
     
     document.getElementById('tournament-back-button').addEventListener('click', () => {
@@ -90,13 +105,15 @@ export function initSocketEvent(socket, ball){
         winnerMessage.textContent = `Le gagnant est ${winner}!`;
         gameOverSection.style.display = 'flex';
         
-        document.getElementById('score').style.display = 'none';
+        document.getElementById('score').classList.add('hidden');
+        document.getElementById('scoreLeft').textContent = 0;
+        document.getElementById('scoreRight').textContent = 0;
         //document.getElementById('menu').classList.add('active');
         document.getElementById('tournament').classList.remove('active');
         
         document.getElementById('back-to-menu-button').addEventListener('click', () => {
             gameOverSection.style.display = 'none';
-            document.getElementById('menu').classList.add('active');
+            document.getElementById('menu').classList.remove('hidden');
         });
         socket.emit('endGame');
     });

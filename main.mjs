@@ -180,8 +180,8 @@ socket.on('start-game', (rooms, roomsTypes) => {
     controls.target.set(0, 3, 0);
     controls.autoRotate = false;
     controls.update();
-    document.getElementById('waiting').classList.remove('active');
-    document.getElementById('score').classList.add('score-container');
+    document.getElementById('waiting').classList.add('hidden');
+    document.getElementById('score').classList.remove('hidden');
 
     const [player1, player2, player3, player4] = rooms;
 

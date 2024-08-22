@@ -3,8 +3,8 @@ import Clouds from './clouds.mjs'
 
 
 
-export function fadeOutLogoAndStartAnimation(logo, scene, camera, renderer) {
-    const fadeDuration = 2000; 
+export async function fadeOutLogoAndStartAnimation(logo, scene, camera, renderer) {
+    const fadeDuration = 2000;
     const startTime = performance.now();
 
     function fadeOut() {
@@ -66,7 +66,7 @@ function startCameraAnimation(scene, camera, renderer) {
             if (elapsedTime >= duration) {
                 camera.position.set(endPosition.x, endPosition.y, endPosition.z);
                 camera.lookAt(0, 0, 0);
-                document.getElementById('menu').classList.add('active');
+                document.getElementById('menu').classList.remove('hidden');
                 clearInterval(cameraAnimation);
                 scene.remove(clouds);
                 clouds.geometry.dispose();

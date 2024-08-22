@@ -31,7 +31,6 @@ router.get('/main.mjs', (req, res) => {
 
 router.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
 
-//renvoie des erreurs 404, a surveiller
 router.use((req, res) => {
     res.status(404).send('404 Not Found');
 });
