@@ -182,6 +182,7 @@ socket.on('start-game', (rooms, roomsTypes) => {
     controls.update();
     document.getElementById('waiting').classList.add('hidden');
     document.getElementById('score').classList.remove('hidden');
+    document.getElementById('score').classList.add('score-container');
 
     const [player1, player2, player3, player4] = rooms;
 

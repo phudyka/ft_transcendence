@@ -63,10 +63,10 @@ function checkWallCollision(ball, pad1, pad2, io, room) {
     }
     if (ball.mesh.position.x > tableWidth / 2 + ball.radius) {
         ball.resetPosition();
-        pad2.score++;
+        pad1.score++;
         io.in(room).emit('updateScores', { score1: pad1.score, score2: pad2.score });
-        if (pad2.score >= maxScore) { 
-            io.in(room).emit('gameOver', { winner: 'Player 2', score1: pad1.score, score2: pad2.score });
+        if (pad1.score >= maxScore) { 
+            io.in(room).emit('gameOver', { winner: 'Player 1', score1: pad1.score, score2: pad2.score });
             pad1.score = 0;
             pad2.score = 0;
             return true;
@@ -74,10 +74,10 @@ function checkWallCollision(ball, pad1, pad2, io, room) {
     }
     if (ball.mesh.position.x < -tableWidth / 2 - ball.radius) {
         ball.resetPosition();
-        pad1.score++;
+        pad2.score++;
         io.in(room).emit('updateScores', { score1: pad1.score, score2: pad2.score });
-        if (pad1.score >= maxScore) { 
-            io.in(room).emit('gameOver', { winner: 'Player 1', score1: pad1.score, score2: pad2.score });
+        if (pad2.score >= maxScore) { 
+            io.in(room).emit('gameOver', { winner: 'Player 2', score1: pad1.score, score2: pad2.score });
             pad1.score = 0;
             pad2.score = 0;
             return true;

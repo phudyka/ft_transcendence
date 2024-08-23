@@ -6,24 +6,24 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <button id="start-game-button" class="start-game-button hidden">Start Game</button>
+    <button id="start-game-button" class="start-game-button hidden">Démarrer le Jeu</button>
 
     <div id="menu" class="menu hidden">
-        <button class="menu-button hidden" id="solo-ia">Solo vs IA</button>
-        <button class="menu-button hidden" id="multi-button">Multijoueur</button>
+        <button class="menu-button hidden" id="solo-ia">Solo</button>
+        <button class="menu-button hidden" id="multi-button">Mode Multijoueur</button>
     </div>
     
     <div id="multi" class="multi hidden">
-        <button class="menu-button" id="multi-2-local">2 Joueurs local</button>
-        <button class="menu-button" id="multi-2-online">2 Joueurs en ligne</button>
-        <button class="menu-button" id="multi-four">4 Joueurs en ligne</button>
-        <button class="menu-button" id="multi-tournament">Tournois</button>
-        <button class="menu-button" id="multi-back-button">Retour</button>
+        <button class="menu-button" id="multi-2-local">2 Joueurs en Local</button>
+        <button class="menu-button" id="multi-2-online">2 Joueurs en Ligne</button>
+        <button class="menu-button" id="multi-four">4 Joueurs en Ligne</button>
+        <button class="menu-button" id="multi-tournament">Participer à un Tournoi</button>
+        <button class="menu-button" id="multi-back-button">Retour au Menu</button>
     </div>
     
     <div id="tournament" class="tournament hidden">
         <ul id="tournament-list"></ul>
-        <button class="menu-button" id="create-tournament">Créer un tournoi</button>
+        <button class="menu-button" id="create-tournament">Créer un Nouveau Tournoi</button>
         <button class="menu-button" id="tournament-back-button">Retour</button>
     </div>
 
@@ -47,37 +47,36 @@
             </div>
         </div>
         <div class="colonne">
-            <span>Winner 1</span>
+            <span>Gagnant 1</span>
             <div class="ligne">
-            <span>Winner 2</span>
+            <span>Gagnant 2</span>
             </div>
-            <span>Winner 3</span>
+            <span>Gagnant 3</span>
             <div class="ligne">
-            <span>Winner 4</span>
-            </div>
-        </div>
-        <div class="colonne">
-            <span>Winner 1</span>
-            <div class="ligne">
-            <span>Winner 2</span>
+            <span>Gagnant 4</span>
             </div>
         </div>
         <div class="colonne">
-            <span>Winner</span>
+            <span>Gagnant 1</span>
+            <div class="ligne">
+            <span>Gagnant 2</span>
+            </div>
+        </div>
+        <div class="colonne">
+            <span>Gagnant Final</span>
             <div class="ligne"></div>
         </div>
-        <button class="menu-button" id="quit-tournament">Quitter le tournoi</button>
+        <button class="menu-button" id="quit-tournament">Quitter le Tournoi</button>
     </div>
 
-
     <div id="waiting" class="waiting hidden">
-        <p>Waiting for another player...</p>
+        <p>En attente d'un autre joueur...</p>
         <div id="spinner"></div>
     </div>
     
     <div id="score" class="score-container hidden">
-        <div id="scoreTitle">PONG</div>
         <div id="scoreLeft">0</div>
+        <div id="scoreTitle">SCORE</div>
         <div id="scoreRight">0</div>
     </div>
     
@@ -105,6 +104,8 @@
             startButton.classList.add('hidden');
             tournamentDetails.classList.add('hidden');
             tournamentDetails.classList.remove('flex');
+
+            document.getElementById('score').classList.remove('score-container');
 
             // Lorsqu'on clique sur Start Game, le menu principal apparaît
             startButton.addEventListener('click', () => {

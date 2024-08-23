@@ -75,13 +75,12 @@ export function initSocketEvent(socket, ball){
     
     socket.on('tournament-updated', (socketIds) => {
         displayTournamentPage(socketIds);
-        document.getElementById('multi-tournament').classList.add('hidden');
     });
     
     function displayTournamentPage(socketIds) {
+        document.getElementById('tournament').classList.add('hidden');
         document.getElementById('tournament-details').classList.remove('hidden');
         document.getElementById('tournament-details').classList.add('flex');
-        document.getElementById('multi-tournament').classList.add('hidden');
         document.getElementById('player-1').textContent = socketIds.room[0];
         document.getElementById('player-2').textContent = socketIds.room[1];
         document.getElementById('player-3').textContent = socketIds.room[2];
@@ -106,6 +105,7 @@ export function initSocketEvent(socket, ball){
         gameOverSection.style.display = 'flex';
         
         document.getElementById('score').classList.add('hidden');
+        document.getElementById('score').classList.remove('score-container');
         document.getElementById('scoreLeft').textContent = 0;
         document.getElementById('scoreRight').textContent = 0;
         //document.getElementById('menu').classList.add('active');
