@@ -3,6 +3,7 @@ import { register } from './views/register.js';
 import { dashboard } from './views/dashboard.js';
 import { gameplay } from './views/gameplay.js';
 import { profile } from './views/profile.js';
+import { settings } from './views/settings.js';
 
 // Déclaration de router comme une variable globale au module
 let router;
@@ -33,6 +34,9 @@ function initRouter() {
                     break;
                 case '/gameplay_friends':
                     gameplay_friends();
+                    break;
+                case '/settings':
+                    settings();
                     break;
                 default:
                     console.log('404: Page not found');

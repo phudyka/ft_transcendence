@@ -1,0 +1,131 @@
+export function settings() {
+    const player_name = localStorage.getItem('player_name') || 'Player';
+    console.log('settings view');
+
+    document.getElementById('ft_transcendence').innerHTML = `
+        <div class="dashboard-container">
+            <ul class="nav justify-content-between align-items-center">
+                <a class="navbar-brand" href="#">
+                    <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="30" height="30">
+                </a>
+                <li class="nav-item">
+                    <a class="nav-link disabled">${player_name}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="logoutLink">Logout</a>
+                </li>
+            </ul>
+            <h3 id="header-dashboard" class="text-center">User Settings</h3>
+            <div class="container mt-4">
+                <form id="settingsForm">
+                    <div class="mb-3">
+                        <label for="displayName" class="form-label">Display Name</label>
+                        <input type="text" class="form-control" id="displayName" name="displayName">
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="email" name="email">
+                    </div>
+                    <div class="mb-3">
+                        <label for="avatar" class="form-label">Avatar</label>
+                        <div class="d-flex align-items-center">
+                            <img id="currentAvatar" src="https://i.ibb.co/FDg3t8m/avatar7.png" alt="Current Avatar" class="img-thumbnail rounded-circle me-3" style="width: 100px; height: 100px;">
+                            <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Notifications</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="emailNotifications" name="emailNotifications">
+                            <label class="form-check-label" for="emailNotifications">
+                                Email Notifications
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Save Settings</button>
+                </form>
+
+                <h4 class="mt-5">Change Password</h4>
+                <form id="changePasswordForm">
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">New Password</label>
+                        <input type="password" class="form-control" id="newPassword" name="newPassword">
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword">
+                    </div>
+                    <button type="submit" class="btn btn-success">Change Password</button>
+                </form>
+
+                <button id="backToDashboard" class="btn btn-secondary mt-4">Back to Dashboard</button>
+            </div>
+        </div>
+        <footer class="py-3 my-4">
+            <p class="text-center text-body-secondary">© 2024 42 Company, Inc</p>
+        </footer>
+    `;
+
+    attachEventSettingsPage(navigateTo, player_name);
+}
+
+function attachEventSettingsPage(navigateTo, player_name) {
+    const pongonlineLink = document.getElementById('pongonlineLink');
+    const logoutLink = document.getElementById('logoutLink');
+    const backToDashboard = document.getElementById('backToDashboard');
+    const settingsForm = document.getElementById('settingsForm');
+    const changePasswordForm = document.getElementById('changePasswordForm');
+    const avatarInput = document.getElementById('avatar');
+
+    pongonlineLink.addEventListener('click', (event) => {
+        event.preventDefault();
+        navigateTo('/dashboard');
+    });
+
+    logoutLink.addEventListener('click', (event) => {
+        event.preventDefault();
+        console.log('Logout successful');
+        navigateTo('/login');
+    });
+
+    backToDashboard.addEventListener('click', () => navigateTo('/dashboard'));
+
+    settingsForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const formData = new FormData(settingsForm);
+        // Here you would typically send the form data to your backend
+        console.log('Settings saved', Object.fromEntries(formData));
+        alert('Settings saved successfully!');
+    });
+
+    changePasswordForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (newPassword !== confirmPassword) {
+            alert('Passwords do not match');
+            return;
+        }
+
+        // Here you would typically send the new password to your backend
+        console.log('Password changed');
+        alert('Password changed successfully!');
+    });
+
+    avatarInput.addEventListener('change', (event) => {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('currentAvatar').src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Pre-fill form fields
+    document.getElementById('displayName').value = player_name;
+    document.getElementById('email').value = 'user@example.com';
+    document.getElementById('emailNotifications').checked = true;
+}

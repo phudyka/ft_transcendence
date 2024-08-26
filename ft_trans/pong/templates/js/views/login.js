@@ -42,10 +42,10 @@ export function login() {
 		<p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
 	</footer>
 	`;
-	attachEventHandlers(navigateTo);
+	attachEventLoginPage(navigateTo);
 }
 
-function attachEventHandlers(navigateTo) {
+function attachEventLoginPage(navigateTo) {
 	/* navigate to dashboard page when login is successful */
 
 	document.getElementById('loginForm').addEventListener('submit', handleLogin);
@@ -91,29 +91,34 @@ function attachEventHandlers(navigateTo) {
 }
 
 function handleLogin(event) {
-	event.preventDefault();
-	const username = document.getElementById('username').value;
-	const password = document.getElementById('password').value;
+    event.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
-	fetch('http://localhost:8000/api/login/', {
-		method: 'POST',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-		body: JSON.stringify({ username: username, password: password }),
-	})
-	.then(response => response.json())
-	.then(data => {
-		if (data.success) {
-			navigateTo('/dashboard');
-		} else {
-			showLoginToast();
-		}
-	})
-	.catch(error => {
-		console.error('Error:', error);
-		showLoginToast();
-	});
+    fetch('http://localhost:8000/api/token/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            username: username,
+            password: password
+        }),
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.access) {
+            localStorage.setItem('accessToken', data.access);
+            localStorage.setItem('refreshToken', data.refresh);
+            navigateTo('/dashboard');
+        } else {
+            showLoginToast();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showLoginToast();
+    });
 }
 
 function showLoginToast() {

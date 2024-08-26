@@ -117,6 +117,7 @@ export function dashboard(player_name) {
 	`;
 
 	setupDashboardEvents(navigateTo, $player_name);
+	fetchAndDisplayFriends();
 }
 
 const socket = io('http://localhost:3000');
@@ -193,6 +194,8 @@ function setupDashboardEvents(navigateTo, player_name) {
 		var toast = new bootstrap.Toast(document.getElementById('blockUserToast'));
 		toast.show();
 	});
+
+	setInterval(fetchAndDisplayFriends, 60000);
 }
 
 function scrollToBottom2() {
@@ -374,3 +377,23 @@ socket.on('connect_error', (error) => {
 	console.error('Connection error:', error);
 	// Gérez l'erreur de manière appropriée
 });
+
+function fetchAndDisplayFriends() {
+    callAPI('http://localhost:8000/api/friends/')
+        .then(data => {
+            const friendsList = document.getElementById('friends');
+            friendsList.innerHTML = '';
+
+            data.forEach(friend => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item';
+                li.setAttribute('data-friend', friend.username);
+                li.textContent = friend.username;
+                li.addEventListener('click', handleFriendClick);
+                friendsList.appendChild(li);
+            });
+        })
+        .catch(error => {
+            console.error('Erreur lors de la récupération des amis:', error);
+        });
+}
