@@ -1,31 +1,36 @@
+import { navigateTo } from '../app.js';
+
 export function register() {
   document.getElementById('ft_transcendence').innerHTML = `
   <ul class="nav navbar-expand-lg justify-content-center">
   </ul>
   <h1>Register</h1>
-  <li class="breadcrumb-item active" id="arrowbackregister">Back</li>
   <div class="container login-container">
-      <form id="registerForm">
-          <p>
-              <label for="username" style="margin-top:3%;">username</label>
-              <input type="text" value="" placeholder="Enter Username" id="username">
+  <form id="registerForm">
+  <p>
+  <label for="username" style="margin-top:3%;">username</label>
+  <input type="text" value="" placeholder="Enter Username" id="username">
           </p>
           <p>
-              <label for="password">password</label>
+          <label for="email">Email</label>
+            <input type="email" value="" placeholder="Enter Email" id="email" required>
+            </p>
+          <p>
+          <label for="password">password</label>
           <div class="password-wrapper">
-              <input type="password" value="" placeholder="Enter Password" id="password" class="password">
-              <button class="unmask" type="button" title="Mask/Unmask password to check content">
-                  <i class="fas fa-lock"></i>
-              </button>
+          <input type="password" value="" placeholder="Enter Password" id="password" class="password">
+          <button class="unmask" type="button" title="Mask/Unmask password to check content">
+          <i class="fas fa-lock"></i>
+          </button>
           </div>
           </p>
           <p>
 
           <div class="choose-avatar">
             <div id="carouselExampleControls" class="carousel slide" data-ride="carousel" data-interval="false" keyboard="true">
-          <div class="carousel-inner">
+            <div class="carousel-inner">
             <div class="carousel-item active">
-              <img class="d-block w-100 avatar-image" src="https://i.ibb.co/C2WLdyY/avatar1.png" alt="First slide">
+            <img class="d-block w-100 avatar-image" src="https://i.ibb.co/C2WLdyY/avatar1.png" alt="First slide">
             </div>
             <div class="carousel-item">
               <img class="d-block w-100 avatar-image" src="https://i.ibb.co/0t3JTMz/avatar2.png" alt="Second slide">
@@ -34,25 +39,33 @@ export function register() {
               <img class="d-block w-100 avatar-image" src="https://i.ibb.co/K08BjJx/avatar3.png" alt="Third slide">
             </div>
             <a class="carousel-control-prev" role="button" data-slide="prev">
-              <span class="carousel-control-prev-icon" id="carousel-control-prev-icon" aria-hidden="true"></span>
-              <span class="sr-only">Previous</span>
+            <span class="carousel-control-prev-icon" id="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="sr-only">Previous</span>
             </a>
             <a class="carousel-control-next" role="button" data-slide="next">
-              <span class="carousel-control-next-icon" id="carousel-control-next-icon" aria-hidden="true"></span>
-              <span class="sr-only">Next</span>
+            <span class="carousel-control-next-icon" id="carousel-control-next-icon" aria-hidden="true"></span>
+            <span class="sr-only">Next</span>
             </a>
-          </div>
-          </div>
-        </div>
-          </p>
-          <button id="registerbutton" type="submit" class="btn btn-primary btn-block">Register</button>
-          <button id="registerbutton42" type="button" class="btn btn-primary btn-block">Register with 42</button>
-      </form>
-  </div>
-  <footer class="py-3 my-4">
-      <p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
-  </footer>
+            </div>
+            </div>
+            </div>
+            </p>
+            <button id="registerbutton" type="submit" class="btn btn-primary btn-block">Register</button>
+            <button id="registerbutton42" type="button" class="btn btn-primary btn-block">Register with 42</button>
+            </form>
+            </div>
+            <li class="breadcrumb-item active" id="arrowbackregister" style="margin-top:3%;margin-bottom:10%;">Back</li>
+            <footer class="py-3 my-4">
+            <p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
+            </footer>
   `;
+
+    setupRegisterEvents(navigateTo);
+}
+
+
+
+function setupRegisterEvents(navigateTo) {
 
 	document.addEventListener('click', function (event) {
 		if (event.target.classList.contains('unmask') || event.target.closest('.unmask')) {
@@ -70,10 +83,41 @@ export function register() {
 		}
 	  });
 
-  document.getElementById('registerForm').addEventListener('submit', function(event) {
-    event.preventDefault();
-    alert('Account created successfully');
-    navigateTo('login');
+    document.getElementById('registerForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const username = document.getElementById('username').value;
+      const email = document.getElementById('email').value;
+      const password = document.getElementById('password').value;
+
+      // Get the selected avatar URL
+      const selectedAvatar = document.querySelector('.carousel-item.active img').src;
+
+      fetch('/api/register/', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+              'X-CSRFToken': getCookie('csrftoken')
+          },
+          body: JSON.stringify({
+              username: username,
+              email: email,
+              password: password,
+              avatar_url: selectedAvatar
+          }),
+      })
+      .then(response => response.json())
+      .then(data => {
+          if (data.success) {
+              alert(data.message);
+              navigateTo('/login');
+          } else {
+              alert('Error during registration: ' + data.error);
+          }
+      })
+      .catch(error => {
+          console.error('Error:', error);
+          alert('An error occurred during registration');
+      });
   });
 
   document.getElementById('arrowbackregister').addEventListener('click', function(event) {
@@ -91,4 +135,19 @@ export function register() {
     event.preventDefault();
     $('#carouselExampleControls').carousel('prev');
   });
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.substring(0, name.length + 1) === (name + '=')) {
+              cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+              break;
+          }
+      }
+  }
+  return cookieValue;
 }

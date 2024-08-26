@@ -17,6 +17,8 @@ function initRouter() {
         } else {
             switch (path) {
                 case '/':
+                    login();
+                    break;
                 case '/dashboard':
                     dashboard();
                     break;

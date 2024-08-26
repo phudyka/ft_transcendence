@@ -68,12 +68,6 @@ export function dashboard(player_name) {
 				<div class="col-md-9 main-content">
 					<div class="card">
 						<div class="card-body">
-							<h5 class="card-title">${$player_name}</h5>
-							<p class="card-text">Here i put data from the game ; game win ; game lose ; niveau de l'ia la plus eleve gagne; etcc ${$player_name}</p>
-						</div>
-					</div>
-					<div class="card">
-						<div class="card-body">
 							<div class="btn-group" id="play_button" "role=" group" aria-label="Basic example">
 								<button type="button" id="game_alone" class="btn btn-primary">Play</button>
 								<button type="button" id="game_friend" class="btn btn-primary">Play with friend</button>

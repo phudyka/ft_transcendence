@@ -103,7 +103,7 @@ label {
     box-sizing: border-box;
 }
 
-input[type="text"], input[type="password"] {
+input[type="text"], input[type="password"] , input[type="email"] {
     width: calc(100%);
     padding: 10px;
     margin-bottom: 10px;
@@ -152,7 +152,7 @@ input[type="text"], input[type="password"] {
     margin-top: 3%;
 }
 
-#username {
+#username, #email {
     width: 75%;
     display: flex;
     justify-content: center;
@@ -263,8 +263,8 @@ input::placeholder {
 }
 
 .img-thumbnail {
-    width: 200px;
-    height: 200px;
+    width: 150px;
+    height: 150px;
     /* object-fit: cover; */
     border-radius: 50%;
     padding: 0;
@@ -522,7 +522,7 @@ div.input-container2 {
 .username-link {
     cursor: pointer;
     font-weight: bold;
-    color: #307f3d; /* ou la couleur de votre choix */
+    color: #307f3d;
 }
 
 .bold-username {
