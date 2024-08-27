@@ -1,4 +1,5 @@
 import { navigateTo } from '../app.js';
+import { getCsrfToken } from '../utils/token.js';
 
 export function register() {
   document.getElementById('ft_transcendence').innerHTML = `
@@ -9,22 +10,33 @@ export function register() {
   <form id="registerForm">
   <p>
   <label for="username" style="margin-top:3%;">username</label>
-  <input type="text" value="" placeholder="Enter Username" id="username">
+  <input type="text" value="" placeholder="Enter Username" id="username" required>
           </p>
           <p>
-          <label for="email">Email</label>
+            <label for="email">Email</label>
             <input type="email" value="" placeholder="Enter Email" id="email" required>
-            </p>
+          </p>
           <p>
-          <label for="password">password</label>
-          <div class="password-wrapper">
-          <input type="password" value="" placeholder="Enter Password" id="password" class="password">
-          <button class="unmask" type="button" title="Mask/Unmask password to check content">
-          <i class="fas fa-lock"></i>
-          </button>
+            <label for="password">password</label>
+            <div class="password-wrapper">
+            <input type="password" value="" placeholder="Enter Password" id="password" class="password" required>
+            <button class="unmask" type="button" title="Mask/Unmask password to check content">
+            <i class="fas fa-lock"></i>
+            </button>
           </div>
           </p>
           <p>
+
+          <p>
+            <label for="confirmPassword">confirm password</label>
+            <div class="password-wrapper">
+              <input type="password" value="" placeholder="Confirm Password" id="confirmPassword" class="password">
+              <button class="unmask" type="button" title="Mask/Unmask password to check content">
+                <i class="fas fa-lock"></i>
+              </button>
+            </div>
+          </p>
+
 
           <div class="choose-avatar">
             <div id="carouselExampleControls" class="carousel slide" data-ride="carousel" data-interval="false" keyboard="true">
@@ -83,41 +95,54 @@ function setupRegisterEvents(navigateTo) {
 		}
 	  });
 
-    document.getElementById('registerForm').addEventListener('submit', function(event) {
+    document.getElementById('registerForm').addEventListener('submit', async function(event) {
       event.preventDefault();
       const username = document.getElementById('username').value;
       const email = document.getElementById('email').value;
       const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
 
-      // Get the selected avatar URL
+      if (password !== confirmPassword) {
+          alert('Passwords do not match. Please try again.');
+          return;
+      }
+
       const selectedAvatar = document.querySelector('.carousel-item.active img').src;
 
-      fetch('/api/register/', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-              'X-CSRFToken': getCookie('csrftoken')
-          },
-          body: JSON.stringify({
-              username: username,
-              email: email,
-              password: password,
-              avatar_url: selectedAvatar
-          }),
-      })
-      .then(response => response.json())
-      .then(data => {
-          if (data.success) {
-              alert(data.message);
-              navigateTo('/login');
+      try {
+          const csrfToken = await getCsrfToken();
+          const response = await fetch('/api/register/', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRFToken': csrfToken,
+              },
+              body: JSON.stringify({
+                  username: username,
+                  email: email,
+                  password: password,
+                  avatar_url: selectedAvatar
+              }),
+              credentials: 'include',
+          });
+
+          const contentType = response.headers.get("content-type");
+          if (contentType && contentType.indexOf("application/json") !== -1) {
+              const data = await response.json();
+              if (data.success) {
+                  alert(data.message);
+                  navigateTo('/login');
+              } else {
+                  alert('Error during registration: ' + data.error);
+              }
           } else {
-              alert('Error during registration: ' + data.error);
+              console.error("Received non-JSON response:", await response.text());
+              alert('Received an unexpected response from the server. Please try again.');
           }
-      })
-      .catch(error => {
+      } catch (error) {
           console.error('Error:', error);
-          alert('An error occurred during registration');
-      });
+          alert('An error occurred during registration: ' + error.message);
+      }
   });
 
   document.getElementById('arrowbackregister').addEventListener('click', function(event) {

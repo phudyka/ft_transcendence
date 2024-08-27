@@ -1,4 +1,5 @@
 import { navigateTo } from '../app.js';
+import { getCsrfToken } from '../utils/token.js';
 
 export function login() {
 	console.log('login view');
@@ -90,35 +91,41 @@ function attachEventLoginPage(navigateTo) {
 	});
 }
 
-function handleLogin(event) {
+async  function handleLogin(event) {
     event.preventDefault();
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
 
-    fetch('http://localhost:8000/api/token/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            username: username,
-            password: password
-        }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.access) {
-            localStorage.setItem('accessToken', data.access);
-            localStorage.setItem('refreshToken', data.refresh);
+    try {
+		const csrfToken = await getCsrfToken();
+        const response = await fetch('/api/login/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({ username, password }),
+            credentials: 'include',
+        });
+
+        const data = await response.json();
+        if (data.success) {
+			// Login successful
+			localStorage.setItem('accessToken', data.access);
+			localStorage.setItem('refreshToken', data.refresh);
+
+            localStorage.setItem('user_id', data.user_id);
+            localStorage.setItem('username', data.username);
+			localStorage.setItem('avatar_url', data.avatar_url);
             navigateTo('/dashboard');
         } else {
+            // Login failed
             showLoginToast();
         }
-    })
-    .catch(error => {
+    } catch (error) {
         console.error('Error:', error);
         showLoginToast();
-    });
+    }
 }
 
 function showLoginToast() {

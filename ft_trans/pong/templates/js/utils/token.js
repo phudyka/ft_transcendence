@@ -1,4 +1,4 @@
-function callAPI(url, method = 'GET', body = null) {
+export function callAPI(url, method = 'GET', body = null) {
     const headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
@@ -54,4 +54,16 @@ function refreshToken() {
         }
     })
     .catch(() => false);
+}
+
+export async function getCsrfToken() {
+    const response = await fetch('/api/set-csrf-token/', {
+        method: 'GET',
+        credentials: 'include',
+    });
+    if (response.ok) {
+        const data = await response.json();
+        return data.csrfToken;
+    }
+    throw new Error('Failed to get CSRF token');
 }

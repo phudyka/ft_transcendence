@@ -4,6 +4,9 @@ from django.contrib.auth import authenticate
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render
+from django.middleware.csrf import get_token
+from rest_framework_simplejwt.tokens import RefreshToken
+from django.db import IntegrityError
 import json
 
 @csrf_exempt
@@ -21,22 +24,29 @@ def index(request, path=''):
 def login(request):
 	return JsonResponse({'message': 'login page'}, status=200)
 
-@csrf_exempt
+@ensure_csrf_cookie
 def login_view(request):
-	if request.method == 'POST':
-		data = json.loads(request.body)
-		username = data.get('username')
-		password = data.get('password')
-		user = authenticate(request, username=username, password=password)
-		if user is not None:
-			# Login successful
-			login(request, user)
-			request.session['user_id'] = user.id
-			request.session['username'] = user.username
-			return JsonResponse({'success': True})
-		else:
-			# Login failed
-			return JsonResponse({'success': False})
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        username = data.get('username')
+        password = data.get('password')
+
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            # Login successful
+            refresh = RefreshToken.for_user(user)
+            return JsonResponse({
+                'success': True,
+                'username': user.username,
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+            })
+        else:
+            # Login failed
+            return JsonResponse({'success': False}, status=401)
+
+    return JsonResponse({'error': 'Invalid request method.'}, status=400)
 
 
 def content(request):
@@ -45,23 +55,35 @@ def content(request):
 @ensure_csrf_cookie
 def register_view(request):
     if request.method == 'POST':
-        data = json.loads(request.body)
-        username = data.get('username')
-        email = data.get('email')
-        password = data.get('password')
-        avatar_url = data.get('avatar_url')
-
-        if User.objects.filter(username=username).exists():
-            return JsonResponse({'success': False, 'error': 'This username is already taken.'})
-        if User.objects.filter(email=email).exists():
-            return JsonResponse({'success': False, 'error': 'This email is already in use.'})
-
         try:
+            data = json.loads(request.body)
+            username = data.get('username')
+            email = data.get('email')
+            password = data.get('password')
+            avatar_url = data.get('avatar_url')
+
+            if User.objects.filter(username=username).exists():
+                return JsonResponse({'success': False, 'error': 'This username is already taken.'})
+
+            if User.objects.filter(email=email).exists():
+                return JsonResponse({'success': False, 'error': 'This email is already in use.'})
+
             user = User.objects.create_user(username=username, email=email, password=password)
-            user.profile.avatar_url = avatar_url  # Assuming you have a Profile model with avatar_url field
-            user.profile.save()
+
+            # Si vous avez un modèle de profil séparé, vous pouvez l'utiliser ici
+            # user.profile.avatar_url = avatar_url
+            # user.profile.save()
+
             return JsonResponse({'success': True, 'message': 'Account created successfully.'})
+        except IntegrityError as e:
+            return JsonResponse({'success': False, 'error': 'Database integrity error. Please try again.'})
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Invalid JSON data.'})
         except Exception as e:
             return JsonResponse({'success': False, 'error': f'An error occurred: {str(e)}'})
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+
+@ensure_csrf_cookie
+def set_csrf_token(request):
+    return JsonResponse({'csrfToken': get_token(request)})
