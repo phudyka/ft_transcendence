@@ -9,7 +9,6 @@ export function dashboard(player_name) {
 	document.getElementById('ft_transcendence').innerHTML = `
 	<div class="dashboard-container">
 
-
         <ul class="nav justify-content-between align-items-center">
                 <a class="navbar-brand" href="#">
                     <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="30" height="30">
@@ -48,22 +47,20 @@ export function dashboard(player_name) {
 						<a class="dropdown-item" href="#" id="blockUser">Block User</a>
 						<a class="dropdown-item" href="#" id="viewProfile">View Profile</a>
 					</div>
-					<div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="chatbox" aria-labelledby="chatboxLabel">
-						<div class="offcanvas-header">
-							<h5 class="offcanvas-title" id="chatboxLabel">Private Message</h5>
-							<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-						</div>
-						<div class="offcanvas-body">
-							<div class="chat-container2">
-								<div class="chat-log2" id="chat-log2">
-								</div>
-								<div class="input-container2">
-									<textarea id="message-input2" placeholder="Type your message..." rows="1"></textarea>
-									<button id="send-button2">Send</button>
-								</div>
-							</div>
+
+				<div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="chatbox" aria-labelledby="chatboxLabel">
+					<div class="offcanvas-header">
+						<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+					</div>
+					<div class="offcanvas-body">
+						<div id="private-chats-container"></div>
+						<div class="input-container2">
+							<textarea id="message-input2" placeholder="Type your message..." rows="1"></textarea>
+							<button id="send-button2">Send</button>
 						</div>
 					</div>
+				</div>
+
 				</div>
 				<div class="col-md-9 main-content">
 					<div class="card">
@@ -198,8 +195,8 @@ function setupDashboardEvents(navigateTo, player_name) {
 	setInterval(fetchAndDisplayFriends, 60000);
 }
 
-function scrollToBottom2() {
-	const chatLog2 = document.getElementById('chat-log2');
+function scrollToBottom2(friendName) {
+	const chatLog2 = document.getElementById(`chat-log-${friendName}`);
 	chatLog2.scrollTop = chatLog2.scrollHeight;
 }
 
@@ -250,8 +247,27 @@ function hideDropdowns() {
 
 function showChatbox(event) {
 	event.preventDefault();
+	const friendName = event.target.closest('.dropdown-menu').getAttribute('data-friend');
 	var chatbox = new bootstrap.Offcanvas(document.getElementById('chatbox'));
 	chatbox.show();
+	setupPrivateChat(friendName);
+
+	document.getElementById('chat-log2').innerHTML = '';
+}
+
+function setupPrivateChat(friendName) {
+    const privateChatContainer = document.getElementById('private-chats-container');
+    privateChatContainer.innerHTML = `
+		<h5 class="offcanvas-title" id="chatboxLabel">Private Message: ${friendName}</h5>
+        <div class="chat-container2">
+            <div class="chat-log2" id="chat-log-${friendName}"></div>
+        </div>
+    `;
+
+	loadMessages(friendName);
+
+    // Update send button click event
+    document.getElementById('send-button2').onclick = () => sendPrivateMessage(friendName);
 }
 
 function startGame(event) {
@@ -318,33 +334,21 @@ function receiveMessage(msg) {
 	chatLog.scrollTop = chatLog.scrollHeight;
 }
 
-function sendPrivateMessage(event) {
-	event.preventDefault();
-	const messageInput2 = document.getElementById('message-input2');
-	if (messageInput2.value.trim() !== '') {
-		const message = formatMessage(messageInput2.value);
-		const chatLog2 = document.getElementById('chat-log2');
-		const messageElement = document.createElement('div');
+function sendPrivateMessage(friendName) {
+    const messageInput = document.getElementById('message-input2');
+    const message = messageInput.value.trim();
 
-		// Créer l'élément username
-		const usernameElement = document.createElement('span');
-		usernameElement.classList.add('username-link');
-		usernameElement.dataset.friend = $player_name;
-		usernameElement.innerText = `[${$player_name}]`;
+    if (message !== '') {
+        const chatLog = document.getElementById(`chat-log-${friendName}`);
+        const messageElement = document.createElement('div');
+        messageElement.innerHTML = `<span class="username-link bold-username">[Player]:</span> ${message}`;
+        chatLog.appendChild(messageElement);
 
-		// Créer l'élément message
-		const messageTextElement = document.createElement('span');
-		messageTextElement.innerText = `: ${message}`;
+		saveMessage(friendName, message);
 
-		usernameElement.classList.add('username-link', 'bold-username');
-		// Ajouter les éléments username et message à l'élément message
-		messageElement.appendChild(usernameElement);
-		messageElement.appendChild(messageTextElement);
-
-		chatLog2.appendChild(messageElement);
-		messageInput2.value = '';
-		scrollToBottom2();
-	}
+        messageInput.value = '';
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
 }
 
 function handleEnterKey(event) {
@@ -396,4 +400,25 @@ function fetchAndDisplayFriends() {
         .catch(error => {
             console.error('Erreur lors de la récupération des amis:', error);
         });
+}
+
+function saveMessage(friendName, message) {
+	let messages = JSON.parse(localStorage.getItem(`chat_${friendName}`)) || [];
+	messages.push({ sender: 'Player', message: message });
+	localStorage.setItem(`chat_${friendName}`, JSON.stringify(messages));
+}
+
+function loadMessages(friendName) {
+    const chatLog = document.getElementById(`chat-log-${friendName}`);
+    const messages = JSON.parse(localStorage.getItem(`chat_${friendName}`)) || [];
+
+    chatLog.innerHTML = ''; // Effacer les messages précédents
+
+    messages.forEach(msg => {
+        const messageElement = document.createElement('div');
+        messageElement.innerHTML = `<span class="username-link bold-username">[${msg.sender}]:</span> ${msg.message}`;
+        chatLog.appendChild(messageElement);
+    });
+
+    chatLog.scrollTop = chatLog.scrollHeight;
 }

@@ -30,6 +30,8 @@ ALLOWED_HOSTS = []
 
 APPEND_SLASH=False
 
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -64,6 +66,22 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
 ]
+
+CORS_ALLOW_CREDENTIALS = True
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
 
 ROOT_URLCONF = 'ft_trans.urls'
 

@@ -465,49 +465,43 @@ div.input-container2 {
 }
 
 #send-button2 {
+    margin-left: 10px;
     padding: 5px 10px;
-    border-radius: 5px;
-    border: none;
     background-color: #307f3d;
-    color: #ffffff;
+    color: white;
+    border: none;
+    border-radius: 3px;
     cursor: pointer;
+
 }
 
 #message-input2 {
     flex: 1;
     padding: 5px;
-    border-radius: 5px;
-    border: none;
-    resize: vertical;
-    margin-right: 10px;
-    min-height: 35px;
-
+    border: 1px solid #ccc;
+    border-radius: 3px;
 }
 
 .chat-container2 {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    align-items: stretch;
-    border-radius: 10px;
-    margin : 10px;
-    flex : 1;
-
+    height: calc(100% - 60px); /* Ajustez cette valeur selon vos besoins */
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
   }
 
-  .chat-log2 {
+
+  .chat-log2,
+  [id^="chat-log-"] {
     flex: 1;
-    overflow-y: scroll;
+    overflow-y: auto;
     padding: 10px;
-    margin-left: 10px;
-    margin-right: 10px;
   }
+
 
   .input-container2 {
     display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
     padding: 10px;
   }
 
@@ -520,7 +514,7 @@ div.input-container2 {
 /* username in tchat */
 
 .username-link {
-    cursor: pointer;
+    /* cursor: pointer; */
     font-weight: bold;
     color: #307f3d;
 }
@@ -555,4 +549,16 @@ div.input-container2 {
     border-radius: 30px;
 }
 
+#private-chats-container {
+    height: calc(100% - 60px); /* Ajustez cette valeur selon vos besoins */
+    overflow-y: auto;
+}
 
+
+.offcanvas-title {
+    display:flex;
+    justify-content: center;
+    margin-bottom: 15px;
+    margin-left: auto;
+    margin-right: auto;
+}

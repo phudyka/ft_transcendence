@@ -24,10 +24,10 @@ if [ -f "styles.css" ]; then
 fi
 
 # Exclude node_modules and Django-specific directories
-exclude_dirs=( "./node_modules" "./venv" "./.env" "./__pycache__" "./migrations" )
+exclude_dirs=( "./node_modules" "./venv" "./env" "./__pycache__" "./migrations")
 
 # Find all .js and Django config files excluding specified directories
-find . -type f \( -name "index.html" -o -name "*.js" -o -name "admin.py" -o -name "apps.py" -o -name "models.py" -o -name "urls.py" -o -name "views.py" -o -name "asgi.py" -o -name "settings.py" -o -name "wsgi.py" \) ! -path "*/node_modules/*" ! -path "*/venv/*" ! -path "*/.env/*" ! -path "*/__pycache__/*" ! -path "*/migrations/*" | while read -r file
+find . -type f \( -name "index.html" -o -name "*.js" -o -name "admin.py" -o -name "apps.py" -o -name "models.py" -o -name "urls.py" -o -name "views.py" -o -name "asgi.py" -o -name "settings.py" -o -name "wsgi.py" \) ! -path "*/node_modules/*" ! -path "*/venv/*" ! -path "*/env/*" ! -path "*/__pycache__/*" ! -path "*/migrations/*" | while read -r file
 do
     append_file_contents "$file"
 done

@@ -24,7 +24,7 @@ export function gameplay() {
 	attachEventHandlers2(navigateTo, $player_name);
   }
 
-  function attachEventHandlers2(navigateTo, $player_name) {
+function attachEventHandlers2(navigateTo, $player_name) {
 	//Navigate to dashboard is exit is clicked
 	document.querySelector('.btn-danger').addEventListener('click', function (event) {
 		event.preventDefault();
@@ -32,4 +32,3 @@ export function gameplay() {
 		navigateTo('dashboard', $player_name);
 	});
   }
-

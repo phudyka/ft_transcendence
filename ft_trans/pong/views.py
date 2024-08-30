@@ -21,11 +21,9 @@ def create_user(request):
 def index(request, path=''):
 	return render(request, 'index.html')
 
-def login(request):
-	return JsonResponse({'message': 'login page'}, status=200)
-
 @ensure_csrf_cookie
 def login_view(request):
+    print('login_view url')
     if request.method == 'POST':
         data = json.loads(request.body)
         username = data.get('username')

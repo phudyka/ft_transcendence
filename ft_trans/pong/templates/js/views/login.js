@@ -98,6 +98,8 @@ async  function handleLogin(event) {
 
     try {
 		const csrfToken = await getCsrfToken();
+		console.log("CSRF token obtained");
+
         const response = await fetch('/api/login/', {
             method: 'POST',
             headers: {
@@ -107,17 +109,18 @@ async  function handleLogin(event) {
             body: JSON.stringify({ username, password }),
             credentials: 'include',
         });
+		console.log("Login request sent");
 
         const data = await response.json();
         if (data.success) {
 			// Login successful
 			localStorage.setItem('accessToken', data.access);
 			localStorage.setItem('refreshToken', data.refresh);
-
             localStorage.setItem('user_id', data.user_id);
             localStorage.setItem('username', data.username);
-			localStorage.setItem('avatar_url', data.avatar_url);
+			console.log('Login successful');
             navigateTo('/dashboard');
+			console.log("Response received", data);
         } else {
             // Login failed
             showLoginToast();
