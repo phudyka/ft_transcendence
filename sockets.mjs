@@ -2,11 +2,12 @@ import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
 import { setupSoloGame, setupMultiGame, setupMultiGameFour, setupTournamentGame } from './game.mjs';
 import { padHeight, tableHeight } from './config.mjs';
+import { setupTournamentEvents } from './tournament.mjs';
+import { findRoomForSocket, findOrCreateRoom } from './socketUtils.mjs'
 
-const rooms = {};
-const roomsTypes = {};
+export const rooms = {};
+export const roomsTypes = {};
 const tournaments = {};
-let roomCounter = 1;
 const padsMap = new Map();
 const keysPressed = {
     pad1MoveUp: false,
@@ -82,8 +83,8 @@ export default function setupSockets(io) {
         });
 
         socket.on('solo_vs_ia', () => {
-            let room = `room-${roomCounter++}`;
-            rooms[room] = [socket.id];
+            let room = findOrCreateRoom('solo_vs_ia');
+            rooms[room].push(socket.id)
             roomsTypes[room] = 'solo_vs_ia';
             socket.join(room);
 
@@ -94,8 +95,8 @@ export default function setupSockets(io) {
         });
 
         socket.on('multi-2-local', () => {
-            let room = `room-${roomCounter++}`;
-            rooms[room] = [socket.id];
+            let room = findOrCreateRoom('multi-2-local');
+            rooms[room].push(socket.id)
             roomsTypes[room] = 'multi-2-local';
             socket.join(room);
 
@@ -167,128 +168,10 @@ export default function setupSockets(io) {
             }
         
         });
-        socket.on('create-tournament', () => {
-            const roomName = `${socket.id}'s tournament`;
-            const room = findOrCreateRoom('tournament', roomName);
-            rooms[room].push(socket.id);
-            socket.join(room);
-            
-            console.log(`Player ${socket.id} created ${room}`);
-            socket.emit('tournament-created');
-            socket.emit('tournament-updated', {
-                room: rooms[room]
-            });
-            socket.on('player_ready', () => {
-                console.log('player ready:', socket.id);
-            });
-            if (room && rooms[room].length === 2) {
-                setupTournamentGame(io, room, keysPressed, socket);
-            }
-        });
 
-        socket.on('join-tournament', (data) => {
-            const { roomName } = data;
-            let room = null;
+        //Tournament
 
-            socket.on('player_ready', () => {
-                console.log('player ready:', socket.id);
-            });
+        setupTournamentEvents(io, socket, rooms, roomsTypes, padsMap, keysPressed);
 
-            if (rooms[roomName]) {
-                room = roomName;
-            } else {
-                room = null;
-            }
-        
-            if (room && rooms[room].length < 8) {
-                rooms[room].push(socket.id);
-                socket.join(room);
-                console.log(`Player ${socket.id} joined ${room}`);
-                io.to(room).emit('tournament-updated', {
-                    room: rooms[room]
-                });
-            }
-            if (room && rooms[room].length === 8) {
-                setupTournamentGame(io, room, keysPressed, socket);
-            }
-        });
-
-        socket.on('return-list', () => {
-            updateTournamentList();
-        });
-
-        socket.on('quit-tournament', () => {
-            const room = findRoomForSocket(socket.id);
-        
-            if (room) {
-                const index = rooms[room].indexOf(socket.id);
-                if (index !== -1) {
-                    rooms[room].splice(index, 1);
-                }
-                socket.leave(room);
-        
-                io.to(room).emit('tournament-updated', {
-                    room: rooms[room]
-                });
-        
-                if (rooms[room].length === 0) {
-                    delete rooms[room];
-                    delete roomsTypes[room];
-                    padsMap.delete(room);
-                    console.log(`Room ${room} has been removed`);
-                    updateTournamentList();
-                }
-            }   
-        });
-
-        // socket.on('join-tournament', (data) => {
-        //     socket.emit('tournament-joined');
-        // });
     });
-
-    function updateTournamentList() {
-        const tournamentList = Object.keys(rooms).filter(room => roomsTypes[room] === 'tournament');
-        io.emit('tournament-list', tournamentList);
-    }
-}
-
-function findOrCreateRoom(type, name = null) {
-    let room = null;
-    let maxPlayers;
-
-    if (type === 'tournament') {
-        maxPlayers = 8;
-    } else if (type === 'multi-four') {
-        maxPlayers = 4;
-    } else if (type === 'multi-2-online'){
-        maxPlayers = 2;
-    }
-
-    for (const r in rooms) {
-        if (roomsTypes[r] === type && rooms[r].length < maxPlayers) {
-            room = r;
-            break;
-        }
-    }
-
-    if (!room) {
-        if (type === 'tournament' && name) {
-            room = name;
-        } else {
-            room = `room-${roomCounter++}`;
-        }
-        rooms[room] = [];
-        roomsTypes[room] = type;
-    }
-
-    return room;
-}
-
-function findRoomForSocket(socketId) {
-    for (const room in rooms) {
-        if (rooms[room].includes(socketId)) {
-            return room;
-        }
-    }
-    return null;
 }
