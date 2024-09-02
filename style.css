@@ -24,6 +24,13 @@ body {
     font-size: 14px;
 }
 
+#space {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    z-index: 30;
+}
+
 #tournament-list {
     list-style-type: none;
     padding: 0;

@@ -201,3 +201,16 @@ function Movepad(pad1, pad2, keysPressed, room, io, pad3, pad4) {
                 });
             }
 }
+
+export function setupTournamentGame(io, room, keysPressed)
+{
+    const ball = new Ball(0.07, 32);
+    const pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 3.59, 0);
+    const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 3.59, 0);
+
+    //let maxGame = 7;
+
+    io.in(room).emit('tournament-full', {
+        room: room
+    });
+}

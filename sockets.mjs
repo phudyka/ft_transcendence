@@ -1,10 +1,11 @@
 import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
-import { setupSoloGame, setupMultiGame, setupMultiGameFour } from './game.mjs';
+import { setupSoloGame, setupMultiGame, setupMultiGameFour, setupTournamentGame } from './game.mjs';
 import { padHeight, tableHeight } from './config.mjs';
 
 const rooms = {};
 const roomsTypes = {};
+const tournaments = {};
 let roomCounter = 1;
 const padsMap = new Map();
 const keysPressed = {
@@ -52,7 +53,6 @@ export default function setupSockets(io) {
         });
 
         socket.on('padMove', (data) => {
-            console.log(`Received padMove for pad ${data.pad} in direction ${data.direction} moving: ${data.moving}`);
             if (data.pad === 1) {
                 keysPressed.pad1MoveUp = data.direction === 'up' ? data.moving : keysPressed.pad1MoveUp;
                 keysPressed.pad1MoveDown = data.direction === 'down' ? data.moving : keysPressed.pad1MoveDown;
@@ -163,7 +163,6 @@ export default function setupSockets(io) {
                     direction: { x: ball.direction.x, z: ball.direction.z },
                     speed: ball.speed,
                 });
-
                 setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, keysPressed);
             }
         
@@ -179,11 +178,21 @@ export default function setupSockets(io) {
             socket.emit('tournament-updated', {
                 room: rooms[room]
             });
+            socket.on('player_ready', () => {
+                console.log('player ready:', socket.id);
+            });
+            if (room && rooms[room].length === 2) {
+                setupTournamentGame(io, room, keysPressed, socket);
+            }
         });
 
         socket.on('join-tournament', (data) => {
             const { roomName } = data;
             let room = null;
+
+            socket.on('player_ready', () => {
+                console.log('player ready:', socket.id);
+            });
 
             if (rooms[roomName]) {
                 room = roomName;
@@ -198,8 +207,9 @@ export default function setupSockets(io) {
                 io.to(room).emit('tournament-updated', {
                     room: rooms[room]
                 });
-            } else {
-                socket.emit('error', { message: 'Error' });
+            }
+            if (room && rooms[room].length === 8) {
+                setupTournamentGame(io, room, keysPressed, socket);
             }
         });
 
@@ -226,6 +236,7 @@ export default function setupSockets(io) {
                     delete roomsTypes[room];
                     padsMap.delete(room);
                     console.log(`Room ${room} has been removed`);
+                    updateTournamentList();
                 }
             }   
         });

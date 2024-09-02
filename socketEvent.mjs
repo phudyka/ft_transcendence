@@ -76,6 +76,18 @@ export function initSocketEvent(socket, ball){
     socket.on('tournament-updated', (socketIds) => {
         displayTournamentPage(socketIds);
     });
+
+    socket.on('tournament-full', (socketIds) => {
+        document.getElementById('space').classList.remove('hidden');
+        console.log("tournament full");
+        document.addEventListener('keydown', (event) => {
+            const { key } = event;
+                if (key === ' '){
+                    socket.emit('player_ready');
+                    console.log('key space');
+                }     
+        });
+    });
     
     function displayTournamentPage(socketIds) {
         document.getElementById('tournament').classList.add('hidden');

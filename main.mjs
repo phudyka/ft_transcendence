@@ -89,6 +89,7 @@ pad2.addToScene(scene);
 const ball = new Ball(0.07, 32);
 ball.addToScene(scene);
 
+
 document.addEventListener('keydown', (event) => {
     const { key } = event;
     if (controlledPads) {
