@@ -181,6 +181,8 @@ socket.on('start-game', (rooms, roomsTypes) => {
     controls.target.set(0, 3, 0);
     controls.autoRotate = false;
     controls.update();
+    document.getElementById('tournament-details').classList.add('hidden');
+    document.getElementById('tournament-details').classList.remove('flex');
     document.getElementById('waiting').classList.add('hidden');
     document.getElementById('score').classList.remove('hidden');
     document.getElementById('score').classList.add('score-container');

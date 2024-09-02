@@ -149,6 +149,7 @@ function updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room, k
 }
 
 export function setupMultiGame(io, room, ball, pad1, pad2, keysPressed) {
+
     const interval = setInterval(() => updateBallPosition(ball, pad1, pad2, io, room, false, keysPressed), 16);
 }
 
