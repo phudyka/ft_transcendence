@@ -9,24 +9,26 @@ export function dashboard(player_name) {
 	document.getElementById('ft_transcendence').innerHTML = `
 	<div class="dashboard-container">
 
-        <ul class="nav justify-content-between align-items-center">
-                <a class="navbar-brand" href="#">
-                    <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="30" height="30">
-                </a>
-            <li class="nav-item">
-                <a class="nav-link disabled">${player_name}</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#" id="logoutLink">Logout</a>
-            </li>
-        </ul>
-
-
+		<ul class="nav justify-content-between align-items-center">
+				<a class="navbar-brand" href="#">
+					<img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="30" height="30">
+				</a>
+			<li class="nav-item">
+				<a class="nav-link disabled">${player_name}</a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="#" id="logoutLink">Logout</a>
+			</li>
+		</ul>
 		<h3 id="header-dashboard" class="text-center">
 			${$player_name}'s Dashboard
 		</h3>
 		<div class="text-center" id=profile-picture>
-			<img src="https://i.ibb.co/FDg3t8m/avatar7.png" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Profile Picture">
+			<img src="https://i.ibb.co/FDg3t8m/avatar7.png" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Profile Picture" id=img_profile_pic>
+		</div>
+		<div id="profileDropdown" class="dropdown-menu" style="display: none;">
+			<a class="dropdown-item" href="#" id="settings">Settings</a>
+			<a class="dropdown-item" href="#" id="logoutLink">Logout</a>
 		</div>
 		<div class="container-fluid">
 			<div class="row">
@@ -146,17 +148,22 @@ function setupDashboardEvents(navigateTo, player_name) {
 		item.addEventListener('click', handleFriendClick);
 	});
 
+	// Profile picture dropdown
+	document.getElementById('img_profile_pic').addEventListener('click', handleProfilePictureClick);
+
 	// Hide the dropdown menu when clicking outside of it
 	document.addEventListener('click', hideDropdowns);
 
 	// Prevent the dropdown menu from closing when clicking inside it
 	document.getElementById('friendDropdown').addEventListener('click', (event) => event.stopPropagation());
 	document.getElementById('friendDropdown_chat').addEventListener('click', (event) => event.stopPropagation());
+	document.getElementById('profileDropdown').addEventListener('click', (event) => event.stopPropagation());
 
 	// Dropdown actions
 	document.getElementById('sendMessage').addEventListener('click', showChatbox);
 	document.getElementById('friendDropdown_chat').querySelector('#sendMessage').addEventListener('click', showChatbox);
 	document.getElementById('startGame').addEventListener('click', startGame);
+	document.getElementById('settings').addEventListener('click', goTosettings);
 
 	// Chat functionnalitis
 	document.getElementById('send-button').addEventListener('click', sendMessage);
@@ -175,6 +182,8 @@ function setupDashboardEvents(navigateTo, player_name) {
 	// Friend actions
 	document.getElementById('friendDropdown_chat').querySelector('#addToFriend').addEventListener('click', addFriend);
 	document.getElementById('friendDropdown_chat').querySelector('#blockUser').addEventListener('click', blockUser);
+
+	// Profile picture
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -213,6 +222,20 @@ function formatMessage(message) {
 	return `${message}`;
   }
 
+function handleProfilePictureClick() {
+	event.stopPropagation();
+	const dropdown = document.getElementById('profileDropdown');
+
+	const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
+	visibleDropdowns.forEach(dropdown => {
+		dropdown.style.display = 'none';
+	});
+
+	dropdown.style.top = `${event.clientY}px`;
+	dropdown.style.left = `${event.clientX}px`;
+	dropdown.style.display = 'block';
+}
+
 function handleFriendClick() {
 		event.stopPropagation();
 		const dropdown = document.getElementById('friendDropdown');
@@ -242,6 +265,11 @@ function hideDropdowns() {
 	const dropdown2 = document.getElementById('friendDropdown_chat');
 	if (dropdown2) {
 		dropdown2.style.display = 'none';
+	}
+
+	const dropdown3 = document.getElementById('profileDropdown');
+	if (dropdown3) {
+		dropdown3.style.display = 'none';
 	}
 }
 
@@ -275,6 +303,12 @@ function startGame(event) {
 	const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
 	console.log(`Start a game with ${friendName}`);
 	navigateTo('/gameplay');
+}
+
+function goTosettings(event) {
+	event.preventDefault();
+	console.log('Go to settings');
+	navigateTo('/settings');
 }
 
 function sendMessage(event) {

@@ -92,43 +92,46 @@ function attachEventLoginPage(navigateTo) {
 }
 
 async  function handleLogin(event) {
-    event.preventDefault();
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
+	event.preventDefault();
+	const username = document.getElementById('username').value;
+	const password = document.getElementById('password').value;
 
-    try {
+	try {
 		const csrfToken = await getCsrfToken();
 		console.log("CSRF token obtained");
 
-        const response = await fetch('/api/login/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken,
-            },
-            body: JSON.stringify({ username, password }),
-            credentials: 'include',
-        });
+		const response = await fetch('/api/login/', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json',
+				'X-CSRFToken': csrfToken,
+			},
+			body: JSON.stringify({ username, password }),
+			credentials: 'include',
+		});
 		console.log("Login request sent");
 
-        const data = await response.json();
-        if (data.success == True) {
+		const responseText = await response.text();
+		console.log("Raw response:", responseText);
+
+		const data = await response.json();
+		if (data.success == True) {
 			// Login successful
-            // localStorage.setItem('user_id', data.user_id);
+			localStorage.setItem('user_id', data.user_id);
 			localStorage.setItem('accessToken', data.access);
 			localStorage.setItem('refreshToken', data.refresh);
-            localStorage.setItem('username', data.username);
+			localStorage.setItem('username', data.username);
 			console.log('Login successful');
-            navigateTo('/dashboard');
+			navigateTo('/dashboard');
 			console.log("Response received", data);
-        } else {
-            // Login failed
-            showLoginToast();
-        }
-    } catch (error) {
-        console.error('Error:', error);
-        showLoginToast();
-    }
+		} else {
+			// Login failed
+			showLoginToast();
+		}
+	} catch (error) {
+		console.error('Error:', error);
+		showLoginToast();
+	}
 }
 
 function showLoginToast() {

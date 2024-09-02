@@ -14,7 +14,7 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # Copy project
-COPY . /code/
+COPY ./ft_trans /code/
 
 # Expose the port the app runs on
 EXPOSE 8000
