@@ -14,9 +14,32 @@ append_file_contents() {
     echo "" >> "$output_file" # Add a newline for readability
 }
 
-# Append index.html if it exists
-if [ -f "index.html" ]; then
-    append_file_contents "index.html"
+if [ -f "docker-compose.yml" ]; then
+    append_file_contents "docker-compose.yml"
+fi
+
+if [ -f "init-database.sh" ]; then
+    append_file_contents "init-database.sh"
+fi
+
+if [ -f "init-database.sql" ]; then
+    append_file_contents "init-database.sql"
+fi
+
+if [ -f "Dockerfile-adminer" ]; then
+    append_file_contents "Dockerfile-adminer"
+fi
+
+if [ -f "Dockerfile-django" ]; then
+    append_file_contents "Dockerfile-django"
+fi
+
+if [ -f "Dockerfile-postgresql" ]; then
+    append_file_contents "Dockerfile-postgresql"
+fi
+
+if [ -f "styles.css" ]; then
+    append_file_contents "styles.css"
 fi
 
 if [ -f "styles.css" ]; then

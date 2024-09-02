@@ -112,11 +112,11 @@ async  function handleLogin(event) {
 		console.log("Login request sent");
 
         const data = await response.json();
-        if (data.success) {
+        if (data.success == True) {
 			// Login successful
+            // localStorage.setItem('user_id', data.user_id);
 			localStorage.setItem('accessToken', data.access);
 			localStorage.setItem('refreshToken', data.refresh);
-            localStorage.setItem('user_id', data.user_id);
             localStorage.setItem('username', data.username);
 			console.log('Login successful');
             navigateTo('/dashboard');

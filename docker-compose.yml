@@ -1,0 +1,39 @@
+services:
+  db:
+    build:
+      context: .
+      dockerfile: Dockerfile-postgresql
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=db
+      - POSTGRES_USER=fabriciopa
+      - POSTGRES_PASSWORD=5472
+
+  adminer:
+    build:
+      context: .
+      dockerfile: Dockerfile-adminer
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile-django
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./ft_trans:/code
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgres://fabriciopa:5472@db/db
+
+volumes:
+  postgres_data:  

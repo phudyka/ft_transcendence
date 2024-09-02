@@ -1,0 +1,11 @@
+FROM adminer:latest
+
+# Set the default theme (optional)
+ENV ADMINER_DESIGN darcula
+
+# You can add customizations here if needed
+# For example, to add plugins:
+# ADD https://raw.githubusercontent.com/vrana/adminer/master/plugins/plugin.php /var/www/html/plugins/
+# ADD https://raw.githubusercontent.com/vrana/adminer/master/plugins/login-servers.php /var/www/html/plugins/
+
+EXPOSE 8080
