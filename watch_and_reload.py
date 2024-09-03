@@ -23,20 +23,20 @@ def watch_directory(path):
         removed = [f for f in before if f not in after]
         modified = [f for f in before if f in after and before[f] != after[f]]
         if added or removed or modified:
-            print("/nDetected change. Reloading...")
+            print("\nDetected change. Reloading...")
             for file in added:
-                print(f"Added: \033[91m{file}")
+                print(f"Added: \033[91m{file}\033[0m")
             for file in removed:
-                print(f"Removed: \033[91m{file}")
+                print(f"Removed: \033[91m{file}\033[0m")
             for file in modified:
-                print(f"Modified: \033[91m{file}")
-            print(time.strftime("%H:%M:%S"))
+                print(f"Modified: \033[91m{file}\033[0m")
+            print(time.strftime("\033[1m\033[93m[%H:%M:%S]\033[0m"))
             subprocess.run(["docker", "compose", "restart", "web"])
         before = after
 
 if __name__ == "__main__":
     path = './ft_trans'
-    print(f"Watching directory: {path}")
-    print(f"Current directory: {os.getcwd()}")
-    print(f"Contents of {path}: {os.listdir(path)}")
+    print(f"\033[94mWatching directory: \033[0m{path}")
+    print(f"\033[94mCurrent directory: \033[0m{os.getcwd()}")
+    print(f"\033[94mContents of {path}: \033[0m{os.listdir(path)}")
     watch_directory(path)
