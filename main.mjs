@@ -171,7 +171,6 @@ function animate() {
     updateFPSDisplay();
     requestAnimationFrame(animate);
     updateAnimation();
-    console.log(camera.position);
     renderer.render(scene, camera);
 }
 
@@ -206,11 +205,11 @@ socket.on('start-game', (rooms, roomsTypes) => {
         pad4.addToScene(scene);
     }
 
-    console.log(controlledPad);
     animate();
 });
 
 socket.on('movePad', (data) => {
+    console.log('reception movePad');
     pad1.mesh.position.z = data.pad1;
     pad2.mesh.position.z = data.pad2;
     if (pad4) {
