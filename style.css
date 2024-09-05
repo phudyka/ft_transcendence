@@ -31,6 +31,38 @@ body {
     z-index: 30;
 }
 
+#match-info {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    border: 5px solid #FFD700;
+    padding: 30px;
+    border-radius: 15px;
+    color: #ffffff;
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 48px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    z-index: 30;
+    width: 60%;
+    max-width: 800px;
+    line-height: 1.5;
+}
+
+#match-info p {
+    margin: 0;
+    padding: 0;
+    font-size: 42px;
+}
+
+#match-info #countdown {
+    font-size: 64px;
+    color: #FFCC00;
+}
+
+
 #tournament-list {
     list-style-type: none;
     padding: 0;

@@ -13,6 +13,7 @@
 import { tableHeight, tableWidth, padHeight } from './config.mjs';
 import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
+import { roomsTypes } from './sockets.mjs';
 
 let maxScore = 3; // (11 points to win)
 
@@ -52,7 +53,7 @@ function IApad(pad2, ball) {
     }
 }
 
-function checkWallCollision(ball, pad1, pad2, io, room) {
+function checkWallCollision(ball, pad1, pad2, io, room, roomsTypes) {
 
     if (ball.mesh.position.z + ball.direction.z * ball.speed > tableHeight / 2 - ball.radius - 0.02) {
         ball.direction.z *= -1;
@@ -85,12 +86,12 @@ function checkWallCollision(ball, pad1, pad2, io, room) {
     }
 }
 
-function updateBallPosition(ball, pad1, pad2, io, room, soloMode, keysPressed) {
+function updateBallPosition(ball, pad1, pad2, io, room, soloMode, keysPressed, roomsTypes) {
     if (soloMode) {
         IApad(pad2, ball);
     }
     ball.updatePosition();
-    checkWallCollision(ball, pad1, pad2, io, room);
+    checkWallCollision(ball, pad1, pad2, io, room, roomsTypes);
     if (ball.checkCollision(pad1) === true) {
         io.in(room).emit('hitPad');
     }
@@ -148,7 +149,7 @@ function updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room, k
         Movepad(pad1, pad2, keysPressed, room, io, pad3, pad4)
 }
 
-export function setupMultiGame(io, room, ball, pad1, pad2, keysPressed) {
+export function setupMultiGame(io, room, ball, pad1, pad2, keysPressed, roomsTypes) {
 
     const interval = setInterval(() => updateBallPosition(ball, pad1, pad2, io, room, false, keysPressed), 16);
 }
@@ -201,17 +202,4 @@ function Movepad(pad1, pad2, keysPressed, room, io, pad3, pad4) {
                     pad2: pad2.mesh.position.z
                 });
             }
-}
-
-export function setupTournamentGame(io, room, keysPressed)
-{
-    const ball = new Ball(0.07, 32);
-    const pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 3.59, 0);
-    const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 3.59, 0);
-
-    //let maxGame = 7;
-
-    io.in(room).emit('tournament-full', {
-        room: room
-    });
 }

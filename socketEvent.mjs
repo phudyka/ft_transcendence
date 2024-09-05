@@ -109,6 +109,26 @@ export function initSocketEvent(socket, ball){
         document.getElementById('tournament-page').style.display = 'none';
     });
 
+    socket.on('match-info', (data) => {
+        const matchInfoDiv = document.getElementById('match-info');
+        document.getElementById('match-info').classList.remove('hidden');
+        
+        matchInfoDiv.innerHTML = `<p>${data.message}</p><p>Début du match dans <span id="countdown">${data.countdown}</span> secondes...</p>`;
+        
+        let countdown = data.countdown;
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            document.getElementById('countdown').innerText = countdown;
+    
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                matchInfoDiv.innerHTML = '';
+                document.getElementById('match-info').classList.add('hidden');
+            }
+        }, 1000);
+    });
+    
+
     socket.on('gameOver', (data) => {
         const winner = data.winner;
         const gameOverSection = document.getElementById('game-over');

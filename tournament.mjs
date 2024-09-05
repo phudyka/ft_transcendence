@@ -29,7 +29,6 @@ export function setupTournamentEvents(io, socket, rooms, roomsTypes, padsMap) {
         }
     
         keysPressedMap.set(room, roomKeysPressed);
-        console.log(`Updated keysPressedMap for room ${room}:`, roomKeysPressed);
     });
 
     socket.on('create-tournament', () => {
@@ -143,25 +142,37 @@ function createQuarterRooms(io, socket, mainRoom, rooms, roomsTypes, padsMap) {
             console.log("All quarter-final matches are completed.");
             return;
         }
-
+    
         const quarterRoom = quarterRooms[index];
-        const pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 3.59, 0);
-        const pad2 = new Pad(0xb3261a, 0.045, 0.50, 16, 2.10, 3.59, 0);
-        const ball = new Ball(0.07, 32);
+        const players = rooms[quarterRoom];
+        const opponentMessage = `Vous allez jouer contre le joueur : ${players.filter(id => id !== socket.id)}`;
+    
 
-        io.in(quarterRoom).emit('start-game', rooms[quarterRoom]);
-
-        setupMultiGame(io, quarterRoom, ball, pad1, pad2, keysPressedMap.get(quarterRoom));
-
-        console.log(`Starting quarter-final match in room: ${quarterRoom}`);
-
-        socket.on('match-finished', (data) => {
-            const winnerId = data.winnerId;
-            console.log(`Match finished in room: ${quarterRoom}. Winner: ${winnerId}`);
-            
-            // Appeler la fonction pour démarrer le prochain match
-            //startQuarterMatch(index + 1);
+        io.in(quarterRoom).emit('match-info', {
+            message: opponentMessage,
+            countdown: 10
         });
+    
+
+        setTimeout(() => {
+            const pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 3.59, 0);
+            const pad2 = new Pad(0xb3261a, 0.045, 0.50, 16, 2.10, 3.59, 0);
+            const ball = new Ball(0.07, 32);
+    
+            io.in(quarterRoom).emit('start-game', rooms[quarterRoom]);
+    
+            setupMultiGame(io, quarterRoom, ball, pad1, pad2, keysPressedMap.get(quarterRoom));
+    
+            console.log(`Starting quarter-final match in room: ${quarterRoom}`);
+    
+            socket.on('match-finished', (data) => {
+                const winnerId = data.winnerId;
+                console.log(`Match finished in room: ${quarterRoom}. Winner: ${winnerId}`);
+                
+                // Appeler la fonction pour démarrer le prochain match
+                //startQuarterMatch(index + 1, socket);
+            });
+        }, 10000);
     }
 }
 

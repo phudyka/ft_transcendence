@@ -45,7 +45,6 @@ export default function setupSockets(io) {
         });
 
         socket.on('padMove', (data) => {
-            console.log('Received padMove:', data);
             const room = findRoomForSocket(socket.id);
             if (!room) return;
 
@@ -75,7 +74,6 @@ export default function setupSockets(io) {
             }
 
             keysPressedMap.set(room, roomKeysPressed);
-            console.log(`Updated keysPressedMap for room ${room}:`, roomKeysPressed);
         });
 
         socket.on('endGame', () => {
