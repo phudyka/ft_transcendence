@@ -91,47 +91,55 @@ function attachEventLoginPage(navigateTo) {
 	});
 }
 
-async  function handleLogin(event) {
-	event.preventDefault();
-	const username = document.getElementById('username').value;
-	const password = document.getElementById('password').value;
+async function handleLogin(event) {
+    event.preventDefault();
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
 
-	try {
-		const csrfToken = await getCsrfToken();
-		console.log("CSRF token obtained");
+    try {
+        const csrfToken = await getCsrfToken();
+        console.log("CSRF token obtained:", csrfToken);
 
-		const response = await fetch('/api/login/', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'X-CSRFToken': csrfToken,
-			},
-			body: JSON.stringify({ username, password }),
-			credentials: 'include',
-		});
-		console.log("Login request sent");
+        const response = await fetch('/api/login/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken,
+            },
+            body: JSON.stringify({ username, password }),
+            credentials: 'include',
+        });
 
-		const responseText = await response.text();
-		console.log("Raw response:", responseText);
+        console.log("Login request sent");
 
-		const data = await response.json();
-		if (data.success == True) {
-			// Login successful
-			localStorage.setItem('user_id', data.user_id);
-			localStorage.setItem('accessToken', data.access);
-			localStorage.setItem('refreshToken', data.refresh);
-			localStorage.setItem('username', data.username);
-			console.log('Login successful');
-			navigateTo('/dashboard');
-			console.log("Response received", data);
-		} else {
-			// Login failed
-			showLoginToast();
-		}
-	} catch (error) {
-		console.error('Error:', error);
-		showLoginToast();
-	}
+        // Log the raw response for debugging
+        const responseText = await response.text();
+        console.log("Raw response:", responseText);
+
+        // Try to parse the response as JSON
+        let data;
+        try {
+            data = JSON.parse(responseText);
+        } catch (error) {
+            console.error("Error parsing JSON:", error);
+            throw new Error("Server response was not valid JSON");
+        }
+
+        if (data.success) {
+            // Login successful
+            localStorage.setItem('accessToken', data.access);
+            localStorage.setItem('refreshToken', data.refresh);
+            localStorage.setItem('username', data.username);
+            console.log('Login successful');
+            navigateTo('/dashboard');
+        } else {
+            // Login failed
+            showLoginToast();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showLoginToast();
+    }
 }
 
 function showLoginToast() {

@@ -1,9 +1,0 @@
-:root {
-	--carousel-control-width: 100%; /* Increase the control width to 20% */
-	--carousel-control-opacity: 1; /* Make the controls fully opaque */
-	--carousel-control-hover-opacity: 1; /* Keep the controls fully opaque on hover */
-	--carousel-control-transition: opacity 0.1s ease; /* Change the transition duration and easing */
-
-  
-	/* Add more custom variables as needed */
-  }

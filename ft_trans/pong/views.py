@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate,login
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render
@@ -66,7 +66,11 @@ def register_view(request):
             if User.objects.filter(email=email).exists():
                 return JsonResponse({'success': False, 'error': 'This email is already in use.'})
 
-            user = User.objects.create_user(username=username, email=email, password=password)
+            user = User.objects.create_user(
+                username=username,
+                email=email,
+                password=password,
+                avatar_url=avatar_url)
 
             # Si vous avez un modèle de profil séparé, vous pouvez l'utiliser ici
             # user.profile.avatar_url = avatar_url

@@ -70,6 +70,7 @@ h1 {
     align-items: center;
     max-width: 150%;
     max-height: 150%;
+    margin-bottom: 10px;
 }
 
 .container {
@@ -286,7 +287,6 @@ input::placeholder {
     border: 3px solid black;
     max-width: 10%;
     border-radius: 30px;
-
 }
 
 #title_dashboard {
@@ -431,26 +431,8 @@ div.input-container {
     padding: 10px;
   }
 
-  .avatar-image {
-    width: 250px;
-    height: 250px;
-    object-fit: cover;
-    transition: transform 2s ease, opacity 2s ease;
-}
 
-.carousel-item-next,
-.carousel-item-prev,
-.carousel-item.active {
-  opacity: 0;
-  transform: scale(0.8);
-}
 
-.carousel-item-next.carousel-item-left,
-.carousel-item-prev.carousel-item-right,
-.carousel-item.active {
-  opacity: 1;
-  transform: scale(1);
-}
 
 /* tchat 2 */
 
@@ -562,3 +544,56 @@ div.input-container2 {
     margin-left: auto;
     margin-right: auto;
 }
+
+
+
+/* carroussel register page */
+
+.choose-avatar-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 300px;
+    margin: 0 auto;
+  }
+  
+  .choose-avatar {
+    width: 200px;
+    height: 200px;
+    overflow: hidden;
+  }
+  
+  .carousel-inner {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .carousel-item {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease-in-out;
+  }
+  
+  .carousel-control-prev,
+  .carousel-control-next {
+    position: static;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 10px;
+  }
+  
+  .carousel-control-prev-icon,
+  .carousel-control-next-icon {
+    background-size: 50%;
+  }
