@@ -31,7 +31,7 @@ export function register() {
       <div class="password-wrapper">
         <input type="password" value="" placeholder="Confirm Password" id="confirmPassword" class="password">
         <button class="unmask" type="button" title="Mask/Unmask password to check content">
-          <i class="fas fa-lock"></i> 
+          <i class="fas fa-lock"></i>
         </button>
       </div>
       </p>
@@ -187,3 +187,4 @@ function getCookie(name) {
   }
   return cookieValue;
 }
+

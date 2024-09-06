@@ -9,7 +9,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import IntegrityError
 import json
 
-@csrf_exempt
 def create_user(request):
 	if request.method == 'POST':
 		data = json.loads(request.body)
@@ -88,4 +87,7 @@ def register_view(request):
 
 @ensure_csrf_cookie
 def set_csrf_token(request):
+    print('set_csrf_token url')
     return JsonResponse({'csrfToken': get_token(request)})
+
+

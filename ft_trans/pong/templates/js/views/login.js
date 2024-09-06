@@ -100,10 +100,10 @@ async function handleLogin(event) {
         const csrfToken = await getCsrfToken();
         console.log("CSRF token obtained:", csrfToken);
 
-        const response = await fetch('/api/login/', {
-            method: 'POST',
+		const response = await fetch('/api/login/', {
+			method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+				'Content-Type': 'application/json',
                 'X-CSRFToken': csrfToken,
             },
             body: JSON.stringify({ username, password }),
@@ -111,7 +111,6 @@ async function handleLogin(event) {
         });
 
         console.log("Login request sent");
-
         // Log the raw response for debugging
         const responseText = await response.text();
         console.log("Raw response:", responseText);
@@ -137,9 +136,8 @@ async function handleLogin(event) {
             showLoginToast();
         }
     } catch (error) {
-        console.error('Error:', error);
-        showLoginToast();
-    }
+		console.error("Error logging in:", error);
+	}
 }
 
 function showLoginToast() {
