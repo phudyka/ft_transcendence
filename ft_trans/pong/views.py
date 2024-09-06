@@ -8,8 +8,9 @@ from django.middleware.csrf import get_token
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import IntegrityError
 import json
+import logging
+logger = logging.getLogger(__name__)
 
-@csrf_exempt
 def create_user(request):
 	if request.method == 'POST':
 		data = json.loads(request.body)
@@ -26,6 +27,7 @@ def login_view(request):
     print('login_view url')
     if request.method == 'POST':
         data = json.loads(request.body)
+        logger.info(data)
         username = data.get('username')
         password = data.get('password')
 
@@ -88,4 +90,7 @@ def register_view(request):
 
 @ensure_csrf_cookie
 def set_csrf_token(request):
+    print('set_csrf_token url')
     return JsonResponse({'csrfToken': get_token(request)})
+
+

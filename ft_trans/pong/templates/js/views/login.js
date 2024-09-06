@@ -97,6 +97,7 @@ async function handleLogin(event) {
     const password = document.getElementById('password').value;
 
     try {
+		console.log("test");
         const csrfToken = await getCsrfToken();
         console.log("CSRF token obtained:", csrfToken);
 

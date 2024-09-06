@@ -50,16 +50,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
+	'django.contrib.sessions.middleware.SessionMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
 	'django.middleware.csrf.CsrfViewMiddleware', # for session
-	'django.contrib.sessions.middleware.SessionMiddleware', # for session
     'django.contrib.auth.middleware.AuthenticationMiddleware', # for session
 ]
 
@@ -174,4 +171,33 @@ REST_FRAMEWORK = {
 SIMPLE_JWT = { # for jwt
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+}
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django.db.backends': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'pong': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        # Add other apps here if needed
+    },
 }

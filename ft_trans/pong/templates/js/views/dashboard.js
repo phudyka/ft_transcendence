@@ -119,7 +119,7 @@ export function dashboard(player_name) {
 	fetchAndDisplayFriends();
 }
 
-const socket = io('http://localhost:3000');
+const socket = io('http://localhost:3000', { transports: ['websocket'] });
 
 function setupDashboardEvents(navigateTo, player_name) {
 	//Logout
@@ -167,7 +167,7 @@ function setupDashboardEvents(navigateTo, player_name) {
 
 	// Chat functionnalitis
 	document.getElementById('send-button').addEventListener('click', sendMessage);
-	socket.on('chat_message', receiveMessage);
+	// socket.on('chat_message', receiveMessage);
 
 	//Private message with friend
 	document.getElementById('send-button2').addEventListener('click', sendPrivateMessage);
@@ -411,10 +411,10 @@ function viewProfile(event) {
 	navigateTo(`/profile/${friendName}`);
 }
 
-socket.on('connect_error', (error) => {
-	console.error('Connection error:', error);
-	// Gérez l'erreur de manière appropriée
-});
+// socket.on('connect_error', (error) => {
+// 	console.error('Connection error:', error);
+// 	// Gérez l'erreur de manière appropriée
+// });
 
 function fetchAndDisplayFriends() {
     callAPI('http://localhost:8000/api/friends/')

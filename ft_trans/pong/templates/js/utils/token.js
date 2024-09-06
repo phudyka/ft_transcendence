@@ -67,3 +67,5 @@ export async function getCsrfToken() {
     }
     throw new Error('Failed to get CSRF token');
 }
+
+
