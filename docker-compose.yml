@@ -35,5 +35,14 @@ services:
     environment:
       - DATABASE_URL=postgres://fabriciopa:5472@db/db
 
+  chat:
+    build:
+      context: .
+      dockerfile: Dockerfile-chat
+    ports:
+      - "3000:3000"
+    depends_on:
+      - web
+
 volumes:
   postgres_data:  

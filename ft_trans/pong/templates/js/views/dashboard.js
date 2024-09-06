@@ -119,7 +119,7 @@ export function dashboard(player_name) {
 	fetchAndDisplayFriends();
 }
 
-const socket = io('http://localhost:3000');
+const socket = io('http://localhost:3000', { transports: ['websocket'] });
 
 function setupDashboardEvents(navigateTo, player_name) {
 	//Logout
