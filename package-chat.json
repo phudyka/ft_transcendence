@@ -4,7 +4,7 @@
     "description": "Chat server for ft_transcendence",
     "main": "server.js",
     "scripts": {
-      "start": "node server.js"
+      "start": "node server.js" 
     },
     "dependencies": {
       "express": "^4.17.1",
