@@ -1,4 +1,5 @@
 import { navigateTo } from '../app.js';
+import { logout } from '../utils/token.js';
 
 let $player_name;
 
@@ -125,8 +126,7 @@ function setupDashboardEvents(navigateTo, player_name) {
 	//Logout
 	document.getElementById('logoutLink').addEventListener('click', function (event) {
 		event.preventDefault();
-		console.log('Logout successful');
-		navigateTo('/login');
+		logout();
 	});
 
 	//Game solo

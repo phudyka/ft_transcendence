@@ -27,7 +27,7 @@ export function profile(friendName) {
                 <a class="navbar-brand" href="#">
                     <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="30" height="30">
                 </a>
-            <li class="nav-item">
+            <li class="nav-item" id="DisplayName">
                 <a class="nav-link disabled">${player_name}</a>
             </li>
             <li class="nav-item">
@@ -96,6 +96,14 @@ export function profile(friendName) {
 
 function attachEventHandlers2(navigateTo, friendName) {
 
+    const DisplayName = document.getElementById('DisplayName');
+    const logoutLink = document.getElementById('logoutLink');
+
+    logoutLink.addEventListener('click', () => {
+        event.preventDefault();
+        logout();
+    });
+
     document.getElementById('pongonlineLink').addEventListener('click', function(event) {
         event.preventDefault();
         navigateTo('/dashboard');
@@ -129,6 +137,8 @@ function attachEventHandlers2(navigateTo, friendName) {
         }
         updateFriendButton();
     });
+
+    DisplayName.addEventListener('click', () => navigateTo('/dashboard'));
 
     updateFriendButton();
 }

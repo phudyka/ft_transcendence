@@ -45,7 +45,6 @@ def login_view(request):
         else:
             # Login failed
             return JsonResponse({'success': False}, status=401)
-
     return JsonResponse({'error': 'Invalid request method.'}, status=400)
 
 

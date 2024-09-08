@@ -1,5 +1,9 @@
+import { navigateTo } from '../app.js';
+import { logout } from '../utils/token.js';
+
+const player_name = localStorage.getItem('player_name') || 'Player';
+
 export function settings() {
-    const player_name = localStorage.getItem('player_name') || 'Player';
     console.log('settings view');
 
     document.getElementById('ft_transcendence').innerHTML = `
@@ -34,12 +38,11 @@ export function settings() {
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Notifications</label>
                         <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="emailNotifications" name="emailNotifications">
-                            <label class="form-check-label" for="emailNotifications">
-                                Email Notifications
-                            </label>
+                        <input class="form-check-input" type="checkbox" id="emailNotifications" name="emailNotifications">
+                        <label class="form-check-label" for="emailNotifications">
+                        Email Notifications
+                        </label>
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary">Save Settings</button>
@@ -52,13 +55,13 @@ export function settings() {
                         <input type="password" class="form-control" id="newPassword" name="newPassword">
                     </div>
                     <div class="mb-3">
-                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
-                        <input type="password" class="form-control" id="confirmPassword" name="confirmPassword">
+                        <label for="confirmPasswordsetttings" class="form-label">Confirm New Password</label>
+                        <input type="password" class="form-control" id="confirmPasswordsetttings" name="confirmPasswordsetttings">
                     </div>
-                    <button type="submit" class="btn btn-success">Change Password</button>
+                    <button type="submit" class="btn btn-primary">Change Password</button>
                 </form>
 
-                <button id="backToDashboard" class="btn btn-secondary mt-4">Back to Dashboard</button>
+                <button id="backToDashboard" class="btn btn-primary">Back to Dashboard</button>
             </div>
         </div>
         <footer class="py-3 my-4">
@@ -83,9 +86,7 @@ function attachEventSettingsPage(navigateTo, player_name) {
     });
 
     logoutLink.addEventListener('click', (event) => {
-        event.preventDefault();
-        console.log('Logout successful');
-        navigateTo('/login');
+        logout();
     });
 
     backToDashboard.addEventListener('click', () => navigateTo('/dashboard'));
@@ -126,6 +127,6 @@ function attachEventSettingsPage(navigateTo, player_name) {
 
     // Pre-fill form fields
     document.getElementById('displayName').value = player_name;
-    document.getElementById('email').value = 'user@example.com';
+    document.getElementById('email').value = 'newmail@example.com';
     document.getElementById('emailNotifications').checked = true;
 }

@@ -97,7 +97,6 @@ async function handleLogin(event) {
     const password = document.getElementById('password').value;
 
     try {
-		console.log("test");
         const csrfToken = await getCsrfToken();
         console.log("CSRF token obtained:", csrfToken);
 
@@ -116,25 +115,13 @@ async function handleLogin(event) {
         // Log the raw response for debugging
         const responseText = await response.text();
         console.log("Raw response:", responseText);
-
-        // Try to parse the response as JSON
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch (error) {
-            console.error("Error parsing JSON:", error);
-            throw new Error("Server response was not valid JSON");
-        }
-
-        if (data.success) {
-            // Login successful
+		if (data.success) {
             localStorage.setItem('accessToken', data.access);
             localStorage.setItem('refreshToken', data.refresh);
             localStorage.setItem('username', data.username);
             console.log('Login successful');
             navigateTo('/dashboard');
         } else {
-            // Login failed
             showLoginToast();
         }
     } catch (error) {

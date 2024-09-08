@@ -1,13 +1,15 @@
-FROM node:14
+FROM node:18
 
 WORKDIR /usr/src/app
 
-COPY package-chat.json ./
+COPY package*.json ./package.json
 
 RUN npm install
 
-COPY /ft_trans/pong/templates/js/utils/server.js .
+COPY . .
 
-EXPOSE 3000 
+EXPOSE 3000
 
-CMD [ "node", "server.js" ]
+WORKDIR /usr/src/app/ft_trans/pong/templates/js/utils
+
+CMD ["node", "server.js"]
