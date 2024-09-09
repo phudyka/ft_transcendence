@@ -55,8 +55,10 @@ function IApad(pad2, ball) {
 
 function checkWallCollision(ball, pad1, pad2, io, room, roomsTypes, players) {
 
-        const client1 = clients.get(players[0]);
-        const client2 = clients.get(players[1]);
+        let client1 = clients.get(players[0]);
+        let client2;
+        if (roomsTypes !== "solo_vs_ia" && roomsTypes !== "multi-2-local")
+            client2 = clients.get(players[1]);
 
     if (ball.mesh.position.z + ball.direction.z * ball.speed > tableHeight / 2 - ball.radius - 0.02) {
         ball.direction.z *= -1;
@@ -74,7 +76,10 @@ function checkWallCollision(ball, pad1, pad2, io, room, roomsTypes, players) {
                 io.in(room).emit('matchOver', { winner: client1.getSocketId(), roomName: room});
             }
             else {
-                io.in(room).emit('gameOver', { winner: client1.getSocketId(), score1: pad1.score, score2: pad2.score });
+                if (roomsTypes !== "solo_vs_ia" && roomsTypes !== "multi-2-local")
+                    io.in(room).emit('gameOver', { winner: client1.getSocketId(), score1: pad1.score, score2: pad2.score });
+                else
+                    io.in(room).emit('gameOver', { winner: 'Player 1', score1: pad1.score, score2: pad2.score });
             }
             pad1.score = 0;
             pad2.score = 0;
@@ -90,7 +95,10 @@ function checkWallCollision(ball, pad1, pad2, io, room, roomsTypes, players) {
                 io.in(room).emit('matchOver', { winner: client2.getSocketId(), roomName: room});
             }
             else {
-                io.in(room).emit('gameOver', { winner: client2.getSocketId(), score1: pad1.score, score2: pad2.score });
+                if (roomsTypes !== "solo_vs_ia" && roomsTypes !== "multi-2-local")
+                    io.in(room).emit('gameOver', { winner: client2.getSocketId(), score1: pad1.score, score2: pad2.score });
+                else
+                io.in(room).emit('gameOver', { winner: 'Player 2', score1: pad1.score, score2: pad2.score });
             }
             pad1.score = 0;
             pad2.score = 0;
@@ -120,7 +128,7 @@ function updateBallPosition(ball, pad1, pad2, io, room, soloMode, keysPressed, r
     Movepad(pad1, pad2, keysPressed, room, io)
 }
 
-export function setupSoloGame(io, room, socket, rooms, roomsTypes, keysPressed) {
+export function setupSoloGame(io, players, room, socket, rooms, roomsTypes, keysPressed) {
     const ball = new Ball(0.07, 32);
     const pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 3.59, 0);
     const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 3.59, 0); // 2.10
@@ -134,7 +142,7 @@ export function setupSoloGame(io, room, socket, rooms, roomsTypes, keysPressed) 
     let soloMode = false;
     if (roomsTypes === 'solo_vs_ia')
         soloMode = true;
-    const interval = setInterval(() => updateBallPosition(ball, pad1, pad2, io, room, soloMode, keysPressed), 16);
+    const interval = setInterval(() => updateBallPosition(ball, pad1, pad2, io, room, soloMode, keysPressed, roomsTypes, players), 16);
 
     socket.on('disconnect', () => {
         clearInterval(interval);

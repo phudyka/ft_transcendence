@@ -113,7 +113,7 @@ export default function setupSockets(io) {
             io.in(room).emit('start-game', rooms[room], roomsTypes[room]);
             console.log(`Démarrage du jeu dans ${room}`);
 
-            setupSoloGame(io, room, socket, rooms, roomsTypes[room], keysPressedMap.get(room));
+            setupSoloGame(io, rooms[room], room, socket, rooms, roomsTypes[room], keysPressedMap.get(room));
         });
 
         socket.on('multi-2-local', () => {
@@ -134,7 +134,7 @@ export default function setupSockets(io) {
             io.in(room).emit('start-game', rooms[room], roomsTypes[room]);
             console.log(`Démarrage du jeu dans ${room}`);
 
-            setupSoloGame(io, room, socket, rooms, roomsTypes[room], keysPressedMap.get(room));
+            setupSoloGame(io, rooms[room], room, socket, rooms, roomsTypes[room], keysPressedMap.get(room));
         });
 
         socket.on('multi-2-online', () => {
