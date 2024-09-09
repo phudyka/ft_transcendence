@@ -1,13 +1,34 @@
 import { findOrCreateRoom, findRoomForSocket } from './socketUtils.mjs';
-import { setupSoloGame, setupMultiGame, setupMultiGameFour, setupTournamentGame } from './game.mjs';
+import { setupMultiGame } from './game.mjs';
 import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
 import { keysPressedMap } from './sockets.mjs'
+import { mapLinear } from 'three/src/math/MathUtils.js';
 
-const tournaments = {};
+let roomMain;
 const playerRoomMap = {};
+const finalPlayers = [];
 
 export function setupTournamentEvents(io, socket, rooms, roomsTypes, padsMap) {
+
+    socket.on('match-finished', (data) => {
+        const winnerId = data.playerWinner;
+        finalPlayers.push(data.playerWinner);
+        console.log(`Match finished in room: ${data.room}. Winner: ${winnerId}`);
+        if (rooms[data.room]) {
+            delete rooms[data.room];
+            delete roomsTypes[data.room];
+            keysPressedMap.delete(data.room);
+            padsMap.delete(data.room);
+            console.log(`Room ${data.room} has been removed`);
+        }
+
+        if (finalPlayers.length === 2) {
+            console.log('Les 2 finalistes sont :', finalPlayers[0], finalPlayers[1]);
+            io.to(roomMain).emit('update tournament', finalPlayers);
+            finalGame(io, rooms, finalPlayers, padsMap);
+        }
+    });
 
     socket.on('padMove', (data) => {
         const room = playerRoomMap[socket.id];
@@ -106,6 +127,7 @@ function updateTournamentList(io, rooms, roomsTypes) {
 function createQuarterRooms(io, socket, mainRoom, rooms, roomsTypes, padsMap) {
     const players = [...rooms[mainRoom]];
     const quarterRooms = [];
+    roomMain = mainRoom;
 
     for (let i = 0; i < 2; i++) {
         const quarterRoom = `${mainRoom}-quarter-${i + 1}`;
@@ -123,7 +145,7 @@ function createQuarterRooms(io, socket, mainRoom, rooms, roomsTypes, padsMap) {
             const playerSocket = io.sockets.sockets.get(playerId);
             if (playerSocket) {
                 playerSocket.join(quarterRoom);
-                playerSocket.leave(mainRoom);
+                //playerSocket.leave(mainRoom);
                 playerRoomMap[playerId] = quarterRoom;
             }
         }
@@ -145,12 +167,12 @@ function createQuarterRooms(io, socket, mainRoom, rooms, roomsTypes, padsMap) {
     
         const quarterRoom = quarterRooms[index];
         const players = rooms[quarterRoom];
-        const opponentMessage = `Vous allez jouer contre le joueur : ${players.filter(id => id !== socket.id)}`;
+        const opponentMessage = `Vous allez jouer contre : ${players.filter(id => id !== socket.id)}`;
     
 
         io.in(quarterRoom).emit('match-info', {
             message: opponentMessage,
-            countdown: 10
+            countdown: 5
         });
     
 
@@ -161,20 +183,61 @@ function createQuarterRooms(io, socket, mainRoom, rooms, roomsTypes, padsMap) {
     
             io.in(quarterRoom).emit('start-game', rooms[quarterRoom]);
     
-            setupMultiGame(io, quarterRoom, ball, pad1, pad2, keysPressedMap.get(quarterRoom));
+            setupMultiGame(io, rooms[quarterRoom], quarterRoom, ball, pad1, pad2, keysPressedMap.get(quarterRoom), "tournament");
     
             console.log(`Starting quarter-final match in room: ${quarterRoom}`);
-    
-            socket.on('match-finished', (data) => {
-                const winnerId = data.winnerId;
-                console.log(`Match finished in room: ${quarterRoom}. Winner: ${winnerId}`);
-                
-                // Appeler la fonction pour démarrer le prochain match
-                //startQuarterMatch(index + 1, socket);
-            });
-        }, 10000);
+        }, 5000);
     }
+
 }
 
+function finalGame(io, rooms, finalPlayers, padsMap){
+    const finalRoom = `${roomMain}-final`;
+    rooms[finalRoom] = [finalPlayers[0], finalPlayers[1]];
+    const allPlayers = rooms[roomMain];
+    
+    keysPressedMap.set(finalRoom, {
+        pad1MoveUp: false,
+        pad1MoveDown: false,
+        pad2MoveUp: false,
+        pad2MoveDown: false,
+    });
 
+    for (const playerId of finalPlayers) {
+        const playerSocket = io.sockets.sockets.get(playerId);
+        if (playerSocket) {
+            playerSocket.join(finalRoom);
+            playerRoomMap[playerId] = finalRoom;
+        }
+    }
 
+    const spectators = allPlayers.filter(playerId => !finalPlayers.includes(playerId));
+
+    for (const spectatorId of spectators) {
+        const spectatorSocket = io.sockets.sockets.get(spectatorId);
+        if (spectatorSocket) {
+            spectatorSocket.join(finalRoom);
+        }
+    }
+
+    console.log(`Players ${rooms[finalRoom].join(' and ')} joined room: ${finalRoom}`);
+
+    let opponentMessage = `Finale ${finalPlayers[0]} contre ${finalPlayers[1]}`;
+
+    io.in(finalRoom).emit('match-info', {
+        message: opponentMessage,
+        countdown: 5
+    });
+
+    setTimeout(() => {
+        const ball = new Ball(0.07, 32);
+        const pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 3.59, 0);
+        const pad2 = new Pad(0xb3261a, 0.045, 0.50, 16, 2.10, 3.59, 0);
+
+        io.in(roomMain).emit('start-game', rooms[finalRoom]);
+
+        setupMultiGame(io, rooms[finalRoom], finalRoom, ball, pad1, pad2, keysPressedMap.get(finalRoom), "tournament");
+
+        console.log(`Starting final match in room: ${finalRoom}`);
+    }, 5000);
+}

@@ -1,21 +1,27 @@
 import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
-import { setupSoloGame, setupMultiGame, setupMultiGameFour, setupTournamentGame } from './game.mjs';
+import { setupSoloGame, setupMultiGame, setupMultiGameFour} from './game.mjs';
 import { setupTournamentEvents } from './tournament.mjs';
 import { findRoomForSocket, findOrCreateRoom } from './socketUtils.mjs';
+import { Client } from './client.mjs'
 
 export const rooms = {};
 export const roomsTypes = {};
-const tournaments = {};
 const padsMap = new Map();
 export const keysPressedMap = new Map();
+export const clients = new Map();
 
 export default function setupSockets(io) {
     io.on('connection', (socket) => {
         console.log('Nouvel utilisateur connecté :', socket.id);
 
+        const client = new Client(socket.id, `Player ${clients.size + 1}`);
+        clients.set(socket.id, client);
+
         socket.on('disconnect', () => {
-            console.log('Utilisateur déconnecté :', socket.id);
+            console.log('Utilisateur déconnecté :', client.getSocketId());
+
+            clients.delete(socket.id);
 
             for (let room in rooms) {
                 if (rooms[room].includes(socket.id)) {
@@ -40,9 +46,9 @@ export default function setupSockets(io) {
             }
         });
 
-        socket.on('lobby ready', () => {
+        /*socket.on('lobby ready', () => {
             socket.emit('lobby');
-        });
+        });*/
 
         socket.on('padMove', (data) => {
             const room = findRoomForSocket(socket.id);
@@ -81,6 +87,7 @@ export default function setupSockets(io) {
             if (room) {
                 io.in(room).emit('gameEnded');
                 io.in(room).socketsLeave(room);
+                client.delRoom(room);
 
                 delete rooms[room];
                 delete roomsTypes[room];
@@ -95,6 +102,8 @@ export default function setupSockets(io) {
             rooms[room].push(socket.id);
             roomsTypes[room] = 'solo_vs_ia';
             socket.join(room);
+
+            client.setRoom(room);
 
             keysPressedMap.set(room, {
                 pad1MoveUp: false,
@@ -112,6 +121,8 @@ export default function setupSockets(io) {
             rooms[room].push(socket.id);
             roomsTypes[room] = 'multi-2-local';
             socket.join(room);
+
+            client.setRoom(room);
 
             keysPressedMap.set(room, {
                 pad1MoveUp: false,
@@ -137,6 +148,8 @@ export default function setupSockets(io) {
                 padsMap.set(room, { pad1, pad2 });
 
             }
+
+            client.setRoom(room);
             
             console.log(`Joueur ${socket.id} a rejoint ${room}`);
             
@@ -160,7 +173,7 @@ export default function setupSockets(io) {
                     speed: ball.speed,
                 });
 
-                setupMultiGame(io, room, ball, pad1, pad2, keysPressedMap.get(room));
+                setupMultiGame(io, rooms[room], room, ball, pad1, pad2, keysPressedMap.get(room));
             }
         });
 
@@ -178,6 +191,8 @@ export default function setupSockets(io) {
 
             }
             
+            client.setRoom(room);
+
             console.log(`Joueur ${socket.id} a rejoint ${room}`);
             
             if (rooms[room].length === 4) {
@@ -204,7 +219,7 @@ export default function setupSockets(io) {
                     speed: ball.speed,
                 });
 
-                setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, keysPressedMap.get(room));
+                setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, keysPressedMap.get(room), rooms[room]);
             }
         });
 

@@ -168,7 +168,7 @@ function animateChoice() {
 }
 
 function animate() {
-    updateFPSDisplay();
+    //updateFPSDisplay();
     requestAnimationFrame(animate);
     updateAnimation();
     renderer.render(scene, camera);
@@ -209,7 +209,6 @@ socket.on('start-game', (rooms, roomsTypes) => {
 });
 
 socket.on('movePad', (data) => {
-    console.log('reception movePad');
     pad1.mesh.position.z = data.pad1;
     pad2.mesh.position.z = data.pad2;
     if (pad4) {

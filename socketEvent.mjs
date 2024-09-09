@@ -97,10 +97,6 @@ export function initSocketEvent(socket, ball){
         document.getElementById('player-2').textContent = socketIds.room[1];
         document.getElementById('player-3').textContent = socketIds.room[2];
         document.getElementById('player-4').textContent = socketIds.room[3];
-        document.getElementById('player-5').textContent = socketIds.room[4];
-        document.getElementById('player-6').textContent = socketIds.room[5];
-        document.getElementById('player-7').textContent = socketIds.room[6];
-        document.getElementById('player-8').textContent = socketIds.room[7];
     }
     
     document.getElementById('tournament-back-button').addEventListener('click', () => {
@@ -127,6 +123,60 @@ export function initSocketEvent(socket, ball){
             }
         }, 1000);
     });
+
+    socket.on('matchOver', (data) => {
+        const winner = data.winner;
+        const currentRoom = data.roomName;
+        document.getElementById('score').classList.add('hidden');
+        document.getElementById('score').classList.remove('score-container');
+        document.getElementById('scoreLeft').textContent = 0;
+        document.getElementById('scoreRight').textContent = 0;
+        document.getElementById('tournament-details').classList.remove('hidden');
+        document.getElementById('tournament-details').classList.add('flex');
+    
+        if (winner === socket.id) {
+            socket.emit('match-finished', { playerWinner: winner, room: currentRoom });
+        }
+
+        //updateTournamentDisplay(winner);
+    });
+    
+    socket.on('update tournament', (winner) => {
+        const winner1 = winner[0];
+        const winner2 = winner[1];
+        updateTournamentDisplay(winner2);
+        updateTournamentDisplay(winner1);
+    })
+
+    function updateTournamentDisplay(winner) {
+        const player1 = document.getElementById('player-1').textContent;
+        const player2 = document.getElementById('player-2').textContent;
+        const player3 = document.getElementById('player-3').textContent;
+        const player4 = document.getElementById('player-4').textContent;
+        
+        const gagnant1 = document.getElementById('Gagnant-1');
+        const gagnant2 = document.getElementById('Gagnant-2');
+        
+        if (winner === player1 || winner === player2) {
+            if (gagnant1.textContent === '') {
+                gagnant1.textContent = winner;
+            } else {
+                gagnant2.textContent = winner;
+            }
+        } else if (winner === player3 || winner === player4) {
+            if (gagnant2.textContent === '') {
+                gagnant2.textContent = winner;
+            } else {
+                gagnant1.textContent = winner;
+            }
+        }
+        
+        if (gagnant1.textContent && gagnant2.textContent) {
+            const gagnantFinale = document.querySelector('div.colonne:nth-of-type(3) span');
+            gagnantFinale.textContent = '';
+        }
+    }
+    
     
 
     socket.on('gameOver', (data) => {
