@@ -41,4 +41,10 @@ export class Pad {
     setTargetY(y) {
         this.targetY = y;
     }
+
+    removeFromScene(scene) {
+        scene.remove(this.mesh);
+        this.mesh.geometry.dispose();
+        this.mesh.material.dispose();
+    }
 }

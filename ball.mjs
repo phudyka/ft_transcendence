@@ -90,4 +90,10 @@ export class Ball {
         }
         return false;
     }
+
+    removeFromScene(scene) {
+        scene.remove(this.mesh);
+        this.mesh.geometry.dispose();
+        this.mesh.material.dispose();
+    }
 }

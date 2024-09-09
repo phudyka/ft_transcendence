@@ -27,8 +27,8 @@ const socket = io();
 
 let controlledPad = null;
 let controlledPads = null;
-let pad1, pad2, pad3, pad4;
-let scene, camera, renderer, listener;
+export let pad1, pad2, pad3, pad4, ball;
+export let scene, camera, renderer, listener;
 let logo
 let mixer, action;
 let choice = false;
@@ -86,7 +86,7 @@ pad1.addToScene(scene);
 pad2 = new Pad(0x2040df, 0.045, 0.50, 16, 2.10, 3.59, 0);
 pad2.addToScene(scene);
 
-const ball = new Ball(0.07, 32);
+ball = new Ball(0.07, 32);
 ball.addToScene(scene);
 
 
@@ -165,6 +165,8 @@ function animateChoice() {
         updateAnimation();
         renderer.render(scene, camera);
     }
+    else
+        animate();
 }
 
 function animate() {
@@ -204,8 +206,6 @@ socket.on('start-game', (rooms, roomsTypes) => {
         pad4 = new Pad(0x2040df, 0.045, 0.50, 16, 0.5, 3.59, 0);
         pad4.addToScene(scene);
     }
-
-    animate();
 });
 
 socket.on('movePad', (data) => {
@@ -216,3 +216,68 @@ socket.on('movePad', (data) => {
         pad4.mesh.position.z = data.pad4;
     }
 });
+
+socket.on('matchOver', (data) => {
+    const winner = data.winner;
+    const currentRoom = data.roomName;
+    document.getElementById('score').classList.add('hidden');
+    document.getElementById('score').classList.remove('score-container');
+    document.getElementById('scoreLeft').textContent = 0;
+    document.getElementById('scoreRight').textContent = 0;
+    document.getElementById('tournament-details').classList.remove('hidden');
+    document.getElementById('tournament-details').classList.add('flex');
+
+    if (winner === socket.id) {
+        socket.emit('match-finished', { playerWinner: winner, room: currentRoom });
+    }
+
+    cleanUpGameObjects();
+    //updateTournamentDisplay(winner);
+});
+
+socket.on('gameOver', (data) => {
+    const winner = data.winner;
+    const gameOverSection = document.getElementById('game-over');
+    const winnerMessage = document.getElementById('winner-message');
+    winnerMessage.textContent = `Le gagnant est ${winner}!`;
+    gameOverSection.style.display = 'flex';
+    
+    document.getElementById('score').classList.add('hidden');
+    document.getElementById('score').classList.remove('score-container');
+    document.getElementById('scoreLeft').textContent = 0;
+    document.getElementById('scoreRight').textContent = 0;
+    //document.getElementById('menu').classList.add('active');
+    document.getElementById('tournament').classList.remove('active');
+    
+    document.getElementById('back-to-menu-button').addEventListener('click', () => {
+        gameOverSection.style.display = 'none';
+        document.getElementById('menu').classList.remove('hidden');
+    });
+    cleanUpGameObjects();
+    socket.emit('endGame');
+});
+
+function removeGameObject(gameObject) {
+    if (gameObject) {
+        gameObject.removeFromScene(scene);
+        gameObject = null;
+    }
+    return gameObject;
+}
+
+function cleanUpGameObjects() {
+    pad1 = removeGameObject(pad1);
+    pad2 = removeGameObject(pad2);
+    pad3 = removeGameObject(pad3);
+    pad4 = removeGameObject(pad4);
+    ball = removeGameObject(ball);
+
+    pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.10, 3.59, 0);
+    pad1.addToScene(scene);
+
+    pad2 = new Pad(0x2040df, 0.045, 0.50, 16, 2.10, 3.59, 0);
+    pad2.addToScene(scene);
+
+    ball = new Ball(0.07, 32);
+    ball.addToScene(scene);
+}

@@ -1,7 +1,9 @@
 
 import * as THREE from './node_modules/three/build/three.module.js';
 
-export function initSocketEvent(socket, ball){
+import { scene, ball, pad1, pad2, pad3, pad4 } from './main.mjs'
+
+export function initSocketEvent(socket){
 
     socket.on('initBall', (data) => {
         ball.mesh.position.x = data.position.x;
@@ -124,22 +126,22 @@ export function initSocketEvent(socket, ball){
         }, 1000);
     });
 
-    socket.on('matchOver', (data) => {
-        const winner = data.winner;
-        const currentRoom = data.roomName;
-        document.getElementById('score').classList.add('hidden');
-        document.getElementById('score').classList.remove('score-container');
-        document.getElementById('scoreLeft').textContent = 0;
-        document.getElementById('scoreRight').textContent = 0;
-        document.getElementById('tournament-details').classList.remove('hidden');
-        document.getElementById('tournament-details').classList.add('flex');
+    // socket.on('matchOver', (data) => {
+    //     const winner = data.winner;
+    //     const currentRoom = data.roomName;
+    //     document.getElementById('score').classList.add('hidden');
+    //     document.getElementById('score').classList.remove('score-container');
+    //     document.getElementById('scoreLeft').textContent = 0;
+    //     document.getElementById('scoreRight').textContent = 0;
+    //     document.getElementById('tournament-details').classList.remove('hidden');
+    //     document.getElementById('tournament-details').classList.add('flex');
     
-        if (winner === socket.id) {
-            socket.emit('match-finished', { playerWinner: winner, room: currentRoom });
-        }
+    //     if (winner === socket.id) {
+    //         socket.emit('match-finished', { playerWinner: winner, room: currentRoom });
+    //     }
 
-        //updateTournamentDisplay(winner);
-    });
+    //     //updateTournamentDisplay(winner);
+    // });
     
     socket.on('update tournament', (winner) => {
         const winner1 = winner[0];
@@ -179,26 +181,26 @@ export function initSocketEvent(socket, ball){
     
     
 
-    socket.on('gameOver', (data) => {
-        const winner = data.winner;
-        const gameOverSection = document.getElementById('game-over');
-        const winnerMessage = document.getElementById('winner-message');
-        winnerMessage.textContent = `Le gagnant est ${winner}!`;
-        gameOverSection.style.display = 'flex';
+    // socket.on('gameOver', (data) => {
+    //     const winner = data.winner;
+    //     const gameOverSection = document.getElementById('game-over');
+    //     const winnerMessage = document.getElementById('winner-message');
+    //     winnerMessage.textContent = `Le gagnant est ${winner}!`;
+    //     gameOverSection.style.display = 'flex';
         
-        document.getElementById('score').classList.add('hidden');
-        document.getElementById('score').classList.remove('score-container');
-        document.getElementById('scoreLeft').textContent = 0;
-        document.getElementById('scoreRight').textContent = 0;
-        //document.getElementById('menu').classList.add('active');
-        document.getElementById('tournament').classList.remove('active');
+    //     document.getElementById('score').classList.add('hidden');
+    //     document.getElementById('score').classList.remove('score-container');
+    //     document.getElementById('scoreLeft').textContent = 0;
+    //     document.getElementById('scoreRight').textContent = 0;
+    //     //document.getElementById('menu').classList.add('active');
+    //     document.getElementById('tournament').classList.remove('active');
         
-        document.getElementById('back-to-menu-button').addEventListener('click', () => {
-            gameOverSection.style.display = 'none';
-            document.getElementById('menu').classList.remove('hidden');
-        });
-        socket.emit('endGame');
-    });
+    //     document.getElementById('back-to-menu-button').addEventListener('click', () => {
+    //         gameOverSection.style.display = 'none';
+    //         document.getElementById('menu').classList.remove('hidden');
+    //     });
+    //     socket.emit('endGame');
+    // });
 
 }
 
