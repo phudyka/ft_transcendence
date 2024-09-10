@@ -206,7 +206,27 @@ socket.on('start-game', (rooms, roomsTypes) => {
         pad4 = new Pad(0x2040df, 0.045, 0.50, 16, 0.5, 3.59, 0);
         pad4.addToScene(scene);
     }
+    colorPad(controlledPad);
 });
+
+function colorPad(number){
+    switch (number) {
+        case 1:
+            pad1.color();
+            break;
+        case 2:
+            pad2.color();
+            break;
+        case 3:
+            pad3.color();
+            break;
+        case 4:
+            pad4.color();
+            break;
+        default:
+            break;
+    }
+}
 
 socket.on('movePad', (data) => {
     pad1.mesh.position.z = data.pad1;
@@ -255,6 +275,7 @@ socket.on('gameOver', (data) => {
     });
     cleanUpGameObjects();
     socket.emit('endGame');
+    choice === false;
 });
 
 function removeGameObject(gameObject) {

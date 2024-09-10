@@ -28,6 +28,7 @@ export class Pad {
         this.targetY = this.mesh.position.y;
         this.speed = 0.03;
         this.score = 0;
+        this.originColor = color;
     }
 
     addToScene(scene) {
@@ -46,5 +47,24 @@ export class Pad {
         scene.remove(this.mesh);
         this.mesh.geometry.dispose();
         this.mesh.material.dispose();
+    }
+
+    color() {
+        let countdown = 6;
+        const intervalDuration = 200;
+        
+        const countdownInterval = setInterval(() => {
+            if (countdown % 2 === 0) {
+                this.mesh.material.color.set(0xffff00);
+            } else {
+                this.mesh.material.color.set(this.originColor);
+            }
+    
+            countdown--;
+            if (countdown <= 0) {
+                this.mesh.material.color.set(this.originColor);
+                clearInterval(countdownInterval);
+            }
+        }, intervalDuration);
     }
 }
