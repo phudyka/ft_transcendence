@@ -58,15 +58,36 @@ export function settings() {
                         <label for="confirmPasswordsetttings" class="form-label">Confirm New Password</label>
                         <input type="password" class="form-control" id="confirmPasswordsetttings" name="confirmPasswordsetttings">
                     </div>
-                    <button type="submit" class="btn btn-primary">Change Password</button>
+                    <button type="submit" class="btn btn-primary" style="margin-bottom: 3%;margin-top:10%;">Change Password</button>
                 </form>
-
-                <button id="backToDashboard" class="btn btn-primary">Back to Dashboard</button>
+                <button id="backToDashboard" class="btn btn-primary" style="margin-bottom: 3%;">Back to Dashboard</button>
             </div>
         </div>
-        <footer class="py-3 my-4">
+        <footer class="py-3 my-4" style="margin-top: 5%;">
             <p class="text-center text-body-secondary">© 2024 42 Company, Inc</p>
         </footer>
+        <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 11">
+		<div id="saveSettingsToast" class="toast" aria-live="assertive" aria-atomic="true">
+		<div class="toast-header">
+		  <strong class="me-auto">Settings Saved!</strong>
+		  <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+		</div>
+		<div class="toast-body">
+        Your profile settings have been successfully updated.
+		</div>
+		</div>
+	</div>
+    <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 11">
+    <div id="savePasswordToast" class="toast" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+      <strong class="me-auto">Password Saved!</strong>
+      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+    Your password have been successfully updated.
+    </div>
+    </div>
+</div>
     `;
 
     attachEventSettingsPage(navigateTo, player_name);
@@ -93,7 +114,7 @@ function attachEventSettingsPage(navigateTo, player_name) {
 
     settingsForm.addEventListener('submit', (event) => {
         event.preventDefault();
-        const formData = new FormData(settingsForm);
+        showUpdateProfileToast();
         // Here you would typically send the form data to your backend
         console.log('Settings saved', Object.fromEntries(formData));
         alert('Settings saved successfully!');
@@ -102,7 +123,7 @@ function attachEventSettingsPage(navigateTo, player_name) {
     changePasswordForm.addEventListener('submit', (event) => {
         event.preventDefault();
         const newPassword = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
+        const confirmPassword = document.getElementById('confirmPasswordsetttings').value;
 
         if (newPassword !== confirmPassword) {
             alert('Passwords do not match');
@@ -111,7 +132,7 @@ function attachEventSettingsPage(navigateTo, player_name) {
 
         // Here you would typically send the new password to your backend
         console.log('Password changed');
-        alert('Password changed successfully!');
+        showsavePasswordToast();
     });
 
     avatarInput.addEventListener('change', (event) => {
@@ -129,4 +150,16 @@ function attachEventSettingsPage(navigateTo, player_name) {
     document.getElementById('displayName').value = player_name;
     document.getElementById('email').value = 'newmail@example.com';
     document.getElementById('emailNotifications').checked = true;
+}
+
+function showUpdateProfileToast() {
+	const toastEl = document.getElementById('saveSettingsToast');
+	const toast = new bootstrap.Toast(toastEl);
+	toast.show();
+}
+
+function showsavePasswordToast() {
+	const toastEl = document.getElementById('savePasswordToast');
+	const toast = new bootstrap.Toast(toastEl);
+	toast.show();
 }

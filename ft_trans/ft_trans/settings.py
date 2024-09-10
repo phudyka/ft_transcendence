@@ -50,14 +50,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-	'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-	'django.middleware.csrf.CsrfViewMiddleware', # for session
-    'django.contrib.auth.middleware.AuthenticationMiddleware', # for session
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -65,20 +64,6 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 CORS_ALLOW_CREDENTIALS = True
-
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'handlers': {
-        'console': {
-            'class': 'logging.StreamHandler',
-        },
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO',
-    },
-}
 
 ROOT_URLCONF = 'ft_trans.urls'
 
@@ -173,31 +158,19 @@ SIMPLE_JWT = { # for jwt
     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
 }
 
+AUTH_USER_MODEL = 'pong.CustomUser'
+
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
         'console': {
-            'level': 'INFO',
             'class': 'logging.StreamHandler',
         },
     },
-    'loggers': {
-        'django': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'django.db.backends': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': False,
-        },
-        'pong': {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        # Add other apps here if needed
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
     },
 }

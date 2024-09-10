@@ -31,7 +31,7 @@ export function register() {
       <div class="password-wrapper">
         <input type="password" value="" placeholder="Confirm Password" id="confirmPassword" class="password">
         <button class="unmask" type="button" title="Mask/Unmask password to check content">
-          <i class="fas fa-lock"></i> 
+          <i class="fas fa-lock"></i>
         </button>
       </div>
       </p>
@@ -120,8 +120,10 @@ function setupRegisterEvents(navigateTo) {
 
       const selectedAvatar = document.querySelector('.carousel-item.active img').src;
 
+      console.log('Registering user:', username, email, password, selectedAvatar);
       try {
           const csrfToken = await getCsrfToken();
+          console.log('CSRF token:', csrfToken);
           const response = await fetch('/api/register/', {
               method: 'POST',
               headers: {

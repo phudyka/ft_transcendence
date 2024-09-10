@@ -280,7 +280,7 @@ function showChatbox(event) {
 	chatbox.show();
 	setupPrivateChat(friendName);
 
-	document.getElementById('chat-log2').innerHTML = '';
+	document.getElementById('chat-log2').innerHTML = ' ';
 }
 
 function setupPrivateChat(friendName) {

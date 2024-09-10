@@ -677,7 +677,7 @@ CREATE TABLE public.users (
     email character varying(100) NOT NULL,
     password_hash character varying(255) NOT NULL,
     display_name character varying(50) NOT NULL,
-    avatar_url character varying(255) DEFAULT 'default_avatar.png'::character varying,
+    avatar_url character varying(255) DEFAULT 'https://i.ibb.co/C2WLdyY/avatar1.png'::character varying,
     created_at timestamp with time zone DEFAULT CURRENT_TIMESTAMP,
     last_login timestamp with time zone,
     is_online boolean DEFAULT false,

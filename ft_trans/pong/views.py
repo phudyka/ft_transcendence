@@ -10,6 +10,8 @@ from django.db import IntegrityError
 import json
 import logging
 logger = logging.getLogger(__name__)
+from .models import CustomUser
+from django.utils import timezone
 
 def create_user(request):
 	if request.method == 'POST':
@@ -61,35 +63,38 @@ def register_view(request):
             password = data.get('password')
             avatar_url = data.get('avatar_url')
 
-            if User.objects.filter(username=username).exists():
+            if CustomUser.objects.filter(username=username).exists():
                 return JsonResponse({'success': False, 'error': 'This username is already taken.'})
-
-            if User.objects.filter(email=email).exists():
+            if CustomUser.objects.filter(email=email).exists():
                 return JsonResponse({'success': False, 'error': 'This email is already in use.'})
 
-            user = User.objects.create_user(
+            # Créer l'utilisateur avec les données fournies
+            user = CustomUser.objects.create_user(
                 username=username,
                 email=email,
-                password=password,
-                avatar_url=avatar_url)
-
-            # Si vous avez un modèle de profil séparé, vous pouvez l'utiliser ici
-            # user.profile.avatar_url = avatar_url
-            # user.profile.save()
+                password_hash=password,
+                avatar_url=avatar_url,
+                display_name=username,  # Utiliser le username comme display_name par défaut
+                created_at=timezone.now(),
+                last_login=None,
+                is_online=False,
+                wins=0,
+                losses=0
+            )
 
             return JsonResponse({'success': True, 'message': 'Account created successfully.'})
-        except IntegrityError as e:
-            return JsonResponse({'success': False, 'error': 'Database integrity error. Please try again.'})
         except json.JSONDecodeError:
             return JsonResponse({'success': False, 'error': 'Invalid JSON data.'})
         except Exception as e:
+            logger.error(f"Error during registration: {str(e)}")
             return JsonResponse({'success': False, 'error': f'An error occurred: {str(e)}'})
 
     return JsonResponse({'success': False, 'error': 'Invalid request method.'})
 
 @ensure_csrf_cookie
 def set_csrf_token(request):
-    print('set_csrf_token url')
+    token = get_token(request)
+    logger.info(f"CSRF Token generated: {token}")
     return JsonResponse({'csrfToken': get_token(request)})
 
 
