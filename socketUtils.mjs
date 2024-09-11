@@ -7,17 +7,26 @@ export function findOrCreateRoom(type, name = null) {
     let maxPlayers;
 
     if (type === 'tournament') {
-        maxPlayers = 8;
+        maxPlayers = 4;
     } else if (type === 'multi-four') {
         maxPlayers = 4;
-    } else if (type === 'multi-2-online'){
+    } else if (type === 'multi-2-online') {
         maxPlayers = 2;
     }
 
-    for (const r in rooms) {
-        if (roomsTypes[r] === type && rooms[r].length < maxPlayers) {
-            room = r;
-            break;
+    if (type === 'tournament' && name) {
+        for (const r in rooms) {
+            if (roomsTypes[r] === type && r === name && rooms[r].length < maxPlayers) {
+                room = r;
+                break;
+            }
+        }
+    } else {
+        for (const r in rooms) {
+            if (roomsTypes[r] === type && rooms[r].length < maxPlayers) {
+                room = r;
+                break;
+            }
         }
     }
 
@@ -33,6 +42,7 @@ export function findOrCreateRoom(type, name = null) {
 
     return room;
 }
+
 
 export function findRoomForSocket(socketId) {
     for (const room in rooms) {

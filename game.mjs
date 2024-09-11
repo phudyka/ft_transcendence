@@ -72,8 +72,8 @@ function checkWallCollision(ball, pad1, pad2, io, room, roomsTypes, players) {
         pad1.score++;
         io.in(room).emit('updateScores', { score1: pad1.score, score2: pad2.score });
         if (pad1.score >= maxScore) {
-            if (roomsTypes === "tournament"){
-                io.in(room).emit('matchOver', { winner: client1.getSocketId(), roomName: room});
+            if (roomsTypes === "semi-tournament" || roomsTypes === "final-tournament"){
+                io.in(room).emit('matchOver', { winner: client1.getSocketId(), roomName: room, roomType: roomsTypes});
             }
             else {
                 if (roomsTypes === "solo_vs_ia" || roomsTypes === "multi-2-local")
@@ -91,8 +91,8 @@ function checkWallCollision(ball, pad1, pad2, io, room, roomsTypes, players) {
         pad2.score++;
         io.in(room).emit('updateScores', { score1: pad1.score, score2: pad2.score });
         if (pad2.score >= maxScore) { 
-            if (roomsTypes === "tournament"){
-                io.in(room).emit('matchOver', { winner: client2.getSocketId(), roomName: room});
+            if (roomsTypes === "semi-tournament" || roomsTypes === "final-tournament"){
+                io.in(room).emit('matchOver', { winner: client2.getSocketId(), roomName: room, roomType: roomsTypes});
             }
             else {
                 if (roomsTypes === "solo_vs_ia" || roomsTypes === "multi-2-local")

@@ -182,6 +182,8 @@ socket.on('start-game', (rooms, roomsTypes) => {
     controls.target.set(0, 3, 0);
     controls.autoRotate = false;
     controls.update();
+    controlledPad = 0;
+    controlledPads = 0;
     document.getElementById('tournament-details').classList.add('hidden');
     document.getElementById('tournament-details').classList.remove('flex');
     document.getElementById('waiting').classList.add('hidden');
@@ -248,7 +250,7 @@ socket.on('matchOver', (data) => {
     document.getElementById('tournament-details').classList.add('flex');
 
     if (winner === socket.id) {
-        socket.emit('match-finished', { playerWinner: winner, room: currentRoom });
+        socket.emit('match-finished', { playerWinner: winner, room: currentRoom, roomType: data.roomType });
     }
 
     cleanUpGameObjects();

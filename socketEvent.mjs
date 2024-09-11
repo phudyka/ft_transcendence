@@ -144,40 +144,72 @@ export function initSocketEvent(socket){
     // });
     
     socket.on('update tournament', (winner) => {
-        const winner1 = winner[0];
-        const winner2 = winner[1];
-        updateTournamentDisplay(winner2);
-        updateTournamentDisplay(winner1);
-    })
-
-    function updateTournamentDisplay(winner) {
+        if (winner.length === 2) {
+            const winner1 = winner[0];
+            const winner2 = winner[1];
+            updateSemiFinal(winner1, winner2);
+        }
+        else if (winner.length === 1) {
+            updateFinal(winner[0]);
+        }
+    });
+    
+    function updateSemiFinal(winner1, winner2) {
         const player1 = document.getElementById('player-1').textContent;
         const player2 = document.getElementById('player-2').textContent;
         const player3 = document.getElementById('player-3').textContent;
         const player4 = document.getElementById('player-4').textContent;
-        
+    
         const gagnant1 = document.getElementById('Gagnant-1');
         const gagnant2 = document.getElementById('Gagnant-2');
-        
-        if (winner === player1 || winner === player2) {
-            if (gagnant1.textContent === '') {
-                gagnant1.textContent = winner;
-            } else {
-                gagnant2.textContent = winner;
-            }
-        } else if (winner === player3 || winner === player4) {
-            if (gagnant2.textContent === '') {
-                gagnant2.textContent = winner;
-            } else {
-                gagnant1.textContent = winner;
-            }
+    
+        if (winner1 === player1 || winner1 === player2) {
+            gagnant1.textContent = winner1;
+        } else if (winner1 === player3 || winner1 === player4) {
+            gagnant2.textContent = winner1;
         }
-        
-        if (gagnant1.textContent && gagnant2.textContent) {
-            const gagnantFinale = document.querySelector('div.colonne:nth-of-type(3) span');
-            gagnantFinale.textContent = '';
+    
+        if (winner2 === player1 || winner2 === player2) {
+            gagnant1.textContent = winner2;
+        } else if (winner2 === player3 || winner2 === player4) {
+            gagnant2.textContent = winner2;
         }
     }
+    
+    function updateFinal(winner) {
+        const matchInfoDiv = document.getElementById('match-info');
+        document.getElementById('match-info').classList.remove('hidden');
+        const gagnantFinale = document.getElementById('Gagnant-Finale');
+        gagnantFinale.textContent = winner;
+        const message = `Le gagnant du tournois est ${winner}`;
+        let countdown = 5;
+        matchInfoDiv.innerHTML = `<p>${message}</p><p>Retour au menu dans <span id="countdown">${countdown}</span> secondes...</p>`;
+        
+        const countdownInterval = setInterval(() => {
+            countdown--;
+            document.getElementById('countdown').innerText = countdown;
+    
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                matchInfoDiv.innerHTML = '';
+                document.getElementById('match-info').classList.add('hidden');
+                document.getElementById('tournament-details').classList.add('hidden');
+                document.getElementById('tournament-details').classList.remove('flex');
+                document.getElementById('menu').classList.remove('hidden');
+                document.getElementById('player-1').textContent = '';
+                document.getElementById('player-2').textContent = '';
+                document.getElementById('player-3').textContent = '';
+                document.getElementById('player-4').textContent = '';
+            
+                document.getElementById('Gagnant-1').textContent = '';
+                document.getElementById('Gagnant-2').textContent = '';
+                document.getElementById('Gagnant-Finale').textContent = '';
+                socket.emit('quit-tournament');
+            }
+        }, 1000);
+    }
+    
+    
     
     
 
