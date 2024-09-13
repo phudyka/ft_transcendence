@@ -10,6 +10,7 @@ export const roomsTypes = {};
 const padsMap = new Map();
 export const keysPressedMap = new Map();
 export const clients = new Map();
+const roomTeams = new Map();
 
 export default function setupSockets(io) {
     io.on('connection', (socket) => {
@@ -26,22 +27,41 @@ export default function setupSockets(io) {
             for (let room in rooms) {
                 if (rooms[room].includes(socket.id)) {
                     rooms[room] = rooms[room].filter(id => id !== socket.id);
-                    console.log(`Le joueur ${socket.id} a quitté ${room}`);
+                    console.log(`Le joueur ${socket.id} a quitté ${room} de type ${roomsTypes[room]}`);
 
                     if (rooms[room].length === 0 || (roomsTypes[room] === 'multi-2-online'
-                        && rooms[room].length === 1) || (roomsTypes[room] === 'multi-four'
-                            && rooms[room].length === 3)) {
+                        && rooms[room].length === 0) || (roomsTypes[room] === 'multi-four'
+                            && rooms[room].length === 0)) {
                         io.in(room).socketsLeave(room);
                         delete rooms[room];
                         delete roomsTypes[room];
                         padsMap.delete(room);
                         keysPressedMap.delete(room);
+                        roomTeams.delete(room);
                         console.log(`La salle ${room} a été supprimée`);
                     } else if (rooms[room].length === 1 && roomsTypes[room] === 'multi-2-online') {
                         io.to(rooms[room][0]).emit('gameOver', { winner: rooms[room][0] });
+                    } else if (roomsTypes[room] === 'semi-tournament' || roomsTypes[room] === 'final-tournament') {
+                        io.to(rooms[room]).emit('matchOver', { winner: rooms[room][0], roomName: room, roomType: roomsTypes[room]});
+                        console.log('matchOver bien envoyé');
+                    } else if (rooms[room].length > 0 && roomsTypes[room] === 'multi-four') {
+                        let winningTeam;
+                        
+                            const teams = roomTeams.get(room);
+                            if (teams.team1[0] === socket.id || teams.team1[1] === socket.id) {
+                                winningTeam = teams.team2;
+                            } else if (teams.team2[0] === socket.id || teams.team2[1] === socket.id) {
+                                winningTeam = teams.team1;
+                        }
+        
+                        if (winningTeam) {
+                            io.to(room).emit('gameOver', { winner: winningTeam });
+                        } else {
+                            console.error(`Impossible de déterminer l'équipe gagnante pour la salle ${room}`);
+                        }
                     }
 
-                    break;
+                    //break;
                 }
             }
         });
@@ -140,6 +160,7 @@ export default function setupSockets(io) {
         socket.on('multi-2-online', () => {
             let room = findOrCreateRoom('multi-2-online');
             rooms[room].push(socket.id);
+            roomsTypes[room] = 'multi-2-online';
             socket.join(room);
 
             if (rooms[room].length === 1) {
@@ -173,7 +194,7 @@ export default function setupSockets(io) {
                     speed: ball.speed,
                 });
 
-                setupMultiGame(io, rooms[room], room, ball, pad1, pad2, keysPressedMap.get(room));
+                setupMultiGame(io, socket, rooms[room], room, ball, pad1, pad2, keysPressedMap.get(room), roomsTypes);
             }
         });
 
@@ -196,6 +217,10 @@ export default function setupSockets(io) {
             console.log(`Joueur ${socket.id} a rejoint ${room}`);
             
             if (rooms[room].length === 4) {
+                roomTeams.set(room, {
+                    team1: [rooms[room][0], rooms[room][2]],
+                    team2: [rooms[room][1], rooms[room][3]]
+                });
                 io.in(room).emit('start-game', rooms[room], roomsTypes[room]);
                 console.log(`Démarrage du jeu dans ${room}`);
                 
@@ -224,6 +249,6 @@ export default function setupSockets(io) {
         });
 
         // Tournoi
-        setupTournamentEvents(io, socket, rooms, roomsTypes, padsMap);
+        setupTournamentEvents(io, socket, padsMap);
     });
 }

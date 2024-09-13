@@ -261,7 +261,10 @@ socket.on('gameOver', (data) => {
     const winner = data.winner;
     const gameOverSection = document.getElementById('game-over');
     const winnerMessage = document.getElementById('winner-message');
-    winnerMessage.textContent = `Le gagnant est ${winner}!`;
+    if (data.winner.length === 2)
+        winnerMessage.textContent = `Les gagnants sont ${winner}!`;
+    else
+        winnerMessage.textContent = `Le gagnant est ${winner}!`;
     gameOverSection.style.display = 'flex';
     
     document.getElementById('score').classList.add('hidden');
@@ -277,7 +280,6 @@ socket.on('gameOver', (data) => {
     });
     cleanUpGameObjects();
     socket.emit('endGame');
-    choice === false;
 });
 
 function removeGameObject(gameObject) {

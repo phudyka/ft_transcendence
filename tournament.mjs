@@ -3,12 +3,13 @@ import { setupMultiGame } from './game.mjs';
 import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
 import { keysPressedMap } from './sockets.mjs'
+import { rooms, roomsTypes } from './sockets.mjs'
 
 let roomMain;
 const playerRoomMap = {};
 const finalPlayers = [];
 
-export function setupTournamentEvents(io, socket, rooms, roomsTypes, padsMap) {
+export function setupTournamentEvents(io, socket, padsMap) {
 
     socket.on('match-finished', (data) => {
         const winnerId = data.playerWinner;
@@ -70,6 +71,7 @@ export function setupTournamentEvents(io, socket, rooms, roomsTypes, padsMap) {
         const roomName = `${socket.id}'s tournament`;
         const room = findOrCreateRoom('tournament', roomName);
         rooms[room] = [socket.id];
+        roomsTypes[room] = "tournament";
         playerRoomMap[socket.id] = room;
         socket.join(room);
 
@@ -83,7 +85,7 @@ export function setupTournamentEvents(io, socket, rooms, roomsTypes, padsMap) {
         });
 
         if (room && rooms[room].length === 4) {
-            createQuarterRooms(io, socket, room, rooms, roomsTypes, padsMap);
+            createQuarterRooms(io, socket, room, roomsTypes, padsMap);
         }
     });
 
@@ -100,7 +102,7 @@ export function setupTournamentEvents(io, socket, rooms, roomsTypes, padsMap) {
         }
 
         if (room && rooms[room].length === 4) {
-            createQuarterRooms(io, socket, room, rooms, roomsTypes, padsMap);
+            createQuarterRooms(io, socket, room, roomsTypes, padsMap);
         }
     });
 
@@ -139,7 +141,7 @@ function updateTournamentList(io, rooms, roomsTypes) {
     io.emit('tournament-list', tournamentList);
 }
 
-function createQuarterRooms(io, socket, mainRoom, rooms, roomsTypes, padsMap) {
+function createQuarterRooms(io, socket, mainRoom, roomsTypes, padsMap) {
     const players = [...rooms[mainRoom]];
     const quarterRooms = [];
     roomMain = mainRoom;
@@ -147,7 +149,7 @@ function createQuarterRooms(io, socket, mainRoom, rooms, roomsTypes, padsMap) {
     for (let i = 0; i < 2; i++) {
         const quarterRoom = `${mainRoom}-quarter-${i + 1}`;
         rooms[quarterRoom] = [players[i * 2], players[i * 2 + 1]];
-        roomsTypes[quarterRoom] = 'quarter-final';
+        roomsTypes[quarterRoom] = "semi-tournament";
         quarterRooms.push(quarterRoom);
         
         keysPressedMap.set(quarterRoom, {
@@ -197,7 +199,7 @@ function createQuarterRooms(io, socket, mainRoom, rooms, roomsTypes, padsMap) {
     
             io.in(quarterRoom).emit('start-game', rooms[quarterRoom]);
     
-            setupMultiGame(io, rooms[quarterRoom], quarterRoom, ball, pad1, pad2, keysPressedMap.get(quarterRoom), "semi-tournament");
+            setupMultiGame(io, socket, rooms[quarterRoom], quarterRoom, ball, pad1, pad2, keysPressedMap.get(quarterRoom), "semi-tournament");
     
             console.log(`Starting quarter-final match in room: ${quarterRoom}`);
         }, 5000);
@@ -205,7 +207,7 @@ function createQuarterRooms(io, socket, mainRoom, rooms, roomsTypes, padsMap) {
 
 }
 
-function finalGame(io, rooms, finalPlayers, padsMap){
+function finalGame(io, rooms, finalPlayers, socket){
     const finalRoom = `${roomMain}-final`;
     rooms[finalRoom] = [finalPlayers[0], finalPlayers[1]];
     const allPlayers = rooms[roomMain];
@@ -253,7 +255,7 @@ function finalGame(io, rooms, finalPlayers, padsMap){
 
         io.in(roomMain).emit('start-game', rooms[finalRoom], "final-tournament");
 
-        setupMultiGame(io, rooms[finalRoom], finalRoom, ball, pad1, pad2, keysPressedMap.get(finalRoom), "final-tournament");
+        setupMultiGame(io, socket, rooms[finalRoom], finalRoom, ball, pad1, pad2, keysPressedMap.get(finalRoom), "final-tournament");
 
         console.log(`Starting final match in room: ${finalRoom}`);
     }, 5000);

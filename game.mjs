@@ -13,7 +13,7 @@
 import { tableHeight, tableWidth, padHeight } from './config.mjs';
 import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
-import { clients } from './sockets.mjs';
+import { clients, rooms } from './sockets.mjs';
 
 let maxScore = 3; // (11 points to win)
 
@@ -183,18 +183,25 @@ function updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room, k
         Movepad(pad1, pad2, keysPressed, room, io, pad3, pad4)
 }
 
-export function setupMultiGame(io, players, room, ball, pad1, pad2, keysPressed, roomsTypes) {
+export function setupMultiGame(io, socket, players, room, ball, pad1, pad2, keysPressed, roomsTypes) {
 
     const interval = setInterval(() => {
         if (updateBallPosition(ball, pad1, pad2, io, room, false, keysPressed, roomsTypes, players) === true) {
             clearInterval(interval);
         }
+        if (!rooms[room]) {
+            clearInterval(interval);
+        }
     }, 16);
+
 }
 
 export function setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, keysPressed, players) {
     const interval = setInterval(() => {
         if (updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room, keysPressed, players) === true){
+            clearInterval(interval);
+        }
+        if (!rooms[room]) {
             clearInterval(interval);
         }
         }, 16);
