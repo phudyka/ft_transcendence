@@ -76,6 +76,7 @@ export function setupTournamentEvents(io, socket, rooms, roomsTypes, padsMap) {
         console.log(`Player ${socket.id} created ${room}`);
         socket.emit('tournament-created');
         socket.emit('tournament-updated', { room: rooms[room] });
+        updateTournamentList(io, rooms, roomsTypes);
 
         socket.on('player_ready', () => {
             console.log('player ready:', socket.id);
@@ -103,7 +104,7 @@ export function setupTournamentEvents(io, socket, rooms, roomsTypes, padsMap) {
         }
     });
 
-    socket.on('quit-tournament', () => {
+    socket.on('quit-tournament', (data) => {
         const room = findRoomForSocket(socket.id, rooms);
         console.log("Nom de la room trouvée :", room);
     
@@ -113,11 +114,16 @@ export function setupTournamentEvents(io, socket, rooms, roomsTypes, padsMap) {
             delete playerRoomMap[socket.id];
             socket.leave(room);
 
-            if (room === roomMain && rooms[room].length === 0) {
+            if (!data && rooms[room].length > 0){
+                io.to(room).emit('tournament-updated', { room: rooms[room] });
+            }
+            
+            if (rooms[room].length === 0) {
                 delete rooms[room];
                 delete roomsTypes[room];
                 console.log(`Room principale ${room} a été supprimée`);
                 roomMain = null;
+                updateTournamentList(io, rooms, roomsTypes);
             }
         }
     });

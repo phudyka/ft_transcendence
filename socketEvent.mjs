@@ -204,7 +204,7 @@ export function initSocketEvent(socket){
                 document.getElementById('Gagnant-1').textContent = '';
                 document.getElementById('Gagnant-2').textContent = '';
                 document.getElementById('Gagnant-Finale').textContent = '';
-                socket.emit('quit-tournament');
+                socket.emit('quit-tournament', gagnantFinale);
             }
         }, 1000);
     }
