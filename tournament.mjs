@@ -12,34 +12,36 @@ export function setupTournamentEvents(io, socket, rooms, roomsTypes, padsMap) {
 
     socket.on('match-finished', (data) => {
         const winnerId = data.playerWinner;
-        finalPlayers.push(data.playerWinner);
-        console.log(`Match finished in room: ${data.room}. Winner: ${winnerId}. roomType: ${data.roomType}`);
-        
-        if (rooms[data.room]) {
-            delete rooms[data.room];
-            delete roomsTypes[data.room];
-            keysPressedMap.delete(data.room);
-            padsMap.delete(data.room);
-            console.log(`Room ${data.room} has been removed`);
-        }
+        finalPlayers.push(winnerId);
+        console.log(`Match terminé dans la room: ${data.room}. Gagnant: ${winnerId}. Type de room: ${data.roomType}`);
+
         if (data.roomType === "semi-tournament" && finalPlayers.length === 2) {
             console.log('Les 2 finalistes sont :', finalPlayers[0], finalPlayers[1]);
             io.to(roomMain).emit('update tournament', finalPlayers);
             finalGame(io, rooms, finalPlayers, padsMap);
-        }
+        } 
         else if (finalPlayers.length === 1 && data.roomType === "final-tournament") {
             console.log(`Le gagnant final est : ${finalPlayers[0]}`);
             io.to(roomMain).emit('update tournament', [finalPlayers[0]]);
-            // for (const room in rooms) {
-            //         delete rooms[room];
-            //         delete roomsTypes[room];
-            //         keysPressedMap.delete(room);
-            //         padsMap.delete(room);
-            //     }
             finalPlayers.length = 0;
-            roomMain = null;
-            console.log("Le tournoi a été réinitialisé.");
+            
+            for (const room in rooms) {
+                if (room !== roomMain) {
+                    delete rooms[room];
+                    delete roomsTypes[room];
+                    keysPressedMap.delete(room);
+                    padsMap.delete(room);
+                }
+            }
         }
+
+        if (rooms[data.room] && data.room !== roomMain) {
+            delete rooms[data.room];
+            delete roomsTypes[data.room];
+            keysPressedMap.delete(data.room);
+            padsMap.delete(data.room);
+            console.log(`Room ${data.room} a été supprimée`);
+        }        
     });
 
     socket.on('padMove', (data) => {
@@ -102,25 +104,24 @@ export function setupTournamentEvents(io, socket, rooms, roomsTypes, padsMap) {
     });
 
     socket.on('quit-tournament', () => {
-        const room = findRoomForSocket(socket.id);
-
+        const room = findRoomForSocket(socket.id, rooms);
+        console.log("Nom de la room trouvée :", room);
+    
         if (room) {
             const index = rooms[room].indexOf(socket.id);
             if (index !== -1) rooms[room].splice(index, 1);
             delete playerRoomMap[socket.id];
             socket.leave(room);
 
-            io.to(room).emit('tournament-updated', { room: rooms[room] });
-
-            if (rooms[room].length === 0) {
+            if (room === roomMain && rooms[room].length === 0) {
                 delete rooms[room];
                 delete roomsTypes[room];
-                padsMap.delete(room);
-                console.log(`Room ${room} has been removed`);
-                updateTournamentList(io, rooms, roomsTypes);
+                console.log(`Room principale ${room} a été supprimée`);
+                roomMain = null;
             }
         }
     });
+    
 
     socket.on('return-list', () => {
         updateTournamentList(io, rooms, roomsTypes);
@@ -250,4 +251,12 @@ function finalGame(io, rooms, finalPlayers, padsMap){
 
         console.log(`Starting final match in room: ${finalRoom}`);
     }, 5000);
+}
+
+function clearRooms(rooms)
+{
+    for (const room in rooms){
+        console.log('room restante :', room);
+        //delete rooms[room];
+    }
 }

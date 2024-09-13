@@ -44,9 +44,9 @@ export function findOrCreateRoom(type, name = null) {
 }
 
 
-export function findRoomForSocket(socketId) {
-    for (const room in rooms) {
-        if (rooms[room].includes(socketId)) {
+export function findRoomForSocket(socketId, roomsid) {
+    for (const room in roomsid) {
+        if (roomsid[room].includes(socketId)) {
             return room;
         }
     }
