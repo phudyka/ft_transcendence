@@ -51,7 +51,7 @@ export default function setupSockets(io) {
         });*/
 
         socket.on('padMove', (data) => {
-            const room = findRoomForSocket(socket.id);
+            const room = findRoomForSocket(socket.id, rooms);
             if (!room) return;
 
             const roomKeysPressed = keysPressedMap.get(room) || {
@@ -83,7 +83,7 @@ export default function setupSockets(io) {
         });
 
         socket.on('endGame', () => {
-            const room = findRoomForSocket(socket.id);
+            const room = findRoomForSocket(socket.id, rooms);
             if (room) {
                 io.in(room).emit('gameEnded');
                 io.in(room).socketsLeave(room);
