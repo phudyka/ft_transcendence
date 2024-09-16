@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate,login
+from django.contrib.auth import authenticate, login
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render
@@ -10,8 +10,12 @@ from django.db import IntegrityError
 import json
 import logging
 logger = logging.getLogger(__name__)
-from .models import CustomUser
 from django.utils import timezone
+from django.contrib.auth import get_user_model
+from .models import CustomUser
+from django.contrib.auth.hashers import check_password
+
+User = get_user_model()
 
 def create_user(request):
 	if request.method == 'POST':
@@ -26,29 +30,23 @@ def index(request, path=''):
 
 @ensure_csrf_cookie
 def login_view(request):
-    print('login_view url')
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        logger.info(data)
-        username = data.get('username')
-        password = data.get('password')
+    data = json.loads(request.body)
+    username = data.get('username')
+    password = data.get('password')
 
-        user = authenticate(request, username=username, password=password)
-
-        if user is not None:
-            # Login successful
-            refresh = RefreshToken.for_user(user)
+    try:
+        user = CustomUser.objects.get(username=username)
+        if check_password(password, user.password_hash):
+            login(request, user)
             return JsonResponse({
                 'success': True,
+                'message': 'Login successful',
                 'username': user.username,
-                'access': str(refresh.access_token),
-                'refresh': str(refresh),
             })
         else:
-            # Login failed
-            return JsonResponse({'success': False}, status=401)
-    return JsonResponse({'error': 'Invalid request method.'}, status=400)
-
+            return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=401)
+    except CustomUser.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=401)
 
 def content(request):
 	return JsonResponse({'message': 'content page'}, status=200)
@@ -63,13 +61,13 @@ def register_view(request):
             password = data.get('password')
             avatar_url = data.get('avatar_url')
 
-            if CustomUser.objects.filter(username=username).exists():
+            if User.objects.filter(username=username).exists():
                 return JsonResponse({'success': False, 'error': 'This username is already taken.'})
-            if CustomUser.objects.filter(email=email).exists():
+            if User.objects.filter(email=email).exists():
                 return JsonResponse({'success': False, 'error': 'This email is already in use.'})
 
             # Créer l'utilisateur avec les données fournies
-            user = CustomUser.objects.create_user(
+            user = User.objects.create_user(
                 username=username,
                 email=email,
                 password_hash=password,

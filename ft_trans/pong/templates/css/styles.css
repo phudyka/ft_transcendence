@@ -605,3 +605,18 @@ div.input-container2 {
   .carousel-control-next-icon {
     background-size: 50%;
   }
+
+  .nav {
+    position: relative;
+}
+
+.nav .nav-item:nth-child(2) {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.nav .nav-link.disabled {
+    color: #000000; /* ou la couleur que vous préférez */
+    font-size: 1.2em; /* ajustez selon vos préférences */
+}

@@ -110,23 +110,19 @@ async function handleLogin(event) {
             credentials: 'include',
         });
 
-        console.log("Login request sent");
+        const data = await response.json();
 
-        // Log the raw response for debugging
-        const responseText = await response.text();
-        console.log("Raw response:", responseText);
-		if (data.success) {
-            localStorage.setItem('accessToken', data.access);
-            localStorage.setItem('refreshToken', data.refresh);
-            localStorage.setItem('username', data.username);
+        if (data.success) {
             console.log('Login successful');
+            localStorage.setItem('username', data.username);
             navigateTo('/dashboard');
         } else {
-            showLoginToast();
+            console.error('Login failed:', data.message);
+            showLoginToast(data.message);
         }
     } catch (error) {
         console.error('Error:', error);
-        showLoginToast();
+        showLoginToast('An error occurred. Please try again.');
     }
 }
 

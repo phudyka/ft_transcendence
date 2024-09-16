@@ -4,6 +4,7 @@ import { dashboard } from './views/dashboard.js';
 import { gameplay } from './views/gameplay.js';
 import { profile } from './views/profile.js';
 import { settings } from './views/settings.js';
+import { generateRandomUsername } from './views/dashboard.js';
 
 // Déclaration de router comme une variable globale au module
 let router;

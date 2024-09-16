@@ -1,11 +1,26 @@
 import { navigateTo } from '../app.js';
 import { logout } from '../utils/token.js';
 
-let $player_name;
+let $player_name = generateRandomUsername();
+let player_name = $player_name;
+let socket;
+const privateChatLogs = new Map();
+
+export function generateRandomUsername() {
+    const adjectives = ['Happy', 'Clever', 'Brave', 'Calm', 'Eager', 'Jolly', 'Kind', 'Lively', 'Proud', 'Wise'];
+    const nouns = ['Lion', 'Eagle', 'Dolphin', 'Tiger', 'Panda', 'Fox', 'Wolf', 'Bear', 'Owl', 'Hawk'];
+
+    const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
+    const randomNumber = Math.floor(Math.random() * 100);
+
+    return `${randomAdjective}${randomNoun}${randomNumber}`;
+}
 
 export function dashboard(player_name) {
+	player_name = generateRandomUsername();
 	$player_name = player_name;
-	$player_name = 'Player';
+	console.log(player_name);
 
 	document.getElementById('ft_transcendence').innerHTML = `
 	<div class="dashboard-container">
@@ -14,8 +29,8 @@ export function dashboard(player_name) {
 				<a class="navbar-brand" href="#">
 					<img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="30" height="30">
 				</a>
-			<li class="nav-item">
-				<a class="nav-link disabled">${player_name}</a>
+			<li class="nav-item flex-grow-1 text-center">
+				<a class="nav-link disabled"><strong>${player_name}</strong></a>
 			</li>
 			<li class="nav-item">
 				<a class="nav-link" href="#" id="logoutLink">Logout</a>
@@ -35,9 +50,9 @@ export function dashboard(player_name) {
 			<div class="row">
 				<div class="col-md-3 sidebar" style="margin-left: inherit;">
 					<ul id="friends" class="list-group">
-						<li class="list-group-item" data-friend="Friend1">Friend1</li>
-						<li class="list-group-item" data-friend="Friend2">Friend2</li>
-						<li class="list-group-item" data-friend="Friend3">Friend3</li>
+						<li class="list-group-item" data-friend="Friend1">${generateRandomUsername()}</li>
+						<li class="list-group-item" data-friend="Friend2">${generateRandomUsername()}</li>
+						<li class="list-group-item" data-friend="Friend3">${generateRandomUsername()}</li>
 					</ul>
 					<div id="friendDropdown" class="dropdown-menu" style="display: none;">
 						<a class="dropdown-item" href="#" id="sendMessage">Send Private Message</a>
@@ -88,6 +103,18 @@ export function dashboard(player_name) {
 				</div>
 			</div>
 		</div>
+		<div class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
+		  <div class="toast-header">
+			<strong class="me-auto">Friend Request</strong>
+		  </div>
+		  <div class="toast-body">
+			<p><span id="friend-name"></span> wants to add you as a friend.</p>
+			<div class="mt-2 pt-2 border-top">
+			  <button type="button" class="btn btn-success btn-sm" id="accept-friend">Accept</button>
+			  <button type="button" class="btn btn-danger btn-sm" id="refuse-friend">Decline</button>
+			</div>
+		  </div>
+		</div>
 		<div class="toast-container position-fixed bottom-0 end-0 p-3">
 			<div id="addFriendToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
 				<div class="toast-header">
@@ -117,10 +144,84 @@ export function dashboard(player_name) {
 	`;
 
 	setupDashboardEvents(navigateTo, $player_name);
-	fetchAndDisplayFriends();
+	initializeSocket();
+	// fetchAndDisplayFriends();
 }
 
-const socket = io('http://localhost:3000', { transports: ['websocket'] });
+function initializeSocket() {
+	if (socket && socket.connected) {
+        console.log('Connexion Socket.IO existante réutilisée');
+        return;
+    }
+    // Générer un ID unique pour cette session de navigateur
+    const browserSessionId = localStorage.getItem('browserSessionId') || generateUniqueId();
+    localStorage.setItem('browserSessionId', browserSessionId);
+
+    socket = io('http://localhost:3000', {
+        transports: ['websocket'],
+        query: {
+            username: $player_name,
+            browserSessionId: browserSessionId
+        }
+    });
+
+    socket.on('connect', () => {
+        console.log('Connecté au serveur de chat');
+        socket.emit('register', $player_name);
+    });
+
+    socket.on('connection_limit_reached', () => {
+        console.log('Limite de connexion atteinte');
+        alert('Vous êtes déjà connecté dans un autre onglet ou fenêtre.');
+        socket.disconnect();
+    });
+
+    socket.on('chat message', (msg) => {
+        console.log('Message reçu du serveur:', msg);
+        receiveMessage(msg);
+    });
+
+    socket.on('connect_error', (error) => {
+        console.error('Erreur de connexion:', error);
+    });
+}
+
+function generateUniqueId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
+}
+
+function openPrivateChat(friendName) {
+	let chatLog = privateChatLogs.get(friendName);
+	if (!chatLog) {
+		chatLog = document.createElement('div');
+		chatLog.id = `chat-log-${friendName}`;
+		chatLog.className = 'chat-log';
+		privateChatLogs.set(friendName, chatLog);
+	}
+
+	const chatContainer = document.getElementById('private-chats-container');
+	chatContainer.innerHTML = '';
+	chatContainer.appendChild(chatLog);
+
+	const inputContainer = document.createElement('div');
+	inputContainer.className = 'input-container';
+	inputContainer.innerHTML = `
+		<input type="text" id="message-input-${friendName}" placeholder="Type your message...">
+		<button onclick="sendPrivateMessage('${friendName}')">Send</button>
+	`;
+	chatContainer.appendChild(inputContainer);
+
+	document.getElementById(`send-button-${friendName}`).addEventListener('click', () => sendPrivateMessage(friendName));
+}
+
+function receivePrivateMessage(from, message) {
+    const chatLog = privateChatLogs.get(from);
+    if (chatLog) {
+        chatLog.innerHTML += `<div><strong>${from}:</strong> ${message}</div>`;
+    } else {
+        console.log(`Received message from ${from}: ${message}`);
+    }
+}
 
 function setupDashboardEvents(navigateTo, player_name) {
 	//Logout
@@ -167,7 +268,6 @@ function setupDashboardEvents(navigateTo, player_name) {
 
 	// Chat functionnalitis
 	document.getElementById('send-button').addEventListener('click', sendMessage);
-	// socket.on('chat_message', receiveMessage);
 
 	//Private message with friend
 	document.getElementById('send-button2').addEventListener('click', sendPrivateMessage);
@@ -201,7 +301,7 @@ function setupDashboardEvents(navigateTo, player_name) {
 		toast.show();
 	});
 
-	setInterval(fetchAndDisplayFriends, 60000);
+	// setInterval(fetchAndDisplayFriends, 60000);
 }
 
 function scrollToBottom2(friendName) {
@@ -284,18 +384,18 @@ function showChatbox(event) {
 }
 
 function setupPrivateChat(friendName) {
-    const privateChatContainer = document.getElementById('private-chats-container');
-    privateChatContainer.innerHTML = `
+	const privateChatContainer = document.getElementById('private-chats-container');
+	privateChatContainer.innerHTML = `
 		<h5 class="offcanvas-title" id="chatboxLabel">Private Message: ${friendName}</h5>
-        <div class="chat-container2">
-            <div class="chat-log2" id="chat-log-${friendName}"></div>
-        </div>
-    `;
+		<div class="chat-container2">
+			<div class="chat-log2" id="chat-log-${friendName}"></div>
+		</div>
+	`;
 
 	loadMessages(friendName);
 
-    // Update send button click event
-    document.getElementById('send-button2').onclick = () => sendPrivateMessage(friendName);
+	// Update send button click event
+	document.getElementById('send-button2').onclick = () => sendPrivateMessage(friendName);
 }
 
 function startGame(event) {
@@ -314,74 +414,90 @@ function goTosettings(event) {
 function sendMessage(event) {
 	event.preventDefault();
 	const messageInput = document.getElementById('message-input');
-	if (messageInput.value.trim() !== '') {
-		const message = formatMessage(messageInput.value);
-		socket.emit('chat_message', {name : $player_name, message : message});
+	const message = messageInput.value.trim();
+	if (message !== '' && socket && socket.connected) {
+		const messageData = {
+			name: $player_name,
+			message: message
+		};
+		socket.emit('chat message', messageData);
+		console.log('Message envoyé:', messageData);
+		messageInput.value = '';
+	} else if (!socket || !socket.connected) {
+		console.error('La connexion au serveur de chat n\'est pas établie');
 	}
-	messageInput.value = '';
 }
 
 function receiveMessage(msg) {
-	const chatLog = document.getElementById('chat-log');
-	const messageElement = document.createElement('div');
+    console.log('Fonction receiveMessage appelée avec:', msg);
+    const chatLog = document.getElementById('chat-log');
+    if (!chatLog) {
+        console.error("L'élément chat-log n'existe pas dans le DOM");
+        return;
+    }
+    const messageElement = document.createElement('div');
 
-	// Créer l'élément username et définir ses attributs
-	const usernameElement = document.createElement('span'); // Changé de 'a' à 'span'
-	usernameElement.classList.add('username-link');
-	usernameElement.dataset.friend = msg.name;
-	usernameElement.innerText = `[${msg.name}]`;
+    // Créer l'élément username et définir ses attributs
+    const usernameElement = document.createElement('span'); // Changé de 'a' à 'span'
+    usernameElement.classList.add('username-link');
+    usernameElement.dataset.friend = msg.name;
+    usernameElement.innerText = `[${msg.name}]`;
 
-	// Activer le menu déroulant lorsque le nom d'utilisateur est cliqué
-	usernameElement.addEventListener('click', function (event) {
-		event.preventDefault(); // Ajouté pour empêcher le comportement par défaut
-		event.stopPropagation();
-		const dropdown = document.getElementById('friendDropdown_chat');
-		const friendName = this.dataset.friend; // Utilisez dataset au lieu de getAttribute
-		usernameElement.classList.add('username-link', 'bold-username');
+    // Activer le menu déroulant lorsque le nom d'utilisateur est cliqué
+    usernameElement.addEventListener('click', function (event) {
+        event.preventDefault(); // Ajouté pour empêcher le comportement par défaut
+        event.stopPropagation();
+        const dropdown = document.getElementById('friendDropdown_chat');
+        const friendName = this.dataset.friend; // Utilisez dataset au lieu de getAttribute
+        usernameElement.classList.add('username-link', 'bold-username');
 
-		// Masquer tous les menus déroulants visibles
-		const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
-		visibleDropdowns.forEach(dropdown => {
-			dropdown.style.display = 'none';
-		});
+        // Masquer tous les menus déroulants visibles
+        const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
+        visibleDropdowns.forEach(dropdown => {
+            dropdown.style.display = 'none';
+        });
 
-		// Positionner le menu déroulant près de l'élément ami cliqué
-		dropdown.style.top = `${event.clientY}px`;
-		dropdown.style.left = `${event.clientX}px`;
-		dropdown.style.display = 'block';
+        // Positionner le menu déroulant près de l'élément ami cliqué
+        dropdown.style.top = `${event.clientY}px`;
+        dropdown.style.left = `${event.clientX}px`;
+        dropdown.style.display = 'block';
 
-		// Stocker le nom de l'ami cliqué
-		dropdown.dataset.friend = friendName; // Utilisez dataset au lieu de setAttribute
-	});
+        // Stocker le nom de l'ami cliqué
+        dropdown.dataset.friend = friendName; // Utilisez dataset au lieu de setAttribute
+        console.log('Message reçu:', msg);
+    });
 
-	// Créer l'élément message et définir son texte
-	const messageTextElement = document.createElement('span');
-	messageTextElement.innerText = `: ${msg.message}`;
+    // Créer l'élément message et définir son texte
+    const messageTextElement = document.createElement('span');
+    messageTextElement.innerText = `: ${msg.message}`;
 
-	// Ajouter les éléments username et message à l'élément message
-	messageElement.appendChild(usernameElement);
-	messageElement.appendChild(messageTextElement);
+    // Ajouter les éléments username et message à l'élément message
+    messageElement.appendChild(usernameElement);
+    messageElement.appendChild(messageTextElement);
 
-	chatLog.appendChild(messageElement);
+    chatLog.appendChild(messageElement);
 
-	// Faire défiler jusqu'en bas du chat log
-	chatLog.scrollTop = chatLog.scrollHeight;
+    // Faire défiler jusqu'en bas du chat log
+    chatLog.scrollTop = chatLog.scrollHeight;
+
+    // Console.log pour afficher le message reçu
+    console.log('Message reçu dans le chat-log:', msg);
 }
 
 function sendPrivateMessage(friendName) {
-    const messageInput = document.getElementById('message-input2');
-    const message = messageInput.value.trim();
-
-    if (message !== '') {
-        const chatLog = document.getElementById(`chat-log-${friendName}`);
-        const messageElement = document.createElement('div');
-        messageElement.innerHTML = `<span class="username-link bold-username">[Player]:</span> ${message}`;
-        chatLog.appendChild(messageElement);
-
-		saveMessage(friendName, message);
-
-        messageInput.value = '';
-        chatLog.scrollTop = chatLog.scrollHeight;
+    const input = document.getElementById(`message-input-${friendName}`);
+    if (input) {
+        const message = input.value.trim();
+        if (message && socket && socket.connected) {
+            socket.emit('private message', { to: friendName, message: message });
+            const chatLog = privateChatLogs.get(friendName);
+            if (chatLog) {
+                chatLog.innerHTML += `<div><strong>You:</strong> ${message}</div>`;
+            }
+            input.value = '';
+        }
+    } else {
+        console.error(`Input element for ${friendName} not found`);
     }
 }
 
@@ -416,25 +532,58 @@ function viewProfile(event) {
 // 	// Gérez l'erreur de manière appropriée
 // });
 
-function fetchAndDisplayFriends() {
-    callAPI('http://localhost:8000/api/friends/')
-        .then(data => {
-            const friendsList = document.getElementById('friends');
-            friendsList.innerHTML = '';
+// function fetchAndDisplayFriends() {
+//	 function callAPI(url, options) {
+//		 return fetch(url, options)
+//			 .then(response => {
+//				 if (!response.ok) {
+//					 throw new Error('Erreur réseau');
+//				 }
+//				 return response;
+//			 })
+//			 .catch(error => {
+//				 console.error('Erreur lors de l\'appel API:', error);
+//				 throw error;
+//			 });
+//	 }
 
-            data.forEach(friend => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item';
-                li.setAttribute('data-friend', friend.username);
-                li.textContent = friend.username;
-                li.addEventListener('click', handleFriendClick);
-                friendsList.appendChild(li);
-            });
-        })
-        .catch(error => {
-            console.error('Erreur lors de la récupération des amis:', error);
-        });
-}
+//	 callAPI('http://localhost:8000/api/friends/', {
+//		 method: 'GET',
+//		 headers: {
+//			 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
+//			 'Content-Type': 'application/json'
+//		 }
+//	 })
+//	 .then(response => response.json())
+//	 .then(data => {
+//		 const friendsList = document.getElementById('friends');
+//		 friendsList.innerHTML = '';
+
+//		 if (Array.isArray(data)) {
+//			 data.forEach(friend => {
+//				 const li = document.createElement('li');
+//				 li.className = 'list-group-item d-flex justify-content-between align-items-center';
+//				 li.setAttribute('data-friend', friend.username);
+
+//				 const statusDot = document.createElement('span');
+//				 statusDot.className = `status-dot ${friend.is_online ? 'online' : 'offline'}`;
+
+//				 const usernameSpan = document.createElement('span');
+//				 usernameSpan.textContent = friend.username;
+
+//				 li.appendChild(statusDot);
+//				 li.appendChild(usernameSpan);
+//				 li.addEventListener('click', handleFriendClick);
+//				 friendsList.appendChild(li);
+//			 });
+//		 } else {
+//			 console.error('Les données reçues ne sont pas un tableau:', data);
+//		 }
+//	 })
+//	 .catch(error => {
+//		 console.error('Erreur lors de la récupération des amis:', error);
+//	 });
+// }
 
 function saveMessage(friendName, message) {
 	let messages = JSON.parse(localStorage.getItem(`chat_${friendName}`)) || [];
@@ -443,16 +592,111 @@ function saveMessage(friendName, message) {
 }
 
 function loadMessages(friendName) {
-    const chatLog = document.getElementById(`chat-log-${friendName}`);
-    const messages = JSON.parse(localStorage.getItem(`chat_${friendName}`)) || [];
+	const chatLog = document.getElementById(`chat-log-${friendName}`);
+	const messages = JSON.parse(localStorage.getItem(`chat_${friendName}`)) || [];
 
-    chatLog.innerHTML = ''; // Effacer les messages précédents
+	chatLog.innerHTML = ''; // Effacer les messages précédents
 
-    messages.forEach(msg => {
-        const messageElement = document.createElement('div');
-        messageElement.innerHTML = `<span class="username-link bold-username">[${msg.sender}]:</span> ${msg.message}`;
-        chatLog.appendChild(messageElement);
-    });
+	messages.forEach(msg => {
+		const messageElement = document.createElement('div');
+		messageElement.innerHTML = `<span class="username-link bold-username">[${msg.sender}]:</span> ${msg.message}`;
+		chatLog.appendChild(messageElement);
+	});
 
-    chatLog.scrollTop = chatLog.scrollHeight;
+	chatLog.scrollTop = chatLog.scrollHeight;
 }
+
+// Function to show the friend request toast
+function showFriendRequestToast(friendName, requestId) {
+    const toastElement = document.querySelector('.toast');
+    const toast = new bootstrap.Toast(toastElement, { autohide: false });
+
+    document.getElementById('friend-name').textContent = friendName;
+
+    const acceptButton = document.getElementById('accept-friend');
+    const refuseButton = document.getElementById('refuse-friend');
+
+    acceptButton.onclick = () => {
+        acceptFriendRequest(requestId);
+        toast.hide();
+    };
+
+    refuseButton.onclick = () => {
+        refuseFriendRequest(requestId);
+        toast.hide();
+    };
+
+    toast.show();
+}
+
+// Function to handle accepting a friend request
+async function acceptFriendRequest(requestId) {
+    try {
+        const response = await fetch('/api/friend-requests/accept', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify({ requestId })
+        });
+
+        if (response.ok) {
+            console.log(`Friend request ${requestId} accepted`);
+            // You might want to update the UI here, e.g., add the friend to the friends list
+        } else {
+            console.error('Failed to accept friend request');
+        }
+    } catch (error) {
+        console.error('Error accepting friend request:', error);
+    }
+}
+
+// Function to handle declining a friend request
+async function refuseFriendRequest(requestId) {
+    try {
+        const response = await fetch('/api/friend-requests/decline', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            },
+            body: JSON.stringify({ requestId })
+        });
+
+        if (response.ok) {
+            console.log(`Friend request ${requestId} declined`);
+        } else {
+            console.error('Failed to decline friend request');
+        }
+    } catch (error) {
+        console.error('Error declining friend request:', error);
+    }
+}
+
+// Function to check for new friend requests
+async function checkForFriendRequests() {
+    try {
+        const response = await fetch('/api/friend-requests', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            }
+        });
+
+        if (response.ok) {
+            const requests = await response.json();
+            requests.forEach(request => {
+                showFriendRequestToast(request.fromUserName, request.id);
+            });
+        }
+    } catch (error) {
+        console.error('Error checking for friend requests:', error);
+    }
+}
+
+// Call this function when the dashboard loads
+checkForFriendRequests();
+
+// You might want to set up a polling mechanism to check for new requests periodically
+setInterval(checkForFriendRequests, 600000); // Check every 10 minute
+
