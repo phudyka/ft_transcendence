@@ -10,6 +10,7 @@ urlpatterns = [
 	path('api/create_user/', views.create_user, name='create_user'),
 	path('api/register/', views.register_view, name='register'),
 	path('api/login/', views.login_view, name='login'),
+	path('/api/friend-requests', views.friend_requests, name='friend_requests'),
 	path('', views.index, name='index'),
 	path('<path:path>', views.index, name='catch_all'),
 ]

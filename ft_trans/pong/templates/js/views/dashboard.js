@@ -438,17 +438,24 @@ function receiveMessage(msg) {
     const messageElement = document.createElement('div');
 
     // Créer l'élément username et définir ses attributs
-    const usernameElement = document.createElement('span'); // Changé de 'a' à 'span'
+    const usernameElement = document.createElement('span');
     usernameElement.classList.add('username-link');
     usernameElement.dataset.friend = msg.name;
     usernameElement.innerText = `[${msg.name}]`;
 
     // Activer le menu déroulant lorsque le nom d'utilisateur est cliqué
     usernameElement.addEventListener('click', function (event) {
-        event.preventDefault(); // Ajouté pour empêcher le comportement par défaut
+        event.preventDefault();
         event.stopPropagation();
-        const dropdown = document.getElementById('friendDropdown_chat');
-        const friendName = this.dataset.friend; // Utilisez dataset au lieu de getAttribute
+        const isOwnUsername = msg.name === $player_name;
+
+        // Debug: Afficher isOwnUsername et les noms concernés
+        console.log('Debug - isOwnUsername:', isOwnUsername);
+        console.log('Debug - msg.name:', msg.name);
+        console.log('Debug - $player_name:', $player_name);
+
+        const dropdown = isOwnUsername ? document.getElementById('profileDropdown') : document.getElementById('friendDropdown_chat');
+        const friendName = this.dataset.friend;
         usernameElement.classList.add('username-link', 'bold-username');
 
         // Masquer tous les menus déroulants visibles
@@ -463,7 +470,7 @@ function receiveMessage(msg) {
         dropdown.style.display = 'block';
 
         // Stocker le nom de l'ami cliqué
-        dropdown.dataset.friend = friendName; // Utilisez dataset au lieu de setAttribute
+        dropdown.dataset.friend = friendName;
         console.log('Message reçu:', msg);
     });
 

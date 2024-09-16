@@ -96,3 +96,5 @@ def set_csrf_token(request):
     return JsonResponse({'csrfToken': get_token(request)})
 
 
+def friend_requests(request):
+    pass
