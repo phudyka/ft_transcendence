@@ -30,12 +30,6 @@ function initRouter() {
                 case '/register':
                     register();
                     break;
-                case '/gameplay':
-                    gameplay();
-                    break;
-                case '/gameplay_friends':
-                    gameplay_friends();
-                    break;
                 case '/settings':
                     settings();
                     break;

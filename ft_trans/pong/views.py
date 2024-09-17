@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from .models import CustomUser
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password, make_password
 
 User = get_user_model()
 
@@ -70,14 +70,9 @@ def register_view(request):
             user = User.objects.create_user(
                 username=username,
                 email=email,
-                password_hash=password,
+                password=password,  # Passez simplement le mot de passe, create_user s'occupera du hachage
                 avatar_url=avatar_url,
-                display_name=username,  # Utiliser le username comme display_name par défaut
-                created_at=timezone.now(),
-                last_login=None,
-                is_online=False,
-                wins=0,
-                losses=0
+                display_name=username,
             )
 
             return JsonResponse({'success': True, 'message': 'Account created successfully.'})

@@ -234,14 +234,12 @@ function setupDashboardEvents(navigateTo, player_name) {
 	document.getElementById('game_alone').addEventListener('click', function (event) {
 		event.preventDefault();
 		console.log('Play game_alone button clicked');
-		navigateTo('/gameplay');
 	});
 
 	//Game with friend
 	document.getElementById('game_friend').addEventListener('click', function (event) {
 		event.preventDefault();
 		console.log('Play game_friend button clicked');
-		navigateTo('/gameplay_friends');
 	});
 
 	// Friend menu
@@ -391,9 +389,7 @@ function setupPrivateChat(friendName) {
 			<div class="chat-log2" id="chat-log-${friendName}"></div>
 		</div>
 	`;
-
 	loadMessages(friendName);
-
 	// Update send button click event
 	document.getElementById('send-button2').onclick = () => sendPrivateMessage(friendName);
 }
@@ -448,12 +444,9 @@ function receiveMessage(msg) {
         event.preventDefault();
         event.stopPropagation();
         const isOwnUsername = msg.name === $player_name;
-
-        // Debug: Afficher isOwnUsername et les noms concernés
-        console.log('Debug - isOwnUsername:', isOwnUsername);
-        console.log('Debug - msg.name:', msg.name);
-        console.log('Debug - $player_name:', $player_name);
-
+		if (isOwnUsername) {
+			console.log('You click on you\'re name');
+		}
         const dropdown = isOwnUsername ? document.getElementById('profileDropdown') : document.getElementById('friendDropdown_chat');
         const friendName = this.dataset.friend;
         usernameElement.classList.add('username-link', 'bold-username');

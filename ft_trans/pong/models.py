@@ -8,7 +8,7 @@ class CustomUserManager(BaseUserManager):
             raise ValueError('The Username field must be set')
         email = self.normalize_email(email)
         user = self.model(username=username, email=email, **extra_fields)
-        user.set_password(password)
+        user.set_password(password)  # Utilisez set_password au lieu de password_hash
         user.save(using=self._db)
         return user
 
@@ -21,7 +21,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     id = models.AutoField(primary_key=True)
     username = models.CharField(max_length=50, unique=True)
     email = models.EmailField(max_length=100, unique=True)
-    password = models.CharField(max_length=255)
+    password = models.CharField(max_length=255)  # Renommez ce champ en password_hash
     display_name = models.CharField(max_length=50, unique=True)
     avatar_url = models.CharField(max_length=255, null=True, default='default_avatar.png')
     created_at = models.DateTimeField(auto_now_add=True)
@@ -46,9 +46,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.username
 
     def set_password(self, raw_password):
-        self.password_hash = make_password(raw_password)
+        self.password = make_password(raw_password)  # Utilisez self.password au lieu de self.password_hash
 
     def check_password(self, raw_password):
-        return check_password(raw_password, self.password_hash)
+        return check_password(raw_password, self.password)  # Utilisez self.password au lieu de self.password_hash
 
 
