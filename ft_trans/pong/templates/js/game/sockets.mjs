@@ -66,9 +66,9 @@ export default function setupSockets(io) {
             }
         });
 
-        /*socket.on('lobby ready', () => {
+        socket.on('lobby ready', () => {
             socket.emit('lobby');
-        });*/
+        });
 
         socket.on('padMove', (data) => {
             const room = findRoomForSocket(socket.id, rooms);

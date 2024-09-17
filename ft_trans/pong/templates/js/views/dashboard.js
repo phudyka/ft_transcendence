@@ -46,6 +46,15 @@ export function dashboard(player_name) {
 			<a class="dropdown-item" href="#" id="settings">Settings</a>
 			<a class="dropdown-item" href="#" id="logoutLink">Logout</a>
 		</div>
+		<center>
+			<iframe
+				id="pong"
+				title="Pong"
+				width="1200"
+				height="700"
+				src="http://localhost:4000">
+			</iframe>
+		</center>
 		<div class="container-fluid">
 			<div class="row">
 				<div class="col-md-3 sidebar" style="margin-left: inherit;">
@@ -236,6 +245,7 @@ function setupDashboardEvents(navigateTo, player_name) {
 		console.log('Play game_alone button clicked');
 
 		window.location.href = 'http://localhost:4000';
+		//Voir avec iFrame pour ouvrir le jeu sans quitter la page actuelle
 	});
 
 	//Game with friend

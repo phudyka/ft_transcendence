@@ -32,6 +32,8 @@ export let scene, camera, renderer, listener;
 let logo
 let mixer, action;
 let choice = false;
+let controls;
+let sounds;
 
 const clock = new THREE.Clock();
 const fpsDisplay = document.getElementById('fpsDisplay');
@@ -60,88 +62,102 @@ function measureFPS(duration = 1000, callback) {
     requestAnimationFrame(countFrames);
 }
 
-scene = new THREE.Scene();
-camera = new Camera();
-renderer = new Graphic(scene, camera);
-
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = false;
-controls.dampingFactor = 0.25;
-controls.screenSpacePanning = true;
-controls.autoRotateSpeed = 0.3;
-controls.autoRotate = true;
-
-new Light(scene);
-
-logo = new Logo(scene);
-
-fadeOutLogoAndStartAnimation(logo, scene, camera, renderer);
-
-
-const sounds = new Sound(camera);
-
-pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.10, 3.59, 0);
-pad1.addToScene(scene);
-
-pad2 = new Pad(0x2040df, 0.045, 0.50, 16, 2.10, 3.59, 0);
-pad2.addToScene(scene);
-
-ball = new Ball(0.07, 32);
-ball.addToScene(scene);
-
-
-document.addEventListener('keydown', (event) => {
-    const { key } = event;
-    if (controlledPads) {
-        if (key === 'w') socket.emit('padMove', { pad: 1, direction: 'up', moving: true });
-        if (key === 's') socket.emit('padMove', { pad: 1, direction: 'down', moving: true });
-        if (key === 'ArrowUp') socket.emit('padMove', { pad: 2, direction: 'up', moving: true });
-        if (key === 'ArrowDown') socket.emit('padMove', { pad: 2, direction: 'down', moving: true });
-    } else {
-        if (controlledPad === 1) {
+function initGame() {
+    scene = new THREE.Scene();
+    camera = new Camera();
+    renderer = new Graphic(scene, camera);
+    
+    controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = false;
+    controls.dampingFactor = 0.25;
+    controls.screenSpacePanning = true;
+    controls.autoRotateSpeed = 0.3;
+    controls.autoRotate = true;
+    
+    new Light(scene);
+    
+    logo = new Logo(scene);
+    
+    fadeOutLogoAndStartAnimation(logo, scene, camera, renderer);
+    
+    
+    sounds = new Sound(camera);
+    
+    pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.10, 3.59, 0);
+    pad1.addToScene(scene);
+    
+    pad2 = new Pad(0x2040df, 0.045, 0.50, 16, 2.10, 3.59, 0);
+    pad2.addToScene(scene);
+    
+    ball = new Ball(0.07, 32);
+    ball.addToScene(scene);
+    
+    
+    document.addEventListener('keydown', (event) => {
+        const { key } = event;
+        if (controlledPads) {
             if (key === 'w') socket.emit('padMove', { pad: 1, direction: 'up', moving: true });
             if (key === 's') socket.emit('padMove', { pad: 1, direction: 'down', moving: true });
-        } else if (controlledPad === 2) {
             if (key === 'ArrowUp') socket.emit('padMove', { pad: 2, direction: 'up', moving: true });
             if (key === 'ArrowDown') socket.emit('padMove', { pad: 2, direction: 'down', moving: true });
-        } else if (controlledPad === 3) {
-            if (key === 'w') socket.emit('padMove', { pad: 3, direction: 'up', moving: true });
-            if (key === 's') socket.emit('padMove', { pad: 3, direction: 'down', moving: true });
-        } else if (controlledPad === 4) {
-            if (key === 'ArrowUp') socket.emit('padMove', { pad: 4, direction: 'up', moving: true });
-            if (key === 'ArrowDown') socket.emit('padMove', { pad: 4, direction: 'down', moving: true });
+        } else {
+            if (controlledPad === 1) {
+                if (key === 'w') socket.emit('padMove', { pad: 1, direction: 'up', moving: true });
+                if (key === 's') socket.emit('padMove', { pad: 1, direction: 'down', moving: true });
+            } else if (controlledPad === 2) {
+                if (key === 'ArrowUp') socket.emit('padMove', { pad: 2, direction: 'up', moving: true });
+                if (key === 'ArrowDown') socket.emit('padMove', { pad: 2, direction: 'down', moving: true });
+            } else if (controlledPad === 3) {
+                if (key === 'w') socket.emit('padMove', { pad: 3, direction: 'up', moving: true });
+                if (key === 's') socket.emit('padMove', { pad: 3, direction: 'down', moving: true });
+            } else if (controlledPad === 4) {
+                if (key === 'ArrowUp') socket.emit('padMove', { pad: 4, direction: 'up', moving: true });
+                if (key === 'ArrowDown') socket.emit('padMove', { pad: 4, direction: 'down', moving: true });
+            }
         }
-    }
-});
-
-document.addEventListener('keyup', (event) => {
-    const { key } = event;
-    if (controlledPads) {
-        if (key === 'w') socket.emit('padMove', { pad: 1, direction: 'up', moving: false });
-        if (key === 's') socket.emit('padMove', { pad: 1, direction: 'down', moving: false });
-        if (key === 'ArrowUp') socket.emit('padMove', { pad: 2, direction: 'up', moving: false });
-        if (key === 'ArrowDown') socket.emit('padMove', { pad: 2, direction: 'down', moving: false });
-    } else {
-        if (controlledPad === 1) {
+    });
+    
+    document.addEventListener('keyup', (event) => {
+        const { key } = event;
+        if (controlledPads) {
             if (key === 'w') socket.emit('padMove', { pad: 1, direction: 'up', moving: false });
             if (key === 's') socket.emit('padMove', { pad: 1, direction: 'down', moving: false });
-        } else if (controlledPad === 2) {
             if (key === 'ArrowUp') socket.emit('padMove', { pad: 2, direction: 'up', moving: false });
             if (key === 'ArrowDown') socket.emit('padMove', { pad: 2, direction: 'down', moving: false });
-        } else if (controlledPad === 3) {
-            if (key === 'w') socket.emit('padMove', { pad: 3, direction: 'up', moving: false });
-            if (key === 's') socket.emit('padMove', { pad: 3, direction: 'down', moving: false });
-        } else if (controlledPad === 4) {
-            if (key === 'ArrowUp') socket.emit('padMove', { pad: 4, direction: 'up', moving: false });
-            if (key === 'ArrowDown') socket.emit('padMove', { pad: 4, direction: 'down', moving: false });
+        } else {
+            if (controlledPad === 1) {
+                if (key === 'w') socket.emit('padMove', { pad: 1, direction: 'up', moving: false });
+                if (key === 's') socket.emit('padMove', { pad: 1, direction: 'down', moving: false });
+            } else if (controlledPad === 2) {
+                if (key === 'ArrowUp') socket.emit('padMove', { pad: 2, direction: 'up', moving: false });
+                if (key === 'ArrowDown') socket.emit('padMove', { pad: 2, direction: 'down', moving: false });
+            } else if (controlledPad === 3) {
+                if (key === 'w') socket.emit('padMove', { pad: 3, direction: 'up', moving: false });
+                if (key === 's') socket.emit('padMove', { pad: 3, direction: 'down', moving: false });
+            } else if (controlledPad === 4) {
+                if (key === 'ArrowUp') socket.emit('padMove', { pad: 4, direction: 'up', moving: false });
+                if (key === 'ArrowDown') socket.emit('padMove', { pad: 4, direction: 'down', moving: false });
+            }
         }
-    }
-});
+    });
+    
+    initSocketEvent(socket, ball);
+    hitPadEvent(socket, sounds);
+}
 
-initSocketEvent(socket, ball);
-SoundLobby(socket, sounds);
-hitPadEvent(socket, sounds);
-socket.emit('lobby ready');
+document.getElementById('start-game-button').addEventListener('click', () => {
+    document.getElementById('start-game-button').classList.add('hidden');
+    initGame();
+    socket.emit('lobby ready');
+    setTimeout(() => {
+        loadModel(scene, (loadedMixer, loadedAction) => {
+            mixer = loadedMixer;
+            action = loadedAction;
+        });
+        animateChoice();
+        SoundLobby(socket, sounds);
+    }, 2000);
+});
 
 
 function updateAnimation() {
@@ -149,13 +165,6 @@ function updateAnimation() {
     if (mixer) mixer.update(delta);
 }
 
-setTimeout(() => {
-    loadModel(scene, (loadedMixer, loadedAction) => {
-        mixer = loadedMixer;
-        action = loadedAction;
-    });
-    animateChoice();
-}, 2000);
 
 
 function animateChoice() {

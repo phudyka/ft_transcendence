@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <button id="start-game-button" class="start-game-button hidden">Démarrer le Jeu</button>
+    <button id="start-game-button" class="start-game-button">Démarrer le Jeu</button>
 
     <div id="menu" class="menu hidden">
         <button class="menu-button hidden" id="solo-ia">Solo</button>
@@ -87,19 +87,19 @@
             const waiting = document.getElementById('waiting');
 
             // Afficher le bouton Start Game
-            startButton.classList.add('hidden');
+            //startButton.classList.add('hidden');
             tournamentDetails.classList.add('hidden');
             tournamentDetails.classList.remove('flex');
 
             document.getElementById('score').classList.remove('score-container');
 
             // Lorsqu'on clique sur Start Game, le menu principal apparaît
-            startButton.addEventListener('click', () => {
+            /*startButton.addEventListener('click', () => {
                 menu.classList.remove('hidden');
                 startButton.classList.add('hidden');
                 soloIaButton.classList.remove('hidden');
                 multiButton.classList.remove('hidden');
-            });
+            });*/
 
             // Gestion du bouton Solo vs IA
             soloIaButton.addEventListener('click', () => {
