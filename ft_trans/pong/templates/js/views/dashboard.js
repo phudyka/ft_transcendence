@@ -92,11 +92,9 @@ export function dashboard(player_name) {
 				<div class="col-md-9 main-content">
 					<div class="card">
 						<div class="card-body">
-							<div class="btn-group" id="play_button" "role=" group" aria-label="Basic example">
-								<button type="button" id="game_alone" class="btn btn-primary">Play</button>
-								<button type="button" id="game_friend" class="btn btn-primary">Play with friend</button>
-								<button type="button" id="game_tournament" class="btn btn-primary">Play tournament</button>
-							</div>
+						<button type="button" class="btn btn-primary btn-lg" id="game_alone">
+							Play
+						</button>
 						</div>
 					</div>
 					<div class="card">
@@ -216,7 +214,7 @@ function openPrivateChat(friendName) {
 	inputContainer.className = 'input-container';
 	inputContainer.innerHTML = `
 		<input type="text" id="message-input-${friendName}" placeholder="Type your message...">
-		<button onclick="sendPrivateMessage('${friendName}')">Send</button>
+		<button onclick="Message('${friendName}')">Send</button>
 	`;
 	chatContainer.appendChild(inputContainer);
 
@@ -246,12 +244,6 @@ function setupDashboardEvents(navigateTo, player_name) {
 
 		window.location.href = 'http://localhost:4000';
 		//Voir avec iFrame pour ouvrir le jeu sans quitter la page actuelle
-	});
-
-	//Game with friend
-	document.getElementById('game_friend').addEventListener('click', function (event) {
-		event.preventDefault();
-		console.log('Play game_friend button clicked');
 	});
 
 	// Friend menu
