@@ -620,3 +620,12 @@ div.input-container2 {
     color: #000000; /* ou la couleur que vous préférez */
     font-size: 1.2em; /* ajustez selon vos préférences */
 }
+
+.game_alone {
+    width: 100%;
+    display: flex;
+}
+
+.btn-primary.game_alone {
+    width: 100%;
+}
