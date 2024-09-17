@@ -1,7 +1,6 @@
 import { login } from './views/login.js';
 import { register } from './views/register.js';
 import { dashboard } from './views/dashboard.js';
-import { gameplay } from './views/gameplay.js';
 import { profile } from './views/profile.js';
 import { settings } from './views/settings.js';
 import { generateRandomUsername } from './views/dashboard.js';
