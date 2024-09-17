@@ -20,9 +20,9 @@ function initRouter() {
                 case '/':
                     login();
                     break;
-               /* case '/dashboard':
+               case '/dashboard':
                     dashboard();
-                    break;*/
+                    break;
                 case '/login':
                     login();
                     break;

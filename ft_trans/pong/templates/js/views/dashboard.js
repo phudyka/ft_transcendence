@@ -234,6 +234,8 @@ function setupDashboardEvents(navigateTo, player_name) {
 	document.getElementById('game_alone').addEventListener('click', function (event) {
 		event.preventDefault();
 		console.log('Play game_alone button clicked');
+
+		window.location.href = 'http://localhost:4000';
 	});
 
 	//Game with friend
