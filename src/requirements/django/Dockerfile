@@ -5,7 +5,7 @@ WORKDIR /app
 COPY conf/requirement.txt /app
 
 RUN apk update &&\
-    apk add python3=3.11.8-r0 openssl=3.1.6-r0 &&\
+    apk add python3 openssl &&\
     mkdir -p /app/ssl_certificates &&\
     openssl \
     req \
@@ -19,9 +19,9 @@ RUN apk update &&\
     pip install --upgrade pip &&\
     pip install -r requirement.txt
 
-COPY src /app/src
+COPY ft_transcendence/ /app
 
-EXPOSE 443
+EXPOSE 8000
 
 COPY conf/entrypoint.sh /
 

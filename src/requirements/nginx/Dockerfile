@@ -1,6 +1,6 @@
 FROM alpine:3.18
 
-RUN apk update && apk add --no-cache nginx=1.24.0-r7 openssl=3.1.6-r0
+RUN apk update && apk add --no-cache nginx openssl
 
 RUN mkdir -p /etc/nginx/ssl_certificates
 
@@ -16,7 +16,7 @@ COPY conf/nginx.conf /etc/nginx/nginx.conf
 
 WORKDIR /app
 
-COPY ft_transcendence/ /app
+COPY test.html/ /app/index.html
 
 EXPOSE 443
 

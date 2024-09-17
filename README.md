@@ -8,3 +8,9 @@
 - Use a front-end framework or toolkit (Bootstrap)
 - Use a database for the backend (PostgreSQL)
 - Monitoring system (Grafana, Prometheus, Alertmanager, Cadvisor, Node Exporter)
+
+
+
+API
+token JWT
+authentification

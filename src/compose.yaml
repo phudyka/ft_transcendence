@@ -3,19 +3,16 @@ networks:
     driver: bridge
   monitoring:
     driver: bridge
-  db_network:
-    driver: bridge
+  # api_network:
+  #   driver: bridge
   
 volumes:
   static_admin:
-#   prometheus_data:
-#     driver: local
-#     driver_opts:
-#       type: none
-#       device: data/monitoring/prometheus_data
-#       o: bind
 
 services:
+## !!PENSER A VERSIONER LES PACKAGES
+## !!PENSER A VERSIONER LES PACKAGES
+## !!PENSER A VERSIONER LES PACKAGES
   nginx:
     build: requirements/nginx
     container_name: "nginx"
@@ -26,10 +23,14 @@ services:
       - 42nice
       - monitoring
     ports:
-      - "5454:443"
+      - "443:443"
     depends_on:
-      - grafana
       - django
+      - grafana
+  ## BACKEND ## BACKEND ## BACKEND ## BACKEND ## BACKEND ## BACKEND ##
+## !!PENSER A VERSIONER LES PACKAGES
+## !!PENSER A VERSIONER LES PACKAGES
+## !!PENSER A VERSIONER LES PACKAGES
   django:
     build: requirements/django
     container_name: "django"
@@ -37,34 +38,49 @@ services:
     volumes:
       - static_admin:/app/.env/lib/python3.11/site-packages/django/contrib/admin/static
     environment:
-      - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
-      - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
-      - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
     networks:
       - 42nice
-      - db_network
-    ports:
-      - "8000:443"
-    depends_on:
-      - postgresql
-  postgresql:
-    build: requirements/postgresql
-    container_name: "postgresql"
-    restart: unless-stopped
-    environment:
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-    networks:
-      - db_network
+      # - api_network
+    # ports:
+    #   - "8000:8000"
+    # depends_on:
+    #   - api_user
+    #   - api_auth
+  # postgresql:
+  #   build: requirements/postgresql
+  #   container_name: "postgresql"
+  #   restart: unless-stopped
+  #   networks:
+  #     - api_network
+  #     - 42nice
+  ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ##
+## !!PENSER A VERSIONER LES PACKAGES
+## !!PENSER A VERSIONER LES PACKAGES
+## !!PENSER A VERSIONER LES PACKAGES
+## !!PENSER A VERSIONER LES PACKAGES
 
-
-
-
+  # api_user:
+  #   build: requirements/api_user
+  #   container_name: "api_user"
+  #   restart: unless-stopped
+  #   networks:
+  #     - api_network
+  #   # ports:
+  #   #   - "5454:443"
+  #   depends_on:
+  #     - postgresql
+  # api_auth:
+  #   build: requirements/api_auth
+  #   container_name: "api_auth"
+  #   restart: unless-stopped
+  #   networks:
+  #     - api_network
+  #   # ports:
+  #   #   - "5454:443"
+  #   depends_on:
+  #     - postgresql
+  ## MONITORING ## MONITORING ## MONITORING ## MONITORING ## MONITORING ##
   grafana:
     build: requirements/grafana
     container_name: "monitoring_grafana"

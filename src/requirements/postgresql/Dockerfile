@@ -1,1 +1,3 @@
-FROM postgres:alpine3.19
+FROM alpine:3.18
+
+ENTRYPOINT ["sleep", "infinty"]

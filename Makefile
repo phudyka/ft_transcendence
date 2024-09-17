@@ -9,9 +9,11 @@ IMAGES =	src-grafana\
 			src-cadvisor\
 			src-nginx\
 			src-django\
-			src-postgresql
+			src-postresql\
+			src-api_user\
+			src-api_auth
 
-VOLUMES =	src_prometheus_data
+VOLUMES =	static_admin
 
 all: $(NAME)
 
@@ -21,15 +23,17 @@ $(NAME):
 start: all
 
 down:
-	@docker compose --project-directory src down
+	@docker compose --project-directory src down -t 0
 
 stop: down
 
 clean: down
 	@docker image rm -f $(IMAGES) > /dev/null 2>&1
+	@echo "Images removed."
 
 fclean: clean
 	@docker volume rm -f $(VOLUMES) > /dev/null
+	@echo "Volumes removed."
 
 re: fclean all
 

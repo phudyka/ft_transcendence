@@ -1,4 +1,4 @@
-#!/bin/ash -e
+#!/bin/ash
 
 if [ -f /alertmanager/alertmanager.yml.tmp ]
 then
