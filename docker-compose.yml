@@ -44,5 +44,16 @@ services:
     depends_on:
       - web
 
+  game:
+    build:
+      context: .
+      dockerfile: ./ft_trans/pong/templates/js/game/Dockerfile
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./ft_trans/pong/templates/js/game:/usr/src/app
+    depends_on:
+      - web
+
 volumes:
   postgres_data:

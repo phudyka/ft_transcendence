@@ -21,6 +21,7 @@ import setupSockets from './sockets.mjs';
 const app = express();
 const server = createServer(app);
 const io = new Server(server);
+const port = 4000;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,6 +31,6 @@ app.use(routes);
 
 setupSockets(io);
 
-server.listen(3000, () => {
-    console.log('Server listening on port 3000');
+server.listen(port, () => {
+    console.log('Server listening on port ', port);
 });
