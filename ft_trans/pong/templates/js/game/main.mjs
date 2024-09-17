@@ -33,7 +33,7 @@ let logo
 let mixer, action;
 let choice = false;
 let controls;
-let sounds;
+let sounds = [];
 
 const clock = new THREE.Clock();
 const fpsDisplay = document.getElementById('fpsDisplay');
@@ -143,19 +143,19 @@ function initGame() {
     
     initSocketEvent(socket, ball);
     hitPadEvent(socket, sounds);
+    SoundLobby(socket, sounds);
 }
 
 document.getElementById('start-game-button').addEventListener('click', () => {
     document.getElementById('start-game-button').classList.add('hidden');
     initGame();
-    socket.emit('lobby ready');
     setTimeout(() => {
         loadModel(scene, (loadedMixer, loadedAction) => {
             mixer = loadedMixer;
             action = loadedAction;
         });
         animateChoice();
-        SoundLobby(socket, sounds);
+        socket.emit('lobby ready');
     }, 2000);
 });
 
