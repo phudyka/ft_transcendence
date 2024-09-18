@@ -1,7 +1,7 @@
 
 import * as THREE from './node_modules/three/build/three.module.js';
 
-import { scene, ball, pad1, pad2, pad3, pad4 } from './main.mjs'
+import { scene, ball, pad1, pad2, pad3, pad4, sounds } from './main.mjs'
 
 export function initSocketEvent(socket){
 
@@ -20,6 +20,10 @@ export function initSocketEvent(socket){
     socket.on('updateScores', (scores) => {
         document.getElementById('scoreLeft').textContent = scores.score1;
         document.getElementById('scoreRight').textContent = scores.score2;
+        sounds.play('Goal');
+        setTimeout(() => {
+            sounds.stop('Goal');
+        }, 100);
     });
     
     socket.on('LeaveRoom', (room) => {

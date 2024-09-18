@@ -33,7 +33,7 @@ let logo
 let mixer, action;
 let choice = false;
 let controls;
-let sounds = [];
+export let sounds = [];
 
 const clock = new THREE.Clock();
 const fpsDisplay = document.getElementById('fpsDisplay');
