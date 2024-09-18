@@ -9,7 +9,8 @@ export default class Sound {
         this.sounds = {};
 
         this.loadSound('pong', '/sound/pong.wav', 0.2, false);
-        this.loadSound('lobby', '/sound/ambient.wav', 0.2, true);
+        this.loadSound('ambient', '/sound/ambient.wav', 0.2, true);
+        this.loadSound('lobby', '/sound/lobby.wav', 0.1, true);
     }
 
     loadSound(name, url, volume = 1, loop = false) {
