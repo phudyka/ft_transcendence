@@ -203,7 +203,7 @@ socket.on('start-game', (rooms, roomsTypes) => {
     sounds.stop('lobby');
     sounds.play('ambient');
     sounds.play('inGame');
-    camera.animCam(0, 8.4, 7.2);
+    camera.animCam(0, 8.4, 6.2);
     controls.autoRotate = false;
     controls.update();
     controlledPad = 0;

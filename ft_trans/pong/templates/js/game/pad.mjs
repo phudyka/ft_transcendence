@@ -51,7 +51,7 @@ export class Pad {
 
     color() {
         let countdown = 6;
-        const intervalDuration = 200;
+        const intervalDuration = 500;
         
         const countdownInterval = setInterval(() => {
             if (countdown % 2 === 0) {

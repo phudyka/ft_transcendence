@@ -6,7 +6,7 @@ export default class Camera extends PerspectiveCamera {
         this.position.set(0, 200, 50);
     }
 
-    animCam(targetX, targetY, targetZ, steps = 50, interval = 10) {
+    animCam(targetX, targetY, targetZ, steps = 50, interval = 20) {
         let currentStep = 0;
         const startX = this.position.x;
         const startY = this.position.y;
@@ -18,10 +18,11 @@ export default class Camera extends PerspectiveCamera {
 
         const countdownInterval = setInterval(() => {
             if (currentStep >= steps) {
-                clearInterval(countdownInterval);
                 this.position.x = targetX;
                 this.position.y = targetY;
                 this.position.z = targetZ;
+                this.lookAt(0,3,0);
+                clearInterval(countdownInterval);
                 return;
             }
             this.lookAt(0,3,0);
