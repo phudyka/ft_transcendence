@@ -1,4 +1,5 @@
 import { navigateTo } from '../app.js';
+import { logout } from '../utils/token.js';
 
 export function profile(friendName) {
     // Simulons des données (à remplacer par des données réelles de la base de données)

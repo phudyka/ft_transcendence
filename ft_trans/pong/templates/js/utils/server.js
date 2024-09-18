@@ -38,24 +38,18 @@ app.get('/', (req, res) => {
 const users = new Map();
 
 io.on('connection', (socket) => {
-    console.log(`${formatDate(new Date())} Un utilisateur s'est connecté: ${socket.id}`);
+    console.log('Un utilisateur s\'est connecté:', socket.id);
 
-    const { username, browserSessionId } = socket.handshake.query;
-
-    if (userConnections.has(username)) {
-        const existingConnection = userConnections.get(username);
-        if (existingConnection.browserSessionId !== browserSessionId) {
-            socket.emit('connection_limit_reached');
-            socket.disconnect(true);
-            return;
+    socket.on('register', (username) => {
+        if (username && !users.has(username)) {
+            socket.username = username;
+            users.set(username, socket.id);
+            console.log('Utilisateur enregistré:', username);
+        } else if (users.has(username)) {
+            console.log('Utilisateur déjà enregistré:', username);
+        } else {
+            console.error('Tentative d\'enregistrement avec un nom d\'utilisateur invalide');
         }
-    }
-
-    userConnections.set(username, { socketId: socket.id, browserSessionId });
-
-    socket.on('register', (userId) => {
-        users.set(userId, socket.id);
-        console.log(`${formatDate(new Date())} Utilisateur enregistré: ${userId}`);
     });
 
     socket.on('chat message', (msg) => {

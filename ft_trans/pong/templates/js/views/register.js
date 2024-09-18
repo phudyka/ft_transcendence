@@ -143,7 +143,7 @@ function setupRegisterEvents(navigateTo) {
           if (contentType && contentType.indexOf("application/json") !== -1) {
               const data = await response.json();
               if (data.success) {
-                  alert(data.message);
+                localStorage.setItem('registrationSuccess', 'Account created successfully. Please log in.');
                   navigateTo('/login');
               } else {
                   alert('Error during registration: ' + data.error);

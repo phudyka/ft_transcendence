@@ -1,5 +1,12 @@
-
 import { navigateTo } from '../app.js';
+
+// Déclarez une variable globale pour stocker la référence au socket
+let globalSocket;
+
+// Fonction pour définir le socket global
+export function setGlobalSocket(socket) {
+    globalSocket = socket;
+}
 
 function refreshToken() {
     return fetch('http://localhost:8000/api/token/refresh/', {
@@ -60,8 +67,19 @@ export function generateToken() {
 }
 
 export function logout() {
+    // Déconnexion du socket si il existe
+    if (globalSocket && globalSocket.connected) {
+        globalSocket.disconnect();
+        console.log('Utilisateur déconnecté du socket');
+    }
+
+    // Suppression des données locales
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('username');
+    localStorage.removeItem('display_name');
+    localStorage.removeItem('avatar_url');
+
+    // Redirection vers la page de connexion
     navigateTo('/login');
 }

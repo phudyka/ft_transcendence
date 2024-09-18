@@ -30,23 +30,25 @@ def index(request, path=''):
 
 @ensure_csrf_cookie
 def login_view(request):
-    data = json.loads(request.body)
-    username = data.get('username')
-    password = data.get('password')
+	if request.method == 'POST':
+		data = json.loads(request.body)
+		username = data.get('username')
+		password = data.get('password')
 
-    try:
-        user = CustomUser.objects.get(username=username)
-        if check_password(password, user.password_hash):
-            login(request, user)
-            return JsonResponse({
-                'success': True,
-                'message': 'Login successful',
-                'username': user.username,
-            })
-        else:
-            return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=401)
-    except CustomUser.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=401)
+		user = authenticate(request, username=username, password=password)
+		if user is not None:
+			login(request, user)
+			return JsonResponse({
+				'success': True,
+				'message': 'Connexion réussie',
+				'username': user.username,
+				'display_name': user.display_name,
+				'avatar_url': user.avatar_url,
+			})
+		else:
+			return JsonResponse({'success': False, 'message': 'Identifiants invalides'}, status=401)
+
+	return JsonResponse({'success': False, 'message': 'Méthode non autorisée'}, status=405)
 
 def content(request):
 	return JsonResponse({'message': 'content page'}, status=200)

@@ -37,13 +37,23 @@ export function login() {
 		</div>
 		</div>
 	</div>
-	  </div>
-	</div>
+	<div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 11">
+        <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header bg-success text-white">
+          <strong class="me-auto">Success</strong>
+          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+          Account created successfully. Please log in.
+        </div>
+        </div>
+    </div>
 	<footer class="py-3 my-4">
 		<p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
 	</footer>
 	`;
 	attachEventLoginPage(navigateTo);
+	checkRegistrationSuccess();
 }
 
 function attachEventLoginPage(navigateTo) {
@@ -115,19 +125,45 @@ async function handleLogin(event) {
         if (data.success) {
             console.log('Login successful');
             localStorage.setItem('username', data.username);
+			localStorage.setItem('display_name', data.display_name);
+            localStorage.setItem('avatar_url', data.avatar_url);
             navigateTo('/dashboard');
         } else {
             console.error('Login failed:', data.message);
-            showLoginToast(data.message);
+            showLoginToastErr(data.message);
         }
     } catch (error) {
         console.error('Error:', error);
-        showLoginToast('An error occurred. Please try again.');
+        showLoginToastErr('An error occurred. Please try again.');
     }
 }
 
-function showLoginToast() {
+function showLoginToastErr() {
 	const toastEl = document.getElementById('loginToast');
 	const toast = new bootstrap.Toast(toastEl);
 	toast.show();
+}
+
+function checkRegistrationSuccess() {
+    const successMessage = localStorage.getItem('registrationSuccess');
+    if (successMessage) {
+        showSuccessToast(successMessage);
+        localStorage.removeItem('registrationSuccess');
+    }
+}
+
+function showSuccessToast(message) {
+    const toastEl = document.getElementById('successToast');
+    const toastBody = toastEl.querySelector('.toast-body');
+    toastBody.textContent = message;
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+}
+
+function showLoginToast(message) {
+    const toastEl = document.getElementById('loginToast');
+    const toastBody = toastEl.querySelector('.toast-body');
+    toastBody.textContent = message;
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
 }
