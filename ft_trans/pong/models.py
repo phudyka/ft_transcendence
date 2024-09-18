@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.contrib.auth.models import AbstractUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.hashers import make_password, check_password
 
 class CustomUserManager(BaseUserManager):
@@ -17,23 +17,16 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_superuser', True)
         return self.create_user(username, email, password, **extra_fields)
 
-class CustomUser(AbstractBaseUser, PermissionsMixin):
-    id = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=50, unique=True)
-    email = models.EmailField(max_length=100, unique=True)
-    password = models.CharField(max_length=255)  # Renommez ce champ en password_hash
+class CustomUser(AbstractUser):
     display_name = models.CharField(max_length=50, unique=True)
-    avatar_url = models.CharField(max_length=255, null=True, default='default_avatar.png')
+    avatar_url = models.CharField(max_length=255, default='default_avatar.png')
     created_at = models.DateTimeField(auto_now_add=True)
-    last_login = models.DateTimeField(null=True, blank=True)
     is_online = models.BooleanField(default=False)
     wins = models.IntegerField(default=0)
     losses = models.IntegerField(default=0)
 
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
-
-    objects = CustomUserManager()
+    # Les champs username, email, password, is_superuser, is_staff, is_active, last_login
+    # sont déjà inclus dans AbstractUser
 
     USERNAME_FIELD = 'username'
     EMAIL_FIELD = 'email'

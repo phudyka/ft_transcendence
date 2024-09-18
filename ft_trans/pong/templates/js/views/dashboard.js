@@ -46,15 +46,6 @@ export function dashboard(player_name) {
 			<a class="dropdown-item" href="#" id="settings">Settings</a>
 			<a class="dropdown-item" href="#" id="logoutLink">Logout</a>
 		</div>
-		<center>
-			<iframe
-				id="pong"
-				title="Pong"
-				width="1200"
-				height="700"
-				src="http://localhost:4000">
-			</iframe>
-		</center>
 		<div class="container-fluid">
 			<div class="row">
 				<div class="col-md-3 sidebar" style="margin-left: inherit;">
@@ -152,8 +143,10 @@ export function dashboard(player_name) {
 
 	setupDashboardEvents(navigateTo, $player_name);
 	initializeSocket();
-	// fetchAndDisplayFriends();
+	checkForFriendRequests();
 }
+
+setInterval(checkForFriendRequests, 600000);
 
 function initializeSocket() {
 	if (socket && socket.connected) {
@@ -698,9 +691,4 @@ async function checkForFriendRequests() {
     }
 }
 
-// Call this function when the dashboard loads
-checkForFriendRequests();
-
-// You might want to set up a polling mechanism to check for new requests periodically
-setInterval(checkForFriendRequests, 600000); // Check every 10 minute
 
