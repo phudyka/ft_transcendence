@@ -11,6 +11,7 @@ export default class Sound {
         this.loadSound('pong', '/sound/pong.wav', 0.2, false);
         this.loadSound('ambient', '/sound/ambient.wav', 0.2, true);
         this.loadSound('lobby', '/sound/lobby.wav', 0.1, true);
+        this.loadSound('inGame', '/sound/inGame.mp3', 0.1, true);
     }
 
     loadSound(name, url, volume = 1, loop = false) {

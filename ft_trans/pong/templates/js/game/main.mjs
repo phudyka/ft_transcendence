@@ -69,9 +69,10 @@ function initGame() {
     
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = false;
-    controls.dampingFactor = 0.25;
-    controls.screenSpacePanning = true;
-    controls.autoRotateSpeed = 0.3;
+    controls.screenSpacePanning = false;
+    controls.enableRotate = false;
+    controls.enableZoom = false;
+    controls.autoRotateSpeed = 0.7;
     controls.autoRotate = true;
     
     new Light(scene);
@@ -174,21 +175,35 @@ function animateChoice() {
         updateAnimation();
         renderer.render(scene, camera);
     }
-    else
+    else {
+        controls.enableDamping = false;
+        controls.dampingFactor = 0.25;
+        controls.screenSpacePanning = true;
+        controls.autoRotateSpeed = 0.5;
+        controls.autoRotate = true;
         animate();
+    }
 }
 
 function animate() {
     //updateFPSDisplay();
-    requestAnimationFrame(animate);
-    updateAnimation();
-    renderer.render(scene, camera);
-}
+    if (choice) {
+        requestAnimationFrame(animate);
+        updateAnimation();
+        renderer.render(scene, camera);
+    }
+    else {
+        camera.animCam(0, 8, 20);
+        animateChoice();
+    }
+    }
 
 socket.on('start-game', (rooms, roomsTypes) => {
     choice = true;
-    camera.position.set(0, 8.4, 7.2);
-    controls.target.set(0, 3, 0);
+    sounds.stop('lobby');
+    sounds.play('ambient');
+    sounds.play('inGame');
+    camera.animCam(0, 8.4, 7.2);
     controls.autoRotate = false;
     controls.update();
     controlledPad = 0;
@@ -267,6 +282,10 @@ socket.on('matchOver', (data) => {
 });
 
 socket.on('gameOver', (data) => {
+    sounds.play('lobby');
+    sounds.stop('ambient');
+    sounds.stop('inGame');
+    choice = false;
     const winner = data.winner;
     const gameOverSection = document.getElementById('game-over');
     const winnerMessage = document.getElementById('winner-message');
@@ -315,3 +334,4 @@ function cleanUpGameObjects() {
     ball = new Ball(0.07, 32);
     ball.addToScene(scene);
 }
+
