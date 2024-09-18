@@ -23,132 +23,39 @@ export function dashboard(player_name) {
 	console.log(player_name);
 
 	document.getElementById('ft_transcendence').innerHTML = `
-	<div class="dashboard-container">
+    <div class="dashboard-container">
+        <div class="header">
+            <a class="navbar-brand" href="#">
+                <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" class="logo">
+            </a>
+            <div class="profile-container">
+                <img src="https://i.ibb.co/FDg3t8m/avatar7.png" class="profile-icon img-thumbnail rounded-circle" alt="Profile Picture" id=img_profile_pic>
+            </div>
+        </div>
 
-		<ul class="nav justify-content-between align-items-center">
-				<a class="navbar-brand" href="#">
-					<img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="30" height="30">
-				</a>
-			<li class="nav-item flex-grow-1 text-center">
-				<a class="nav-link disabled"><strong>${player_name}</strong></a>
-			</li>
-			<li class="nav-item">
-				<a class="nav-link" href="#" id="logoutLink">Logout</a>
-			</li>
-		</ul>
-		<h3 id="header-dashboard" class="text-center">
-			${$player_name}'s Dashboard
-		</h3>
-		<div class="text-center" id=profile-picture>
-			<img src="https://i.ibb.co/FDg3t8m/avatar7.png" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Profile Picture" id=img_profile_pic>
-		</div>
-		<div id="profileDropdown" class="dropdown-menu" style="display: none;">
-			<a class="dropdown-item" href="#" id="settings">Settings</a>
-			<a class="dropdown-item" href="#" id="logoutLink">Logout</a>
-		</div>
-		<center>
-			<iframe
-				id="pong"
-				title="Pong"
-				width="1200"
-				height="700"
-				src="http://localhost:4000">
-			</iframe>
-		</center>
-		<div class="container-fluid">
-			<div class="row">
-				<div class="col-md-3 sidebar" style="margin-left: inherit;">
-					<ul id="friends" class="list-group">
-						<li class="list-group-item" data-friend="Friend1">${generateRandomUsername()}</li>
-						<li class="list-group-item" data-friend="Friend2">${generateRandomUsername()}</li>
-						<li class="list-group-item" data-friend="Friend3">${generateRandomUsername()}</li>
-					</ul>
-					<div id="friendDropdown" class="dropdown-menu" style="display: none;">
-						<a class="dropdown-item" href="#" id="sendMessage">Send Private Message</a>
-						<a class="dropdown-item" href="#" id="startGame">Start a Game</a>
-						<a class="dropdown-item" href="#" id="viewProfile">View Profile</a>
-					</div>
-					<div id="friendDropdown_chat" class="dropdown-menu_chat" style="display: none;">
-						<a class="dropdown-item" href="#" id="sendMessage">Send Private Message</a>
-						<a class="dropdown-item" href="#" id="addToFriend">Add To Friend</a>
-						<a class="dropdown-item" href="#" id="blockUser">Block User</a>
-						<a class="dropdown-item" href="#" id="viewProfile">View Profile</a>
-					</div>
+        <div class="content">
+            <div class="sidebar">
+                <ul id="friends" class="list-group">
+                    <li class="list-group-item" data-friend="Friend1">${generateRandomUsername()}</li>
+                    <li class="list-group-item" data-friend="Friend2">${generateRandomUsername()}</li>
+                </ul>
+            </div>
 
-				<div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="chatbox" aria-labelledby="chatboxLabel">
-					<div class="offcanvas-header">
-						<button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-					</div>
-					<div class="offcanvas-body">
-						<div id="private-chats-container"></div>
-						<div class="input-container2">
-							<textarea id="message-input2" placeholder="Type your message..." rows="1"></textarea>
-							<button id="send-button2">Send</button>
-						</div>
-					</div>
-				</div>
+            <div class="game-container">
+                <iframe id="pong" title="Pong" src="http://localhost:4000"></iframe>
+            </div>
 
-				</div>
-				<div class="col-md-9 main-content">
-					<div class="card">
-						<div class="card-body">
-						<button type="button" class="btn btn-primary btn-lg" id="game_alone">
-							Play
-						</button>
-						</div>
-					</div>
-					<div class="card">
-						<div class="chat-container">
-							<div class="chat-log" id="chat-log">
-							</div>
-							<div class="input-container">
-								<textarea id="message-input" placeholder="Type your message..." rows="1"></textarea>
-								<button id="send-button">Send</button>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		<div class="toast align-items-center text-bg-primary border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="false">
-		  <div class="toast-header">
-			<strong class="me-auto">Friend Request</strong>
-		  </div>
-		  <div class="toast-body">
-			<p><span id="friend-name"></span> wants to add you as a friend.</p>
-			<div class="mt-2 pt-2 border-top">
-			  <button type="button" class="btn btn-success btn-sm" id="accept-friend">Accept</button>
-			  <button type="button" class="btn btn-danger btn-sm" id="refuse-friend">Decline</button>
-			</div>
-		  </div>
-		</div>
-		<div class="toast-container position-fixed bottom-0 end-0 p-3">
-			<div id="addFriendToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-				<div class="toast-header">
-					<strong class="me-auto">Friend Request</strong>
-					<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-				</div>
-				<div class="toast-body">
-					Friend request sent successfully!
-				</div>
-			</div>
-		</div>
-		<div class="toast-container position-fixed bottom-0 end-0 p-3">
-			<div id="blockUserToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-				<div class="toast-header">
-					<strong class="me-auto">Block User</strong>
-					<button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-				</div>
-				<div class="toast-body">
-					User blocked successfully!
-				</div>
-			</div>
-		</div>
-		<footer class="py-3 my-4">
-			<p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
-		</footer>
-	</div>
-	`;
+            <div class="chat-container">
+                <div class="chat-log" id="chat-log"></div>
+                <div class="input-container">
+                    <textarea id="message-input" placeholder="Type your message..."></textarea>
+                    <button id="send-button">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <footer>© 2024 42Company, Inc</footer>
+    </div>`;
 
 	setupDashboardEvents(navigateTo, $player_name);
 	initializeSocket();
