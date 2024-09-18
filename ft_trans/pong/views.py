@@ -42,6 +42,8 @@ def login_view(request):
 				'success': True,
 				'message': 'Connexion réussie',
 				'username': user.username,
+				'display_name': user.display_name,
+				'avatar_url': user.avatar_url,
 			})
 		else:
 			return JsonResponse({'success': False, 'message': 'Identifiants invalides'}, status=401)

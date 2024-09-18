@@ -1,4 +1,4 @@
-export function changeType(x, type) {
+window.changeType = function(x, type) {
   if (x.type === type) {
     return x;
   }
@@ -28,12 +28,12 @@ export function changeType(x, type) {
   }
 }
 
-changeType.ready(function() {
+$(document).ready(function() {
   $('.unmask').on('click', function() {
     if ($(this).prev('input').attr('type') === 'password') {
-      changeType($(this).prev('input'), 'text');
+      window.changeType($(this).prev('input'), 'text');
     } else {
-      changeType($(this).prev('input'), 'password');
+      window.changeType($(this).prev('input'), 'password');
     }
     return false;
   });

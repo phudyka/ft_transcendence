@@ -4,6 +4,12 @@ import { logout } from '../utils/token.js';
 const player_name = localStorage.getItem('player_name') || 'Player';
 
 export function settings() {
+    const username = localStorage.getItem('username');
+
+    if (!username) {
+        navigateTo('/login');
+        return;
+    }
     console.log('settings view');
 
     document.getElementById('ft_transcendence').innerHTML = `

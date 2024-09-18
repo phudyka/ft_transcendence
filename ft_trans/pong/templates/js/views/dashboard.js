@@ -1,10 +1,9 @@
 import { navigateTo } from '../app.js';
-import { logout } from '../utils/token.js';
+import { logout, setGlobalSocket } from '../utils/token.js';
 
-let $player_name = generateRandomUsername();
-let player_name = $player_name;
 let socket;
 const privateChatLogs = new Map();
+const username = localStorage.getItem('username');
 
 export function generateRandomUsername() {
     const adjectives = ['Happy', 'Clever', 'Brave', 'Calm', 'Eager', 'Jolly', 'Kind', 'Lively', 'Proud', 'Wise'];
@@ -18,9 +17,14 @@ export function generateRandomUsername() {
 }
 
 export function dashboard(player_name) {
-	player_name = generateRandomUsername();
-	$player_name = player_name;
-	console.log(player_name);
+    const username = localStorage.getItem('username');
+    const displayName = localStorage.getItem('display_name');
+    const avatarUrl = localStorage.getItem('avatar_url');
+
+	if (!username) {
+        navigateTo('/login');
+        return;
+    }
 
 	document.getElementById('ft_transcendence').innerHTML = `
 	<div class="dashboard-container">
@@ -30,17 +34,17 @@ export function dashboard(player_name) {
 					<img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="30" height="30">
 				</a>
 			<li class="nav-item flex-grow-1 text-center">
-				<a class="nav-link disabled"><strong>${player_name}</strong></a>
+				<a class="nav-link disabled"><strong>${username}</strong></a>
 			</li>
 			<li class="nav-item">
 				<a class="nav-link" href="#" id="logoutLink">Logout</a>
 			</li>
 		</ul>
 		<h3 id="header-dashboard" class="text-center">
-			${$player_name}'s Dashboard
+			${username}'s Dashboard
 		</h3>
 		<div class="text-center" id=profile-picture>
-			<img src="https://i.ibb.co/FDg3t8m/avatar7.png" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Profile Picture" id=img_profile_pic>
+			<img src="${avatarUrl}" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Profile Picture" id=img_profile_pic>
 		</div>
 		<div id="profileDropdown" class="dropdown-menu" style="display: none;">
 			<a class="dropdown-item" href="#" id="settings">Settings</a>
@@ -141,7 +145,7 @@ export function dashboard(player_name) {
 	</div>
 	`;
 
-	setupDashboardEvents(navigateTo, $player_name);
+	setupDashboardEvents(navigateTo, username);
 	initializeSocket();
 	checkForFriendRequests();
 }
@@ -149,25 +153,32 @@ export function dashboard(player_name) {
 setInterval(checkForFriendRequests, 600000);
 
 function initializeSocket() {
-	if (socket && socket.connected) {
+    if (socket && socket.connected) {
         console.log('Connexion Socket.IO existante réutilisée');
         return;
     }
-    // Générer un ID unique pour cette session de navigateur
-    const browserSessionId = localStorage.getItem('browserSessionId') || generateUniqueId();
-    localStorage.setItem('browserSessionId', browserSessionId);
+
+    const username = localStorage.getItem('username');
+    if (!username) {
+        console.error('Nom d\'utilisateur non trouvé');
+        return;
+    }
 
     socket = io('http://localhost:3000', {
         transports: ['websocket'],
         query: {
-            username: $player_name,
-            browserSessionId: browserSessionId
+            username: username,
         }
     });
 
+	setGlobalSocket(socket);
+
     socket.on('connect', () => {
         console.log('Connecté au serveur de chat');
-        socket.emit('register', $player_name);
+		const username = localStorage.getItem('username');
+        if (username) {
+            socket.emit('register', username);
+        }
     });
 
     socket.on('connection_limit_reached', () => {
@@ -406,11 +417,12 @@ function goTosettings(event) {
 
 function sendMessage(event) {
 	event.preventDefault();
+	const username = localStorage.getItem('username');
 	const messageInput = document.getElementById('message-input');
 	const message = messageInput.value.trim();
 	if (message !== '' && socket && socket.connected) {
 		const messageData = {
-			name: $player_name,
+			name: username,
 			message: message
 		};
 		socket.emit('chat message', messageData);
@@ -440,7 +452,7 @@ function receiveMessage(msg) {
     usernameElement.addEventListener('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
-        const isOwnUsername = msg.name === $player_name;
+        const isOwnUsername = msg.name === username;
 		if (isOwnUsername) {
 			console.log('You click on you\'re name');
 		}
@@ -499,10 +511,12 @@ function sendPrivateMessage(friendName) {
 }
 
 function handleEnterKey(event) {
-	if (event.key === 'Enter' && !event.shiftKey) {
-		event.preventDefault();
-		sendMessage(event);
-	}
+	if (event.key === "Enter") {
+		const messageInput = document.getElementById('message-input');
+		if (messageInput && document.activeElement === messageInput) {
+		  sendMessage(event);
+		}
+	  }
 }
 
 function addFriend(event) {
@@ -680,14 +694,22 @@ async function checkForFriendRequests() {
             }
         });
 
-        if (response.ok) {
-            const requests = await response.json();
-            requests.forEach(request => {
-                showFriendRequestToast(request.fromUserName, request.id);
-            });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
+
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            throw new TypeError("La réponse n'est pas du JSON valide");
+        }
+
+        const requests = await response.json();
+        requests.forEach(request => {
+            showFriendRequestToast(request.fromUserName, request.id);
+        });
     } catch (error) {
         console.error('Error checking for friend requests:', error);
+        // Gérer l'erreur de manière appropriée (par exemple, afficher un message à l'utilisateur)
     }
 }
 
