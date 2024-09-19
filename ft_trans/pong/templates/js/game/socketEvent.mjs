@@ -1,7 +1,7 @@
 
 import * as THREE from './node_modules/three/build/three.module.js';
 
-import { scene, ball, pad1, pad2, pad3, pad4, sounds } from './main.mjs'
+import { scene, ball, sounds, gameState } from './main.mjs'
 
 export function initSocketEvent(socket){
 
@@ -189,6 +189,10 @@ export function initSocketEvent(socket){
                 document.getElementById('Gagnant-2').textContent = '';
                 document.getElementById('Gagnant-Finale').textContent = '';
                 sounds.stop('endTournament');
+                sounds.play('lobby');
+                sounds.stop('ambient');
+                sounds.stop('inGame');
+                gameState.choice = false;
                 socket.emit('quit-tournament', gagnantFinale);
             }
         }, 1000);
@@ -198,6 +202,7 @@ export function initSocketEvent(socket){
 
 export function hitPadEvent(socket, sounds) {
     socket.on('hitPad', () => {
+        sounds.stop('pong');
         sounds.play('pong');
     });
 }

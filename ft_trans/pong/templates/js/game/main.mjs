@@ -31,7 +31,9 @@ export let pad1, pad2, pad3, pad4, ball;
 export let scene, camera, renderer, listener;
 let logo
 let mixer, action;
-let choice = false;
+export let gameState = {
+    choice: false
+};
 let controls;
 export let sounds = [];
 
@@ -50,6 +52,7 @@ function initGame() {
     controls.enablePan = false; 
     controls.autoRotateSpeed = 0.7;
     controls.autoRotate = true;
+
     
     new Light(scene);
     
@@ -145,36 +148,32 @@ function updateAnimation() {
 
 
 function animateChoice() {
-    if (!choice) {
+    if (!gameState.choice) {
         requestAnimationFrame(animateChoice);
         controls.update();
         updateAnimation();
         renderer.render(scene, camera);
     }
     else {
-        controls.enableDamping = false;
-        controls.dampingFactor = 0.25;
-        controls.screenSpacePanning = true;
-        controls.autoRotateSpeed = 0.5;
-        controls.autoRotate = true;
         animate();
     }
 }
 
 function animate() {
-    if (choice) {
+    if (gameState.choice) {
         requestAnimationFrame(animate);
         updateAnimation();
         renderer.render(scene, camera);
     }
     else {
         camera.animCam(0, 8, 20);
+        controls.autoRotate = true
         animateChoice();
     }
     }
 
 socket.on('start-game', (rooms, roomsTypes) => {
-    choice = true;
+    gameState.choice = true;
     sounds.stop('lobby');
     sounds.play('ambient');
     sounds.play('inGame');
@@ -239,7 +238,6 @@ socket.on('movePad', (data) => {
 });
 
 socket.on('matchOver', (data) => {
-    choice = false;
     const winner = data.winner;
     const currentRoom = data.roomName;
     document.getElementById('score').classList.add('hidden');
@@ -259,7 +257,7 @@ socket.on('gameOver', (data) => {
     sounds.play('lobby');
     sounds.stop('ambient');
     sounds.stop('inGame');
-    choice = false;
+    gameState.choice = false;
     const winner = data.winner;
     const gameOverSection = document.getElementById('game-over');
     const winnerMessage = document.getElementById('winner-message');
