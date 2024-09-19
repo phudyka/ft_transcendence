@@ -173,6 +173,12 @@ function setupRegisterEvents(navigateTo) {
     event.preventDefault();
     $('#carouselExampleControls').carousel('prev');
   });
+
+  document.getElementById('registerbutton42').addEventListener('click', function(event) {
+    event.preventDefault();
+    window.location.href = '/api/auth/42/';
+  });
+
 }
 
 function getCookie(name) {

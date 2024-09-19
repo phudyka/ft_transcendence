@@ -7,13 +7,16 @@ from django.shortcuts import render
 from django.middleware.csrf import get_token
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import IntegrityError
+from django.shortcuts import redirect
 import json
 import logging
+import requests
 logger = logging.getLogger(__name__)
 from django.utils import timezone
 from django.contrib.auth import get_user_model
 from .models import CustomUser
 from django.contrib.auth.hashers import check_password, make_password
+from django.conf import settings
 
 User = get_user_model()
 
@@ -72,7 +75,7 @@ def register_view(request):
             user = User.objects.create_user(
                 username=username,
                 email=email,
-                password=password,  # Passez simplement le mot de passe, create_user s'occupera du hachage
+                password=password,
                 avatar_url=avatar_url,
                 display_name=username,
             )
@@ -95,3 +98,65 @@ def set_csrf_token(request):
 
 def friend_requests(request):
     pass
+
+def auth_42_redirect(request):
+    redirect_uri = request.build_absolute_uri('/api/auth/42/callback/')
+    return redirect(f'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-0bdec356ea53d09b3992d0f90a9e4b9cdf8d0659d321388f9ba8ee3a41448165&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2F&response_type=code')
+
+@csrf_exempt
+def auth_42_callback(request):
+    try:
+        code = request.GET.get('code')
+        if not code:
+            raise ValueError('No code provided')
+
+        redirect_uri = request.build_absolute_uri('/api/auth/42/callback/')
+
+        # Échange du code contre un token
+        response = requests.post('https://api.intra.42.fr/oauth/token', data={
+            'grant_type': 'authorization_code',
+            'client_id': settings.FT_CLIENT_ID,
+            'client_secret': settings.FT_CLIENT_SECRET,
+            'code': code,
+            'redirect_uri': redirect_uri
+        })
+
+        if response.status_code != 200:
+            raise ValueError(f'Failed to obtain access token: {response.text}')
+
+        access_token = response.json()['access_token']
+
+        # Récupération des informations de l'utilisateur
+        user_info_response = requests.get('https://api.intra.42.fr/v2/me', headers={
+            'Authorization': f'Bearer {access_token}'
+        })
+
+        if user_info_response.status_code != 200:
+            raise ValueError(f'Failed to get user info: {user_info_response.text}')
+
+        user_info = user_info_response.json()
+
+        # Création ou mise à jour de l'utilisateur dans la base de données
+        user, created = CustomUser.objects.get_or_create(
+            username=user_info['login'],
+            defaults={
+                'email': user_info['email'],
+                'avatar_url': user_info.get('image_url', '')
+            }
+        )
+
+        if created:
+            logger.info(f"New user created: {user.username}")
+        else:
+            logger.info(f"Existing user updated: {user.username}")
+
+        # Connexion de l'utilisateur
+        login(request, user)
+        logger.info(f"User {user.username} logged in successfully")
+
+        # Redirection vers la page d'accueil avec un paramètre de succès
+        return redirect('/?auth_success=true')
+
+    except Exception as e:
+        logger.error(f"Error during 42 authentication: {str(e)}")
+        return JsonResponse({'error': str(e)}, status=500)
