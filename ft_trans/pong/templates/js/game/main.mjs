@@ -72,6 +72,7 @@ function initGame() {
     controls.screenSpacePanning = false;
     controls.enableRotate = false;
     controls.enableZoom = false;
+    controls.enablePan = false; 
     controls.autoRotateSpeed = 0.7;
     controls.autoRotate = true;
     
