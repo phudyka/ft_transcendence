@@ -161,6 +161,7 @@ export function initSocketEvent(socket){
     }
     
     function updateFinal(winner) {
+        sounds.play('endTournament');
         const matchInfoDiv = document.getElementById('match-info');
         document.getElementById('match-info').classList.remove('hidden');
         const gagnantFinale = document.getElementById('Gagnant-Finale');
@@ -184,10 +185,10 @@ export function initSocketEvent(socket){
                 document.getElementById('player-2').textContent = '';
                 document.getElementById('player-3').textContent = '';
                 document.getElementById('player-4').textContent = '';
-            
                 document.getElementById('Gagnant-1').textContent = '';
                 document.getElementById('Gagnant-2').textContent = '';
                 document.getElementById('Gagnant-Finale').textContent = '';
+                sounds.stop('endTournament');
                 socket.emit('quit-tournament', gagnantFinale);
             }
         }, 1000);

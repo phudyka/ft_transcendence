@@ -36,31 +36,6 @@ let controls;
 export let sounds = [];
 
 const clock = new THREE.Clock();
-const fpsDisplay = document.getElementById('fpsDisplay');
-
-function updateFPSDisplay() {
-    measureFPS(1000, (fps) => {
-        fpsDisplay.innerText = `FPS: ${Math.round(fps)}`;
-    });
-}
-
-function measureFPS(duration = 1000, callback) {
-    let frameCount = 0;
-    let startTime = performance.now();
-
-    function countFrames() {
-        frameCount++;
-        const now = performance.now();
-        if (now - startTime < duration) {
-            requestAnimationFrame(countFrames);
-        } else {
-            const fps = (frameCount / (now - startTime)) * 1000;
-            callback(fps);
-        }
-    }
-
-    requestAnimationFrame(countFrames);
-}
 
 function initGame() {
     scene = new THREE.Scene();
@@ -187,7 +162,6 @@ function animateChoice() {
 }
 
 function animate() {
-    //updateFPSDisplay();
     if (choice) {
         requestAnimationFrame(animate);
         updateAnimation();
@@ -265,6 +239,7 @@ socket.on('movePad', (data) => {
 });
 
 socket.on('matchOver', (data) => {
+    choice = false;
     const winner = data.winner;
     const currentRoom = data.roomName;
     document.getElementById('score').classList.add('hidden');
@@ -277,9 +252,7 @@ socket.on('matchOver', (data) => {
     if (winner === socket.id) {
         socket.emit('match-finished', { playerWinner: winner, room: currentRoom, roomType: data.roomType });
     }
-
     cleanUpGameObjects();
-    //updateTournamentDisplay(winner);
 });
 
 socket.on('gameOver', (data) => {
@@ -300,7 +273,6 @@ socket.on('gameOver', (data) => {
     document.getElementById('score').classList.remove('score-container');
     document.getElementById('scoreLeft').textContent = 0;
     document.getElementById('scoreRight').textContent = 0;
-    //document.getElementById('menu').classList.add('active');
     document.getElementById('tournament').classList.remove('active');
     
     document.getElementById('back-to-menu-button').addEventListener('click', () => {

@@ -13,6 +13,7 @@ export default class Sound {
         this.loadSound('lobby', '/sound/lobby.wav', 0.1, true);
         this.loadSound('inGame', '/sound/inGame.mp3', 0.1, true);
         this.loadSound('Goal', '/sound/Goal.mp3', 0.3, false);
+        this.loadSound('endTournament', '/sound/Fin-tournois.mp3', 0.3, false);
     }
 
     loadSound(name, url, volume = 1, loop = false) {
