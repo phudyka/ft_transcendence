@@ -94,6 +94,7 @@ export function initSocketEvent(socket){
     
     function displayTournamentPage(socketIds) {
         document.getElementById('tournament').classList.add('hidden');
+        document.getElementById('quit-tournament').classList.remove('hidden');
         document.getElementById('tournament-details').classList.remove('hidden');
         document.getElementById('tournament-details').classList.add('flex');
         document.getElementById('player-1').textContent = socketIds.room[0];
@@ -111,6 +112,7 @@ export function initSocketEvent(socket){
     socket.on('match-info', (data) => {
         const matchInfoDiv = document.getElementById('match-info');
         document.getElementById('match-info').classList.remove('hidden');
+        document.getElementById('quit-tournament').classList.add('hidden');
         
         matchInfoDiv.innerHTML = `<p>${data.message}</p><p>Début du match dans <span id="countdown">${data.countdown}</span> secondes...</p>`;
         
