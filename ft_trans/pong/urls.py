@@ -11,6 +11,7 @@ urlpatterns = [
 	path('api/register/', views.register_view, name='register'),
 	path('api/login/', views.login_view, name='login'),
 	path('/api/friend-requests', views.friend_requests, name='friend_requests'),
+	path('api/user/<str:display_name>/', views.get_user_by_display_name, name='get_user_by_display_name'),
 	path('', views.index, name='index'),
 	path('<path:path>', views.index, name='catch_all'),
 ]
