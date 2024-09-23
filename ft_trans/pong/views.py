@@ -16,6 +16,7 @@ from django.utils import timezone
 from django.contrib.auth import get_user_model
 from .models import CustomUser
 from django.contrib.auth.hashers import check_password, make_password
+from django.views.decorators.http import require_GET
 from django.conf import settings
 
 User = get_user_model()
@@ -98,6 +99,23 @@ def set_csrf_token(request):
 
 def friend_requests(request):
     pass
+
+@require_GET
+def get_user_by_display_name(request, display_name):
+    try:
+        user = User.objects.get(display_name=display_name)
+        user_data = {
+            'username': user.username,
+            'email': user.email,
+            'avatar_url': user.avatar_url,
+            'display_name': user.display_name,
+            'is_online': user.is_online,
+            'wins': user.wins,
+            'losses': user.losses,
+        }
+        return JsonResponse({'success': True, 'user': user_data})
+    except User.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
 
 def auth_42_redirect(request):
     redirect_uri = request.build_absolute_uri('/api/auth/42/callback/')
