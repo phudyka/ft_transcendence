@@ -33,7 +33,7 @@ body {
 
 #match-info {
     position: absolute;
-    top: 70%;
+    top: 80%;
     left: 50%;
     transform: translate(-50%, -50%);
     padding: 15px;
@@ -78,12 +78,17 @@ body {
     padding: 20px;
     border-radius: 15px;
     text-align: center;
-    color: #ffffff;
+    color: #5c5c5c;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     display: none;
     flex-direction: column;
     align-items: center;
     z-index: 10;
+}
+
+#winner-message {
+    font-size: 18px;
+    font-weight: bold;
 }
 
 .tournament-item {
@@ -131,6 +136,20 @@ body {
     text-align: center;
     text-decoration: none;
     display: block;
+    font-size: 18px;
+    margin: 10px auto;
+    cursor: pointer;
+    border-radius: 12px;
+    transition: background-color 0.3s, transform 0.3s;
+}
+
+.button-tournament {
+    background-color: #00a2ff;
+    border: 2px solid #FFD700;
+    color: rgb(255, 255, 255);
+    padding: 12px 24px;
+    text-align: center;
+    text-decoration: none;
     font-size: 18px;
     margin: 10px auto;
     cursor: pointer;
@@ -269,7 +288,7 @@ span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    max-width: 150px; /* Ajustez la largeur maximale selon vos besoins */
+    max-width: 150px;
     display: inline-block;
     font-size: 24px;
 }

@@ -1,7 +1,7 @@
 
 import * as THREE from './node_modules/three/build/three.module.js';
 
-import { scene, ball, pad1, pad2, pad3, pad4 } from './main.mjs'
+import { scene, ball, sounds, gameState } from './main.mjs'
 
 export function initSocketEvent(socket){
 
@@ -20,6 +20,7 @@ export function initSocketEvent(socket){
     socket.on('updateScores', (scores) => {
         document.getElementById('scoreLeft').textContent = scores.score1;
         document.getElementById('scoreRight').textContent = scores.score2;
+        sounds.play('Goal');
     });
     
     socket.on('LeaveRoom', (room) => {
@@ -93,6 +94,7 @@ export function initSocketEvent(socket){
     
     function displayTournamentPage(socketIds) {
         document.getElementById('tournament').classList.add('hidden');
+        document.getElementById('quit-tournament').classList.remove('hidden');
         document.getElementById('tournament-details').classList.remove('hidden');
         document.getElementById('tournament-details').classList.add('flex');
         document.getElementById('player-1').textContent = socketIds.room[0];
@@ -110,6 +112,7 @@ export function initSocketEvent(socket){
     socket.on('match-info', (data) => {
         const matchInfoDiv = document.getElementById('match-info');
         document.getElementById('match-info').classList.remove('hidden');
+        document.getElementById('quit-tournament').classList.add('hidden');
         
         matchInfoDiv.innerHTML = `<p>${data.message}</p><p>Début du match dans <span id="countdown">${data.countdown}</span> secondes...</p>`;
         
@@ -125,23 +128,6 @@ export function initSocketEvent(socket){
             }
         }, 1000);
     });
-
-    // socket.on('matchOver', (data) => {
-    //     const winner = data.winner;
-    //     const currentRoom = data.roomName;
-    //     document.getElementById('score').classList.add('hidden');
-    //     document.getElementById('score').classList.remove('score-container');
-    //     document.getElementById('scoreLeft').textContent = 0;
-    //     document.getElementById('scoreRight').textContent = 0;
-    //     document.getElementById('tournament-details').classList.remove('hidden');
-    //     document.getElementById('tournament-details').classList.add('flex');
-    
-    //     if (winner === socket.id) {
-    //         socket.emit('match-finished', { playerWinner: winner, room: currentRoom });
-    //     }
-
-    //     //updateTournamentDisplay(winner);
-    // });
     
     socket.on('update tournament', (winner) => {
         if (winner.length === 2) {
@@ -177,6 +163,7 @@ export function initSocketEvent(socket){
     }
     
     function updateFinal(winner) {
+        sounds.play('endTournament');
         const matchInfoDiv = document.getElementById('match-info');
         document.getElementById('match-info').classList.remove('hidden');
         const gagnantFinale = document.getElementById('Gagnant-Finale');
@@ -200,72 +187,30 @@ export function initSocketEvent(socket){
                 document.getElementById('player-2').textContent = '';
                 document.getElementById('player-3').textContent = '';
                 document.getElementById('player-4').textContent = '';
-            
                 document.getElementById('Gagnant-1').textContent = '';
                 document.getElementById('Gagnant-2').textContent = '';
                 document.getElementById('Gagnant-Finale').textContent = '';
+                sounds.stop('endTournament');
+                sounds.play('lobby');
+                sounds.stop('ambient');
+                sounds.stop('inGame');
+                gameState.choice = false;
                 socket.emit('quit-tournament', gagnantFinale);
             }
         }, 1000);
     }
-    
-    
-    
-    
-
-    // socket.on('gameOver', (data) => {
-    //     const winner = data.winner;
-    //     const gameOverSection = document.getElementById('game-over');
-    //     const winnerMessage = document.getElementById('winner-message');
-    //     winnerMessage.textContent = `Le gagnant est ${winner}!`;
-    //     gameOverSection.style.display = 'flex';
-        
-    //     document.getElementById('score').classList.add('hidden');
-    //     document.getElementById('score').classList.remove('score-container');
-    //     document.getElementById('scoreLeft').textContent = 0;
-    //     document.getElementById('scoreRight').textContent = 0;
-    //     //document.getElementById('menu').classList.add('active');
-    //     document.getElementById('tournament').classList.remove('active');
-        
-    //     document.getElementById('back-to-menu-button').addEventListener('click', () => {
-    //         gameOverSection.style.display = 'none';
-    //         document.getElementById('menu').classList.remove('hidden');
-    //     });
-    //     socket.emit('endGame');
-    // });
 
 }
 
 export function hitPadEvent(socket, sounds) {
     socket.on('hitPad', () => {
-        const audioContext = sounds.listener.context;
-
-        if (audioContext.state === 'suspended') {
-            audioContext.resume().then(() => {
-                console.log('AudioContext resumed');
-                sounds.play('pong');
-            }).catch((err) => {
-                console.error('Failed to resume AudioContext:', err);
-            });
-        } else {
-            sounds.play('pong');
-        }
+        sounds.stop('pong');
+        sounds.play('pong');
     });
 }
 
 export function SoundLobby(socket, sounds) {
     socket.on('lobby', () => {
-        const audioContext = sounds.listener.context;
-
-        if (audioContext.state === 'suspended') {
-            audioContext.resume().then(() => {
-                console.log('AudioContext resumed');
-                sounds.play('lobby');
-            }).catch((err) => {
-                console.error('Failed to resume AudioContext:', err);
-            });
-        } else {
             sounds.play('lobby');
-        }
     });
 }

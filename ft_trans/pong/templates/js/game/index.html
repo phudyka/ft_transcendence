@@ -48,8 +48,9 @@
             <span id="Gagnant-Finale"></span>
         </div>
         <div id="match-info" class="hidden"></div>
-        <button class="menu-button" id="quit-tournament">Quitter le Tournoi</button>
+        <button class="button-tournament" id="quit-tournament">Quitter le Tournoi</button>
     </div>
+    
 
     <div id="space" class="hidden">
         <h1>Press space for Launch the game</h1>
@@ -60,7 +61,7 @@
         <div id="spinner"></div>
     </div>
     
-    <div id="score" class="score-container hidden">
+    <div id="score" class="hidden">
         <div id="scoreLeft">0</div>
         <div id="scoreTitle">SCORE</div>
         <div id="scoreRight">0</div>
@@ -91,7 +92,7 @@
             tournamentDetails.classList.add('hidden');
             tournamentDetails.classList.remove('flex');
 
-            document.getElementById('score').classList.remove('score-container');
+            /*document.getElementById('score').classList.remove('score-container');*/
 
             // Lorsqu'on clique sur Start Game, le menu principal apparaît
             /*startButton.addEventListener('click', () => {

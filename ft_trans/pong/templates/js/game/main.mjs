@@ -31,36 +31,13 @@ export let pad1, pad2, pad3, pad4, ball;
 export let scene, camera, renderer, listener;
 let logo
 let mixer, action;
-let choice = false;
+export let gameState = {
+    choice: false
+};
 let controls;
-let sounds = [];
+export let sounds = [];
 
 const clock = new THREE.Clock();
-const fpsDisplay = document.getElementById('fpsDisplay');
-
-function updateFPSDisplay() {
-    measureFPS(1000, (fps) => {
-        fpsDisplay.innerText = `FPS: ${Math.round(fps)}`;
-    });
-}
-
-function measureFPS(duration = 1000, callback) {
-    let frameCount = 0;
-    let startTime = performance.now();
-
-    function countFrames() {
-        frameCount++;
-        const now = performance.now();
-        if (now - startTime < duration) {
-            requestAnimationFrame(countFrames);
-        } else {
-            const fps = (frameCount / (now - startTime)) * 1000;
-            callback(fps);
-        }
-    }
-
-    requestAnimationFrame(countFrames);
-}
 
 function initGame() {
     scene = new THREE.Scene();
@@ -72,8 +49,10 @@ function initGame() {
     controls.screenSpacePanning = false;
     controls.enableRotate = false;
     controls.enableZoom = false;
+    controls.enablePan = false; 
     controls.autoRotateSpeed = 0.7;
     controls.autoRotate = true;
+
     
     new Light(scene);
     
@@ -169,41 +148,36 @@ function updateAnimation() {
 
 
 function animateChoice() {
-    if (!choice) {
+    if (!gameState.choice) {
         requestAnimationFrame(animateChoice);
         controls.update();
         updateAnimation();
         renderer.render(scene, camera);
     }
     else {
-        controls.enableDamping = false;
-        controls.dampingFactor = 0.25;
-        controls.screenSpacePanning = true;
-        controls.autoRotateSpeed = 0.5;
-        controls.autoRotate = true;
         animate();
     }
 }
 
 function animate() {
-    //updateFPSDisplay();
-    if (choice) {
+    if (gameState.choice) {
         requestAnimationFrame(animate);
         updateAnimation();
         renderer.render(scene, camera);
     }
     else {
         camera.animCam(0, 8, 20);
+        controls.autoRotate = true
         animateChoice();
     }
     }
 
 socket.on('start-game', (rooms, roomsTypes) => {
-    choice = true;
+    gameState.choice = true;
     sounds.stop('lobby');
     sounds.play('ambient');
     sounds.play('inGame');
-    camera.animCam(0, 8.4, 7.2);
+    camera.animCam(0, 8.4, 6.2);
     controls.autoRotate = false;
     controls.update();
     controlledPad = 0;
@@ -276,16 +250,14 @@ socket.on('matchOver', (data) => {
     if (winner === socket.id) {
         socket.emit('match-finished', { playerWinner: winner, room: currentRoom, roomType: data.roomType });
     }
-
     cleanUpGameObjects();
-    //updateTournamentDisplay(winner);
 });
 
 socket.on('gameOver', (data) => {
     sounds.play('lobby');
     sounds.stop('ambient');
     sounds.stop('inGame');
-    choice = false;
+    gameState.choice = false;
     const winner = data.winner;
     const gameOverSection = document.getElementById('game-over');
     const winnerMessage = document.getElementById('winner-message');
@@ -299,7 +271,6 @@ socket.on('gameOver', (data) => {
     document.getElementById('score').classList.remove('score-container');
     document.getElementById('scoreLeft').textContent = 0;
     document.getElementById('scoreRight').textContent = 0;
-    //document.getElementById('menu').classList.add('active');
     document.getElementById('tournament').classList.remove('active');
     
     document.getElementById('back-to-menu-button').addEventListener('click', () => {

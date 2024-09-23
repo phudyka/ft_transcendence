@@ -33,12 +33,13 @@ export function dashboard(player_name) {
                 <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" class="logo">
             </a>
             <div class="profile-container">
-                <img src="https://i.ibb.co/FDg3t8m/avatar7.png" class="profile-icon img-thumbnail rounded-circle" alt="Profile Picture" id=img_profile_pic>
+                <img src="https://i.ibb.co/FDg3t8m/avatar7.png" class="profile-icon img-thumbnail rounded-circle" alt="Profile Picture" id="img_profile_pic">
             </div>
         </div>
 
         <div class="content">
             <div class="sidebar">
+                <h2 class="title-friends">Friends</h2>
                 <ul id="friends" class="list-group">
                     <li class="list-group-item" data-friend="Friend1">${generateRandomUsername()}</li>
                     <li class="list-group-item" data-friend="Friend2">${generateRandomUsername()}</li>
@@ -50,6 +51,7 @@ export function dashboard(player_name) {
             </div>
 
             <div class="chat-container">
+                <h2 class="title-chat">Chat</h2>
                 <div class="chat-log" id="chat-log"></div>
                 <div class="input-container">
                     <textarea id="message-input" placeholder="Type your message..."></textarea>
