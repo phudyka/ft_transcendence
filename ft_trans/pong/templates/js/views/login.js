@@ -21,6 +21,7 @@ export function login() {
           </div>
         </p>
         <button type="submit" class="btn btn-primary">Login</button>
+        <button type="submit" class="btn btn-primary">Login with 42</button>
         <div class="text-center">
             <button type="button" id="create_account" class="btn btn-outline-light">Create account</button>
         </div>
@@ -71,6 +72,12 @@ function attachEventLoginPage(navigateTo) {
             navigateTo('/register');
         });
     }
+
+    document.getElementById('login_with_42').addEventListener('click', function(event) {
+        event.preventDefault();
+        console.log('"Login with 42" button clicked');
+        window.location.href = '/api/auth/42/';
+    });
 
     document.addEventListener('click', function(event) {
         if (event.target.classList.contains('unmask') || event.target.closest('.unmask')) {
