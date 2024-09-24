@@ -18,6 +18,8 @@ from .models import CustomUser
 from django.contrib.auth.hashers import check_password, make_password
 from django.views.decorators.http import require_GET
 from django.conf import settings
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
 
 User = get_user_model()
 
@@ -35,22 +37,34 @@ def index(request, path=''):
 @ensure_csrf_cookie
 def login_view(request):
 	if request.method == 'POST':
-		data = json.loads(request.body)
-		username = data.get('username')
-		password = data.get('password')
+		try:
+			data = json.loads(request.body)
+			username = data.get('username')
+			password = data.get('password')
 
-		user = authenticate(request, username=username, password=password)
-		if user is not None:
-			login(request, user)
-			return JsonResponse({
-				'success': True,
-				'message': 'Connexion réussie',
-				'username': user.username,
-				'display_name': user.display_name,
-				'avatar_url': user.avatar_url,
-			})
-		else:
-			return JsonResponse({'success': False, 'message': 'Identifiants invalides'}, status=401)
+			user = authenticate(request, username=username, password=password)
+			if user is not None:
+				login(request, user)
+
+				# Création du token JWT
+				refresh = RefreshToken.for_user(user)
+
+				return JsonResponse({
+					'success': True,
+					'message': 'Connexion réussie',
+					'access': str(refresh.access_token),
+					'refresh': str(refresh),
+					'username': user.username,
+					'display_name': user.display_name,
+					'avatar_url': user.avatar_url,
+				}, status=200)
+			else:
+				return JsonResponse({'success': False, 'message': 'Identifiants invalides'}, status=401)
+		except json.JSONDecodeError:
+			return JsonResponse({'success': False, 'message': 'Données JSON invalides'}, status=400)
+		except Exception as e:
+			logger.error(f"Erreur lors de la connexion : {str(e)}")
+			return JsonResponse({'success': False, 'message': 'Une erreur est survenue'}, status=500)
 
 	return JsonResponse({'success': False, 'message': 'Méthode non autorisée'}, status=405)
 
@@ -68,11 +82,10 @@ def register_view(request):
             avatar_url = data.get('avatar_url')
 
             if User.objects.filter(username=username).exists():
-                return JsonResponse({'success': False, 'error': 'This username is already taken.'})
+                return JsonResponse({'success': False, 'error': 'Ce nom d\'utilisateur est déjà pris.'}, status=400)
             if User.objects.filter(email=email).exists():
-                return JsonResponse({'success': False, 'error': 'This email is already in use.'})
+                return JsonResponse({'success': False, 'error': 'Cet email est déjà utilisé.'}, status=400)
 
-            # Créer l'utilisateur avec les données fournies
             user = User.objects.create_user(
                 username=username,
                 email=email,
@@ -81,14 +94,24 @@ def register_view(request):
                 display_name=username,
             )
 
-            return JsonResponse({'success': True, 'message': 'Account created successfully.'})
-        except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'error': 'Invalid JSON data.'})
-        except Exception as e:
-            logger.error(f"Error during registration: {str(e)}")
-            return JsonResponse({'success': False, 'error': f'An error occurred: {str(e)}'})
+            refresh = RefreshToken.for_user(user)
 
-    return JsonResponse({'success': False, 'error': 'Invalid request method.'})
+            return JsonResponse({
+                'success': True,
+                'message': 'Compte créé avec succès.',
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+            }, status=201)
+
+        except json.JSONDecodeError:
+            return JsonResponse({'success': False, 'error': 'Données JSON invalides.'}, status=400)
+        except IntegrityError as e:
+            logger.error(f"Erreur lors de l'inscription : {str(e)}")
+            return JsonResponse({'success': False, 'error': 'Erreur lors de l\'inscription.'}, status=500)
+        except Exception as e:
+            logger.error(f"Erreur lors de l'inscription : {str(e)}")
+            return JsonResponse({'success': False, 'error': 'Une erreur est survenue.'}, status=500)
+    return JsonResponse({'success': False, 'error': 'Méthode non autorisée.'}, status=405)
 
 @ensure_csrf_cookie
 def set_csrf_token(request):
@@ -96,7 +119,8 @@ def set_csrf_token(request):
     logger.info(f"CSRF Token generated: {token}")
     return JsonResponse({'csrfToken': get_token(request)})
 
-
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def friend_requests(request):
     pass
 
@@ -119,7 +143,7 @@ def get_user_by_display_name(request, display_name):
 
 def auth_42_redirect(request):
     redirect_uri = request.build_absolute_uri('/api/auth/42/callback/')
-    return redirect(f'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-0bdec356ea53d09b3992d0f90a9e4b9cdf8d0659d321388f9ba8ee3a41448165&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2F&response_type=code')
+    return redirect(f'https://api.intra.42.fr/oauth/authorize?client_id=u-s4t2ud-0bdec356ea53d09b3992d0f90a9e4b9cdf8d0659d321388f9ba8ee3a41448165&redirect_uri=http%3A%2F%2Flocalhost%3A8000%2F%3Fauth_success%3Dtrue&response_type=code')
 
 @csrf_exempt
 def auth_42_callback(request):
