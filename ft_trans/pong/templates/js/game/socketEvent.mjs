@@ -18,10 +18,21 @@ export function initSocketEvent(socket){
     });
     
     socket.on('updateScores', (scores) => {
-        document.getElementById('scoreLeft').textContent = scores.score1;
-        document.getElementById('scoreRight').textContent = scores.score2;
-        sounds.play('Goal');
-    });
+		const scoreLeft = document.getElementById('scoreLeft');
+		const scoreRight = document.getElementById('scoreRight');
+	
+		scoreLeft.textContent = scores.score1;
+		scoreRight.textContent = scores.score2;
+		sounds.play('Goal');
+	
+		scoreLeft.classList.add('pop-animation');
+		scoreRight.classList.add('pop-animation');
+	
+		setTimeout(() => {
+			scoreLeft.classList.remove('pop-animation');
+			scoreRight.classList.remove('pop-animation');
+		}, 300)
+	});
     
     socket.on('LeaveRoom', (room) => {
         socket.emit('disconnect');
