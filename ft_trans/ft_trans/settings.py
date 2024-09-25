@@ -30,7 +30,7 @@ ALLOWED_HOSTS = []
 
 APPEND_SLASH=False
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'web']
 
 # Application definition
 
@@ -61,6 +61,7 @@ MIDDLEWARE = [
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8000",
+    "http://localhost:4000",
 ]
 
 CORS_ALLOW_CREDENTIALS = True

@@ -63,6 +63,13 @@ export function dashboard(player_name) {
         <footer>© 2024 42Company, Inc</footer>
     </div>`;
 
+    const iframe = document.getElementById('pong');
+    iframe.onload = function () {
+    const username = localStorage.getItem('username');
+    const token = localStorage.getItem('accessToken');
+    iframe.contentWindow.postMessage({ username: username, token: token }, 'http://localhost:4000');
+    };
+
 	setupDashboardEvents(navigateTo, username);
 	initializeSocket();
 	checkForFriendRequests();

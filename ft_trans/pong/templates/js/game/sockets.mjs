@@ -4,6 +4,7 @@ import { setupSoloGame, setupMultiGame, setupMultiGameFour} from './game.mjs';
 import { setupTournamentEvents } from './tournament.mjs';
 import { findRoomForSocket, findOrCreateRoom } from './socketUtils.mjs';
 import { Client } from './client.mjs'
+import fetch from 'node-fetch';
 
 export const rooms = {};
 export const roomsTypes = {};

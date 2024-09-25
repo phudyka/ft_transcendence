@@ -25,6 +25,18 @@ import Sound from './sounds.mjs';
 
 const socket = io();
 
+window.addEventListener('message', function(event) {
+    if (event.origin === 'http://localhost:8000') {
+        const username = event.data.username;
+        const token = event.data.token;
+        console.log('Nom d utilisateur recu:', username);
+        console.log('token recu :', token);
+
+    } else {
+        console.warn('Origine non autorisée:', event.origin);
+    }
+});
+
 let controlledPad = null;
 let controlledPads = null;
 export let pad1, pad2, pad3, pad4, ball;
