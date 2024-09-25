@@ -3,7 +3,7 @@ import { setupMultiGame } from './game.mjs';
 import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
 import { keysPressedMap } from './sockets.mjs'
-import { rooms, roomsTypes } from './sockets.mjs'
+import { rooms, roomsTypes, clients } from './sockets.mjs'
 
 let roomMain;
 const playerRoomMap = {};

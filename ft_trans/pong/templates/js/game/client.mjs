@@ -1,7 +1,8 @@
 export class Client {
-    constructor(socketId, playerName) {
+    constructor(socketId, playerName, accessToken) {
         this.socketId = socketId;
         this.playerName = playerName;
+        this.accessToken = accessToken;
         this.score = 0;
         this.room = null;
     }
@@ -13,6 +14,10 @@ export class Client {
     delRoom(room) {
         if (this.room === room)
             this.room = null;
+    }
+
+    getName() {
+        return this.playerName;
     }
 
     getRoom() {

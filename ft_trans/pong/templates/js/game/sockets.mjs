@@ -17,11 +17,18 @@ export default function setupSockets(io) {
     io.on('connection', (socket) => {
         console.log('Nouvel utilisateur connecté :', socket.id);
 
-        const client = new Client(socket.id, `Player ${clients.size + 1}`);
-        clients.set(socket.id, client);
+
+        socket.on('username', (data) => {
+            console.log('username :', data.username);
+            console.log('token :', data.token);
+            console.log('avatar :', data.avatar);
+            const client = new Client(socket.id, data.username, data.token);
+            clients.set(socket.id, client);
+
+        
 
         socket.on('disconnect', () => {
-            console.log('Utilisateur déconnecté :', client.getSocketId());
+            console.log('Utilisateur déconnecté :', client.getName());
 
             clients.delete(socket.id);
 
@@ -251,5 +258,6 @@ export default function setupSockets(io) {
 
         // Tournoi
         setupTournamentEvents(io, socket, padsMap);
+    });
     });
 }

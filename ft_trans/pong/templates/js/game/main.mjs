@@ -29,8 +29,11 @@ window.addEventListener('message', function(event) {
     if (event.origin === 'http://localhost:8000') {
         const username = event.data.username;
         const token = event.data.token;
+        const avatar = event.data.avatar;
         console.log('Nom d utilisateur recu:', username);
         console.log('token recu :', token);
+        console.log('avatar recu :', avatar);
+        socket.emit('username', { username, token, avatar });
 
     } else {
         console.warn('Origine non autorisée:', event.origin);
