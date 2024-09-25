@@ -21,7 +21,7 @@ export function login() {
           </div>
         </p>
         <button type="submit" class="btn btn-primary">Login</button>
-        <button type="submit" class="btn btn-primary">Login with 42</button>
+        <button type="submit" class="btn btn-primary" style="margin-top: 5px;">Login with 42</button>
         <div class="text-center">
             <button type="button" id="create_account" class="btn btn-outline-light">Create account</button>
         </div>

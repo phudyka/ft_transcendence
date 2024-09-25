@@ -1,7 +1,7 @@
 html, body {
     height: 100%;
     margin: 0;
-    background-color: #e3d6c1;
+    background-color: #1e1e1e;
 }
 
 body {
@@ -22,6 +22,7 @@ body {
     height: 100vh;
     background-color: #1e1e1e;
     color: white;
+    padding-top: 60px; /* Ajustez cette valeur selon la hauteur de votre navbar */
 }
 
 .header {
@@ -44,16 +45,20 @@ body {
 
 .content {
     display: flex;
-    flex: 1;
-    padding: 20px;
-    gap: 20px;
+    height: 100vh;
+    width: 100%;
 }
 
 .sidebar {
-    width: 200px;
+    width: 250px;
+    height: calc(100vh - 60px);
+    position: fixed;
+    top: 60px; /* Ajustez cette valeur selon la hauteur de votre navbar */
+    left: 0;
     background-color: #2d2d2d;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 0 10px 10px 0;
+    overflow-y: auto;
 }
 
 .title-friends {
@@ -75,26 +80,33 @@ body {
     border: 1px solid #4d4d4d;
 }
 
+.btn:hover {
+    background-color: #45a049;
+}
+
 .main-content {
     flex: 1;
     display: flex;
     flex-direction: column;
+    margin-right: 250px;
 }
 
 .game-container {
     flex: 1;
-    background-color: #3d3d3d;
-    border-radius: 10px;
-    overflow: hidden;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
+    margin-left: 250px; /* Largeur de la sidebar */
+    margin-right: 250px; /* Largeur du chat-container */
+    height: calc(100vh - 60px);
+    margin-top: 60px; /* Ajustez cette valeur selon la hauteur de votre navbar */
 }
 
 #pong {
     width: 100%;
     height: 100%;
+    max-width: none;
+    max-height: none;
     border: none;
     background: linear-gradient(to bottom, #87CEEB, #1E90FF);
 }
@@ -114,10 +126,14 @@ body {
 }
 
 .chat-container {
-    width: 300px;
+    width: 250px;
+    height: calc(100vh - 60px);
+    position: fixed;
+    top: 60px; /* Ajustez cette valeur selon la hauteur de votre navbar */
+    right: 0;
     background-color: #2d2d2d;
     padding: 20px;
-    border-radius: 10px;
+    border-radius: 10px 0 0 10px;
     display: flex;
     flex-direction: column;
 }
@@ -125,6 +141,7 @@ body {
 .title-chat {
     margin-bottom: 20px;
     font-size: 24px;
+    color: white;
 }
 
 .chat-log {
@@ -134,29 +151,48 @@ body {
     padding: 10px;
     border-radius: 5px;
     margin-bottom: 10px;
-    min-height: 200px;
 }
 
 .input-container {
     display: flex;
+    flex-direction: column;
 }
 
+
 #message-input {
-    flex: 1;
+    width: 100%;
     background-color: #3d3d3d;
     color: white;
-    border: none;
+    border: 1px solid #4d4d4d;
     padding: 10px;
-    border-radius: 5px 0 0 5px;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    resize: none; /* Empêche le redimensionnement */
+    min-height: 60px; /* Ajustez cette valeur selon vos besoins */
 }
 
 #send-button {
+    width: 100%;
     background-color: #4CAF50;
     color: white;
     border: none;
-    padding: 10px 15px;
-    border-radius: 0 5px 5px 0;
+    padding: 10px;
+    border-radius: 5px;
     cursor: pointer;
+}
+
+/* Ajoutez ces styles pour améliorer l'apparence des messages */
+.chat-message {
+    background-color: #4d4d4d;
+    border-radius: 5px;
+    padding: 8px;
+    margin-bottom: 8px;
+}
+
+.username-link {
+    color: #87CEEB;
+    font-weight: bold;
+    margin-right: 5px;
 }
 
 footer {
@@ -219,7 +255,7 @@ h1 {
     align-items: center;
     /* width: 100%; */
     padding: 20px;
-    background-color: #307f3d;
+    background-color: #2d2d2d;
     border-radius: 30px;
     box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
     border: 5px solid black;
@@ -248,9 +284,9 @@ input[type="text"], input[type="password"] , input[type="email"] {
     padding: 10px;
     margin-bottom: 10px;
     border: 1px solid #ccc;
-    background-color: #307f3d;
+    background-color: #3d3d3d;
     border-radius: 30px;
-    border: 1px solid black;
+    border: 1px solid 4d4d4d;
     justify-content: center;
     display: flex;
     align-items: center;
@@ -279,8 +315,9 @@ input[type="text"], input[type="password"] , input[type="email"] {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #307f3d;
+    background-color: #45a049;
     border: 3px solid black;
+    border-color: #45a049;
     margin: 0 auto;
     width: 75%;
 }
@@ -370,7 +407,7 @@ input::placeholder {
 }
 
 .navbar {
-    color: #307f3d;
+    color: #2d2d2d;
     /* mettre en haut de la page */
     position: fixed;
     /* top: 0;
@@ -549,7 +586,6 @@ div.input-container {
     margin-bottom: 10px;
     margin-left: 10px;
     margin-right: 10px;
-    height: 270px;
   }
 
   .chat-log {
@@ -586,7 +622,7 @@ div.input-container2 {
 #send-button2 {
     margin-left: 10px;
     padding: 5px 10px;
-    background-color: #307f3d;
+    background-color: #3d3d3d;
     color: white;
     border: none;
     border-radius: 3px;
@@ -597,7 +633,7 @@ div.input-container2 {
 #message-input2 {
     flex: 1;
     padding: 5px;
-    border: 1px solid #ccc;
+    border: 1px solid #4d4d4d;
     border-radius: 3px;
 }
 
@@ -608,6 +644,7 @@ div.input-container2 {
     border: 1px solid #ccc;
     border-radius: 5px;
     margin-bottom: 10px;
+    background-color: #2d2d2d;
   }
 
 
@@ -628,6 +665,8 @@ div.input-container2 {
     display: flex;
     flex-direction: column;
     height: 100%;
+    background-color: #2d2d2d;
+    color: white;
 }
 
 /* username in tchat */
@@ -692,6 +731,7 @@ div.input-container2 {
     justify-content: center;
     width: 300px;
     margin: 0 auto;
+    background-color: #2d2d2d;
   }
 
   .choose-avatar {

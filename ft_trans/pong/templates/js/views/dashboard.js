@@ -59,17 +59,15 @@ export function dashboard(player_name) {
                 </div>
             </div>
 
-            <div class="main-content">
                 <div class="game-container">
                     <iframe id="pong" title="Pong" src="http://localhost:4000"></iframe>
                 </div>
-            </div>
 
             <div class="chat-container">
                 <h2 class="title-chat">Chat</h2>
                 <div class="chat-log" id="chat-log"></div>
                 <div class="input-container">
-                    <textarea id="message-input" placeholder="Tapez votre message..." rows="1"></textarea>
+                    <input id="message-input" placeholder="Tapez votre message..." rows="1"></input>
                     <button id="send-button">Envoyer</button>
                 </div>
             </div>
@@ -424,6 +422,7 @@ function receiveMessage(msg) {
         });
 
         // Positionner le menu déroulant près de l'élément ami cliqué
+        dropdown.style.position = 'fixed';
         dropdown.style.top = `${event.clientY}px`;
         dropdown.style.left = `${event.clientX}px`;
         dropdown.style.display = 'block';
