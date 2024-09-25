@@ -14,10 +14,16 @@ RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
 # Copy project
-COPY ./ft_trans /code/
+COPY . /code/
+
+# Copy entrypoint script
+# COPY entrypoint.sh /code/entrypoint.sh
+# RUN chmod +x /code/entrypoint.sh
 
 # Expose the port the app runs on
 EXPOSE 8000
+
+# ENTRYPOINT ["/code/entrypoint.sh"]
 
 # Run the application
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]

@@ -83,3 +83,38 @@ export function logout() {
     // Redirection vers la page de connexion
     navigateTo('/login');
 }
+
+export async function refreshAccessToken() {
+    const refreshToken = localStorage.getItem('refreshToken');
+    if (!refreshToken) {
+        console.log('Aucun refresh token disponible.');
+        logout();
+        return false;
+    }
+
+    try {
+        const response = await fetch('/api/token/refresh/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refresh: refreshToken }),
+        });
+
+        const data = await response.json();
+        if (data.access) {
+            localStorage.setItem('accessToken', data.access);
+            return true;
+        } else {
+            logout();
+            return false;
+        }
+    } catch (error) {
+        console.error('Erreur lors du rafraîchissement du token :', error);
+        logout();
+        return false;
+    }
+}
+
+// Appeler régulièrement pour rafraîchir le token (par exemple, toutes les 50 minutes)
+setInterval(refreshAccessToken, 50 * 60 * 1000);
