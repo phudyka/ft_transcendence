@@ -131,7 +131,7 @@ body {
     transform: scale(1);
 }
 
-.menu-button {
+.menu-button, .button-tournament {
     background-color: #00A2FF;
     border: 2px solid #FFD700;
     color: rgb(255, 255, 255);
@@ -139,25 +139,11 @@ body {
     text-align: center;
     text-decoration: none;
     display: block;
-    font-size: 18px;
-    margin: 10px auto;
+    font-size: 22px;
+    margin: 15px auto;
     cursor: pointer;
-    border-radius: 12px;
-    transition: background-color 0.3s, transform 0.3s;
-}
-
-.button-tournament {
-    background-color: #00A2FF;
-    border: 2px solid #FFD700;
-    color: rgb(255, 255, 255);
-    padding: 12px 24px;
-    text-align: center;
-    text-decoration: none;
-    font-size: 18px;
-    margin: 10px auto;
-    cursor: pointer;
-    border-radius: 12px;
-    transition: background-color 0.3s, transform 0.3s;
+    border-radius: 16px;
+    transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
 
 .menu-button:hover, .button-tournament:hover {
