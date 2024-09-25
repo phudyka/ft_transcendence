@@ -1,98 +1,83 @@
 import { navigateTo } from '../app.js';
 import { logout } from '../utils/token.js';
+import { fetchWithToken } from '../utils/api.js';
 
-export function profile(friendName) {
-    // Simulons des données (à remplacer par des données réelles de la base de données)
-    const stats = {
-        wins: 120,
-        losses: 80,
-        totalGames: 200,
-        winRatio: (120 / 200 * 100).toFixed(2),
-        avgScore: 7.5,
-        totalPlayTime: '50h 30m',
-        highestAILevel: 8,
-        recentMatches: [
-            { opponent: 'Alice', result: 'Win', date: '2024-03-15' },
-            { opponent: 'Bob', result: 'Loss', date: '2024-03-14' },
-            { opponent: 'AI Level 7', result: 'Win', date: '2024-03-13' },
-            { opponent: 'Charlie', result: 'Win', date: '2024-03-12' },
-            { opponent: 'AI Level 6', result: 'Win', date: '2024-03-11' },
-        ]
-    };
+export async function profile(username) {
+    try {
+        const response = await fetchWithToken(`/api/profile/${username}/`);
+        if (!response.ok) {
+            throw new Error('Erreur lors de la récupération du profil');
+            console.log(userProfile);
+        }
+        const data = await response.json();
+        const userProfile = data.profile;
+        console.log(userProfile);
 
-    const player_name = localStorage.getItem('player_name');
-    document.getElementById('ft_transcendence').innerHTML = `
-    <div class="dashboard-container">
-
-        <ul class="nav justify-content-between align-items-center">
+        document.getElementById('ft_transcendence').innerHTML = `
+        <div class="dashboard-container">
+            <ul class="nav justify-content-between align-items-center">
                 <a class="navbar-brand" href="#">
                     <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="30" height="30">
                 </a>
-            <li class="nav-item" id="DisplayName">
-                <a class="nav-link disabled">${player_name}</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#" id="logoutLink">Logout</a>
-            </li>
-        </ul>
+                <li class="nav-item" id="DisplayName">
+                    <a class="nav-link disabled">${localStorage.getItem('player_name')}</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#" id="logoutLink">Logout</a>
+                </li>
+            </ul>
 
-        <h3 id="header-dashboard" class="text-center">
-            ${friendName}'s Profile
-        </h3>
-        <div class="text-center" id="profile-picture">
-            <img src="https://i.ibb.co/DVfTxB2/avatar5.png" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Profile Picture">
-        </div>
-        <button type="button" id="friendButton" class="btn-dark">Add Friend</button>
+            <h3 id="header-dashboard" class="text-center">
+                Profil de ${userProfile.display_name}
+            </h3>
+            <div class="text-center" id="profile-picture">
+                <img src="${userProfile.avatar_url}" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Photo de profil">
+            </div>
+            <button type="button" id="friendButton" class="btn-dark">Ajouter comme ami</button>
 
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Player Statistics</h5>
-                        <p class="card-text">
-                            Wins: ${stats.wins}<br>
-                            Losses: ${stats.losses}<br>
-                            Win Ratio: ${stats.winRatio}%<br>
-                            Total Games: ${stats.totalGames}<br>
-                            Average Score: ${stats.avgScore}<br>
-                            Total Play Time: ${stats.totalPlayTime}<br>
-                            Highest AI Level Beaten: ${stats.highestAILevel}
-                        </p>
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Statistiques du joueur</h5>
+                            <p class="card-text">
+                                Victoires: ${userProfile.wins}<br>
+                                Défaites: ${userProfile.losses}<br>
+                                Ratio de victoires: ${((userProfile.wins / (userProfile.wins + userProfile.losses)) * 100).toFixed(2)}%<br>
+                                Total des parties: ${userProfile.wins + userProfile.losses}<br>
+                                Statut: ${userProfile.is_online ? 'En ligne' : 'Hors ligne'}
+                            </p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Win/Loss Ratio</h5>
-                        <div id="chartContainer" style="height: 200px; width: 100%;">
-                            <canvas id="winLossChart"></canvas>
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Ratio Victoires/Défaites</h5>
+                            <div id="chartContainer" style="height: 200px; width: 100%;">
+                                <canvas id="winLossChart"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="card mt-4"  style="margin-bottom: 3%;">
-            <div class="card-body">
-                <h5 class="card-title">Recent Matches</h5>
-                <ul class="list-group">
-                    ${stats.recentMatches.map(match => `
-                        <li class="list-group-item">
-                            ${match.date}: ${match.result} vs ${match.opponent}
-                        </li>
-                    `).join('')}
-                </ul>
+            <footer class="py-3 my-4">
+                <p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
+            </footer>
+        </div>
+        `;
+
+        attachEventHandlers2(navigateTo, username);
+        createWinLossChart(userProfile.wins, userProfile.losses);
+    } catch (error) {
+        console.error('Erreur:', error);
+        document.getElementById('ft_transcendence').innerHTML = `
+            <div class="alert alert-danger" role="alert">
+                Erreur lors du chargement du profil. Veuillez réessayer plus tard.
             </div>
-        </div>
-        <footer class="py-3 my-4">
-            <p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
-        </footer>
-    </div>
-    `;
-
-    attachEventHandlers2(navigateTo, friendName);
-    createWinLossChart(stats.wins, stats.losses);
+        `;
+    }
 }
 
 function attachEventHandlers2(navigateTo, friendName) {
