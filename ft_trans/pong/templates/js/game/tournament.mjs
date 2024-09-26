@@ -68,9 +68,9 @@ export function setupTournamentEvents(io, socket, padsMap) {
     });
 
     socket.on('create-tournament', () => {
-        const roomName = `${socket.id}'s tournament`;
+        const roomName = `${clients.get(socket.id).getName()}'s tournament`;
         const room = findOrCreateRoom('tournament', roomName);
-        rooms[room] = [socket.id];
+        rooms[room] = [clients.get(socket.id).getName()];
         roomsTypes[room] = "tournament";
         playerRoomMap[socket.id] = room;
         socket.join(room);
@@ -94,7 +94,7 @@ export function setupTournamentEvents(io, socket, padsMap) {
         let room = rooms[roomName] ? roomName : null;
 
         if (room && rooms[room].length < 4) {
-            rooms[room].push(socket.id);
+            rooms[room].push(clients.get(socket.id).getName());
             playerRoomMap[socket.id] = room;
             socket.join(room);
             console.log(`Player ${socket.id} joined ${room}`);
@@ -107,13 +107,14 @@ export function setupTournamentEvents(io, socket, padsMap) {
     });
 
     socket.on('quit-tournament', (data) => {
-        const room = findRoomForSocket(socket.id, rooms);
+        const room = findRoomForSocket(clients.get(socket.id).getName(), rooms);
         console.log("Nom de la room trouvée :", room);
     
         if (room) {
-            const index = rooms[room].indexOf(socket.id);
+            const index = rooms[room].indexOf(clients.get(socket.id).getName());
             if (index !== -1) rooms[room].splice(index, 1);
             delete playerRoomMap[socket.id];
+            console.log('delete');
             socket.leave(room);
 
             if (!data && rooms[room].length > 0){

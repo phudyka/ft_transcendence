@@ -103,15 +103,15 @@ export function initSocketEvent(socket){
         });
     });
     
-    function displayTournamentPage(socketIds) {
+    function displayTournamentPage(data) {
         document.getElementById('tournament').classList.add('hidden');
         document.getElementById('quit-tournament').classList.remove('hidden');
         document.getElementById('tournament-details').classList.remove('hidden');
         document.getElementById('tournament-details').classList.add('flex');
-        document.getElementById('player-1').textContent = socketIds.room[0];
-        document.getElementById('player-2').textContent = socketIds.room[1];
-        document.getElementById('player-3').textContent = socketIds.room[2];
-        document.getElementById('player-4').textContent = socketIds.room[3];
+        document.getElementById('player-1').textContent = data.room[0];
+        document.getElementById('player-2').textContent = data.room[1];
+        document.getElementById('player-3').textContent = data.room[2];
+        document.getElementById('player-4').textContent = data.room[3];
     }
     
     document.getElementById('tournament-back-button').addEventListener('click', () => {

@@ -25,11 +25,15 @@ import Sound from './sounds.mjs';
 
 const socket = io();
 
+let username;
+let token;
+let avatar;
+
 window.addEventListener('message', function(event) {
     if (event.origin === 'http://localhost:8000') {
-        const username = event.data.username;
-        const token = event.data.token;
-        const avatar = event.data.avatar;
+        username = event.data.username;
+        token = event.data.token;
+        avatar = event.data.avatar;
         console.log('Nom d utilisateur recu:', username);
         console.log('token recu :', token);
         console.log('avatar recu :', avatar);
@@ -208,10 +212,10 @@ socket.on('start-game', (rooms, roomsTypes) => {
     if (roomsTypes === 'multi-2-local') {
         controlledPads = [1, 2];
     } else {
-        if (socket.id === player1) controlledPad = 1;
-        else if (socket.id === player2) controlledPad = 2;
-        else if (socket.id === player3) controlledPad = 3;
-        else if (socket.id === player4) controlledPad = 4;
+        if (username === player1 || socket.id === player1) controlledPad = 1;
+        else if (username === player2 || socket.id === player2) controlledPad = 2;
+        else if (username === player3 || socket.id === player3) controlledPad = 3;
+        else if (username === player4 || socket.id === player4) controlledPad = 4;
     }
 
     if (player4) {
