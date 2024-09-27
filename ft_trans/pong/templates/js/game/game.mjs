@@ -55,10 +55,10 @@ function IApad(pad2, ball) {
 
 function checkWallCollision(ball, pad1, pad2, io, room, roomsTypes, players) {
 
-        let client1 = clients.get(players[0]).getName();
+        let client1 = clients.get(players[0]);
         let client2;
         if (roomsTypes !== "solo_vs_ia" && roomsTypes !== "multi-2-local")
-            client2 = clients.get(players[1]).getName();
+            client2 = clients.get(players[1]);
         else
             client2 = `Player2`;
 
@@ -75,13 +75,13 @@ function checkWallCollision(ball, pad1, pad2, io, room, roomsTypes, players) {
         io.in(room).emit('updateScores', { score1: pad1.score, score2: pad2.score });
         if (pad1.score >= maxScore) {
             if (roomsTypes === "semi-tournament" || roomsTypes === "final-tournament"){
-                io.in(room).emit('matchOver', { winner: client1, roomName: room, roomType: roomsTypes});
+                io.in(room).emit('matchOver', { winner: client1.getSocketId(), roomName: room, roomType: roomsTypes});
             }
             else {
                 // if (roomsTypes === "multi-2-local")
                 //     io.in(room).emit('gameOver', { winner: 'Player 1', score1: pad1.score, score2: pad2.score });
                 // else
-                    io.in(room).emit('gameOver', { winner: client1, score1: pad1.score, score2: pad2.score });
+                    io.in(room).emit('gameOver', { winner: client1.getName(), score1: pad1.score, score2: pad2.score });
             }
             pad1.score = 0;
             pad2.score = 0;
@@ -94,13 +94,13 @@ function checkWallCollision(ball, pad1, pad2, io, room, roomsTypes, players) {
         io.in(room).emit('updateScores', { score1: pad1.score, score2: pad2.score });
         if (pad2.score >= maxScore) { 
             if (roomsTypes === "semi-tournament" || roomsTypes === "final-tournament"){
-                io.in(room).emit('matchOver', { winner: client2, roomName: room, roomType: roomsTypes});
+                io.in(room).emit('matchOver', { winner: client2.getSocketId(), roomName: room, roomType: roomsTypes});
             }
             else {
-                if (roomsTypes === "multi-2-local")
+                if (roomsTypes === "multi-2-local" || roomsTypes === "solo_vs_ia")
                     io.in(room).emit('gameOver', { winner: 'Player 2', score1: pad1.score, score2: pad2.score });
                 else
-                    io.in(room).emit('gameOver', { winner: client2, score1: pad1.score, score2: pad2.score });
+                    io.in(room).emit('gameOver', { winner: client2.getName(), score1: pad1.score, score2: pad2.score });
             }
             pad1.score = 0;
             pad2.score = 0;

@@ -267,7 +267,7 @@ socket.on('matchOver', (data) => {
     document.getElementById('tournament-details').classList.add('flex');
 
     if (winner === socket.id) {
-        socket.emit('match-finished', { playerWinner: winner, room: currentRoom, roomType: data.roomType });
+        socket.emit('match-finished', { playerWinner: winner, playerName: username, room: currentRoom, roomType: data.roomType });
     }
     cleanUpGameObjects();
 });
