@@ -208,7 +208,7 @@ export default function setupSockets(io) {
 
         socket.on('multi-four', () => {
             let room = findOrCreateRoom('multi-four');
-            rooms[room].push(client.getName());
+            rooms[room].push(socket.id);
             socket.join(room);
 
             if (rooms[room].length === 1) {

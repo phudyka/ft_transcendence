@@ -158,6 +158,12 @@ document.getElementById('start-game-button').addEventListener('click', () => {
     }, 2000);
 });
 
+window.addEventListener("resize", () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+});
+
 
 function updateAnimation() {
     const delta = clock.getDelta();
@@ -189,7 +195,7 @@ function animate() {
         controls.autoRotate = true
         animateChoice();
     }
-    }
+}
 
 socket.on('start-game', (rooms, roomsTypes) => {
     gameState.choice = true;
@@ -290,6 +296,9 @@ socket.on('gameOver', (data) => {
 	else if (data.winner !== username && data.roomType !== 'multi-2-local') {
         sounds.play('loose');
         winnerMessage.textContent = `YOU LOOSE ! ${winner} is the winner`;
+    }
+    else if (data.winner.length === 2){
+        winnerMessage.textContent = `the winners is : ${winner} !`;
     }
     else {
         winnerMessage.textContent = `The winner is ${winner}`;
