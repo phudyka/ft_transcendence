@@ -222,6 +222,7 @@ export function hitPadEvent(socket, sounds) {
 
 export function SoundLobby(socket, sounds) {
     socket.on('lobby', () => {
+			sounds.play('woosh');
             sounds.play('lobby');
     });
 }

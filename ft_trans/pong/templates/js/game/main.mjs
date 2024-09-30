@@ -6,7 +6,7 @@
 /*   By: phudyka <phudyka@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 16:25:09 by phudyka           #+#    #+#             */
-/*   Updated: 2024/09/30 11:41:25 by phudyka          ###   ########.fr       */
+/*   Updated: 2024/09/30 14:28:45 by phudyka          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -72,13 +72,11 @@ function initGame() {
     controls.autoRotateSpeed = 0.7;
     controls.autoRotate = true;
 
-    
     new Light(scene);
     
     logo = new Logo(scene);
     
     fadeOutLogoAndStartAnimation(logo, scene, camera, renderer);
-    
     
     sounds = new Sound(camera);
     
@@ -139,7 +137,6 @@ function initGame() {
             }
         }
     });
-    
     initSocketEvent(socket, ball);
     hitPadEvent(socket, sounds);
     SoundLobby(socket, sounds);
@@ -158,13 +155,10 @@ document.getElementById('start-game-button').addEventListener('click', () => {
     }, 2000);
 });
 
-
 function updateAnimation() {
     const delta = clock.getDelta();
     if (mixer) mixer.update(delta);
 }
-
-
 
 function animateChoice() {
     if (!gameState.choice) {
@@ -189,15 +183,13 @@ function animate() {
         controls.autoRotate = true
         animateChoice();
     }
-    }
+}
 
 socket.on('start-game', (rooms, roomsTypes) => {
     gameState.choice = true;
     sounds.stop('lobby');
     sounds.play('ambient');
 	sounds.playMusic();
-    //sounds.play('inGame');
-    // randomSongs();
     camera.animCam(0, 8.4, 6.2);
     controls.autoRotate = false;
     controls.update();
