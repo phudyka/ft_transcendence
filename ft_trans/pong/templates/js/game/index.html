@@ -6,25 +6,25 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <button id="start-game-button" class="start-game-button">Démarrer le Jeu</button>
+    <button id="start-game-button" class="start-game-button">START</button>
 
     <div id="menu" class="menu hidden">
         <button class="menu-button hidden" id="solo-ia">Solo</button>
-        <button class="menu-button hidden" id="multi-button">Mode Multijoueur</button>
+        <button class="menu-button hidden" id="multi-button">Multiplayer</button>
     </div>
     
     <div id="multi" class="multi hidden">
-        <button class="menu-button" id="multi-2-local">2 Joueurs en Local</button>
-        <button class="menu-button" id="multi-2-online">2 Joueurs en Ligne</button>
-        <button class="menu-button" id="multi-four">4 Joueurs en Ligne</button>
-        <button class="menu-button" id="multi-tournament">Participer à un Tournoi</button>
-        <button class="menu-button" id="multi-back-button">Retour au Menu</button>
+        <button class="menu-button" id="multi-2-local">2 Players Local</button>
+        <button class="menu-button" id="multi-2-online">2 Players Online</button>
+        <button class="menu-button" id="multi-four">4 Players Online</button>
+        <button class="menu-button" id="multi-tournament">Tournaments</button>
+        <button class="menu-button" id="multi-back-button">Back</button>
     </div>
     
     <div id="tournament" class="tournament hidden">
         <ul id="tournament-list"></ul>
-        <button class="menu-button" id="create-tournament">Créer un Nouveau Tournoi</button>
-        <button class="menu-button" id="tournament-back-button">Retour</button>
+        <button class="menu-button" id="create-tournament">Create tournament</button>
+        <button class="menu-button" id="tournament-back-button">Back</button>
     </div>
 
     <div id="tournament-details" class="hidden">
@@ -48,16 +48,16 @@
             <span id="Gagnant-Finale"></span>
         </div>
         <div id="match-info" class="hidden"></div>
-        <button class="button-tournament" id="quit-tournament">Quitter le Tournoi</button>
+        <button class="button-tournament" id="quit-tournament">Quit Tournament</button>
     </div>
     
 
     <div id="space" class="hidden">
-        <h1>Press space for Launch the game</h1>
+        <h1>Press space to Launch the game</h1>
     </div>
 
     <div id="waiting" class="waiting hidden">
-        <p>En attente d'un autre joueur...</p>
+        <p>Waiting for players...</p>
         <div id="spinner"></div>
     </div>
     
@@ -69,7 +69,7 @@
     
     <div id="game-over" class="game-over hidden">
         <div id="winner-message"></div>
-        <button class="menu-button" id="back-to-menu-button">Retour au Menu</button>
+        <button class="menu-button" id="back-to-menu-button">Back</button>
     </div>
     
     <div id="credits">
