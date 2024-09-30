@@ -6,7 +6,7 @@
 /*   By: phudyka <phudyka@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 16:25:09 by phudyka           #+#    #+#             */
-/*   Updated: 2024/09/30 11:12:31 by phudyka          ###   ########.fr       */
+/*   Updated: 2024/09/30 11:17:34 by phudyka          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -288,9 +288,9 @@ socket.on('gameOver', (data) => {
 	else
 		sounds.play('loose');
     if (data.winner.length === 2)
-        winnerMessage.textContent = `Les gagnants sont ${winner}!`;
+        winnerMessage.textContent = `YOU WIN ! ${winner} is the winner`;
     else
-        winnerMessage.textContent = `Le gagnant est ${winner}!`;
+        winnerMessage.textContent = `YOU LOSE ! ${winner} is the winner`;
     gameOverSection.style.display = 'flex';
     
     document.getElementById('score').classList.add('hidden');
