@@ -6,7 +6,7 @@
 /*   By: phudyka <phudyka@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 16:25:09 by phudyka           #+#    #+#             */
-/*   Updated: 2024/09/30 14:28:45 by phudyka          ###   ########.fr       */
+/*   Updated: 2024/09/30 15:17:42 by phudyka          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -155,6 +155,13 @@ document.getElementById('start-game-button').addEventListener('click', () => {
     }, 2000);
 });
 
+window.addEventListener("resize", () => {
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+});
+
+
 function updateAnimation() {
     const delta = clock.getDelta();
     if (mixer) mixer.update(delta);
@@ -269,7 +276,6 @@ socket.on('matchOver', (data) => {
 socket.on('gameOver', (data) => {
     sounds.play('lobby');
     sounds.stop('ambient');
-    // sounds.stop('inGame');
 	sounds.stopMusic();
     gameState.choice = false;
     const winner = data.winner;
@@ -282,6 +288,9 @@ socket.on('gameOver', (data) => {
 	else if (data.winner !== username && data.roomType !== 'multi-2-local') {
         sounds.play('loose');
         winnerMessage.textContent = `YOU LOOSE ! ${winner} is the winner`;
+    }
+    else if (data.winner.length === 2){
+        winnerMessage.textContent = `the winners is : ${winner} !`;
     }
     else {
         winnerMessage.textContent = `The winner is ${winner}`;
