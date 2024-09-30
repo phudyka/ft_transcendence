@@ -283,14 +283,18 @@ socket.on('gameOver', (data) => {
     const winner = data.winner;
     const gameOverSection = document.getElementById('game-over');
     const winnerMessage = document.getElementById('winner-message');
-	if (data.winner === username)
+	if (data.winner === username && data.roomType !== 'multi-2-local'){
 		sounds.play('win');
-	else
-		sounds.play('loose');
-    if (data.winner.length === 2)
+        winnerMessage.textContent = `YOU WIN !`;
+    }
+	else if (data.winner !== username && data.roomType !== 'multi-2-local') {
+        sounds.play('loose');
         winnerMessage.textContent = `YOU LOOSE ! ${winner} is the winner`;
-    else
-        winnerMessage.textContent = `YOU WIN ! ${winner} is the winner`;
+    }
+    else {
+        winnerMessage.textContent = `The winner is ${winner}`;
+        sounds.play('win');
+    }
     gameOverSection.style.display = 'flex';
     
     document.getElementById('score').classList.add('hidden');

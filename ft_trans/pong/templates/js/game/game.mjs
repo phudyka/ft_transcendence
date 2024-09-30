@@ -81,7 +81,7 @@ function checkWallCollision(ball, pad1, pad2, io, room, roomsTypes, players) {
                 // if (roomsTypes === "multi-2-local")
                 //     io.in(room).emit('gameOver', { winner: 'Player 1', score1: pad1.score, score2: pad2.score });
                 // else
-                    io.in(room).emit('gameOver', { winner: client1.getName(), score1: pad1.score, score2: pad2.score });
+                    io.in(room).emit('gameOver', { winner: client1.getName(), score1: pad1.score, score2: pad2.score, roomType : roomsTypes });
             }
             pad1.score = 0;
             pad2.score = 0;
@@ -98,7 +98,7 @@ function checkWallCollision(ball, pad1, pad2, io, room, roomsTypes, players) {
             }
             else {
                 if (roomsTypes === "multi-2-local" || roomsTypes === "solo_vs_ia")
-                    io.in(room).emit('gameOver', { winner: 'Player 2', score1: pad1.score, score2: pad2.score });
+                    io.in(room).emit('gameOver', { winner: 'Player 2', score1: pad1.score, score2: pad2.score, roomType : roomsTypes});
                 else
                     io.in(room).emit('gameOver', { winner: client2.getName(), score1: pad1.score, score2: pad2.score });
             }
