@@ -25,7 +25,7 @@ export function setupTournamentEvents(io, socket, padsMap) {
         } 
         else if (finalPlayers.length === 1 && data.roomType === "final-tournament") {
             console.log(`Le gagnant final est : ${playersName[data.room][0]}`);
-            io.to(roomMain).emit('update tournament', [finalPlayers[0]]);
+            io.to(roomMain).emit('update tournament', finalPlayersName);
             finalPlayers.length = 0;
             
             for (const room in rooms) {
