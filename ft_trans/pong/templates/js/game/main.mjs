@@ -191,11 +191,17 @@ function animate() {
     }
     }
 
+function randomSongs()
+{
+    sounds.play('song1', true);
+}
+
 socket.on('start-game', (rooms, roomsTypes) => {
     gameState.choice = true;
     sounds.stop('lobby');
     sounds.play('ambient');
-    sounds.play('inGame');
+    //sounds.play('inGame');
+    randomSongs();
     camera.animCam(0, 8.4, 6.2);
     controls.autoRotate = false;
     controls.update();
