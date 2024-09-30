@@ -163,41 +163,39 @@ body {
 
 .score-container {
     position: absolute;
-    top: 20px;
+    bottom: 10px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 50%;
-    height: 50px;
+    width: 60%;
+    height: 10%;
     background-color: rgba(0, 0, 0, 0.8);
     font-family: 'Bebas Neue', sans-serif;
     color: white;
-    font-size: 24px;
-    border-radius: 10px;
+    font-size: 32px;
     padding: 5px 20px;
 }
 
 #scoreLeft, #scoreRight {
-    font-size: 42px;
+    font-size: 72px;
     font-weight: bold;
     color: #FFF;
     padding: 5px 15px;
     background-color: transparent;
     min-width: 80px;
     text-align: center;
-    border-radius: 10px;
 }
 
 #scoreLeft {
     color: #FFCC00;
-    margin-right: 10px;
+    margin-right: 30%;
 }
 
 #scoreRight {
     color: #0066ff;
-    margin-left: 10px;
+    margin-left: 30%;
 }
 
 #scoreTitle {
