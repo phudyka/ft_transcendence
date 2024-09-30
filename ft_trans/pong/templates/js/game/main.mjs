@@ -6,7 +6,7 @@
 /*   By: phudyka <phudyka@student.42.fr>            +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 16:25:09 by phudyka           #+#    #+#             */
-/*   Updated: 2024/08/12 16:47:02 by phudyka          ###   ########.fr       */
+/*   Updated: 2024/09/30 11:01:58 by phudyka          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -191,17 +191,18 @@ function animate() {
     }
     }
 
-function randomSongs()
-{
-    sounds.play('song1', true);
-}
+// function randomSongs()
+// {
+//     sounds.play('song1', true);
+// }
 
 socket.on('start-game', (rooms, roomsTypes) => {
     gameState.choice = true;
     sounds.stop('lobby');
     sounds.play('ambient');
+	sounds.playMusic();
     //sounds.play('inGame');
-    randomSongs();
+    // randomSongs();
     camera.animCam(0, 8.4, 6.2);
     controls.autoRotate = false;
     controls.update();
@@ -281,7 +282,8 @@ socket.on('matchOver', (data) => {
 socket.on('gameOver', (data) => {
     sounds.play('lobby');
     sounds.stop('ambient');
-    sounds.stop('inGame');
+    // sounds.stop('inGame');
+	sounds.stopMusic();
     gameState.choice = false;
     const winner = data.winner;
     const gameOverSection = document.getElementById('game-over');

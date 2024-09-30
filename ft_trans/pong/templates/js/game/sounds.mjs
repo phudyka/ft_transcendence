@@ -13,11 +13,11 @@ export default class Sound {
         this.loadSound('ambient', '/sound/ambient.wav', 0.2, true);
         this.loadSound('lobby', '/sound/lobby.wav', 0.1, true);
         this.loadSound('inGame', '/sound/inGame.mp3', 0.1, true, true);
-        this.loadSound('song1', '/sound/song1.wav', 0.1, true, true);
-        this.loadSound('song2', '/sound/song2.mp3', 0.1, true, true);
-        this.loadSound('song3', '/sound/song3.wav', 0.1, true, true);
-        this.loadSound('song4', '/sound/song4.wav', 0.1, true, true);
-        this.loadSound('song5', '/sound/song5.wav', 0.1, true, true);
+        this.loadSound('song1', '/sound/song1.wav', 0.1, false, true);
+        this.loadSound('song2', '/sound/song2.mp3', 0.1, false, true);
+        this.loadSound('song3', '/sound/song3.wav', 0.1, false, true);
+        this.loadSound('song4', '/sound/song4.wav', 0.1, false, true);
+        this.loadSound('song5', '/sound/song5.wav', 0.1, false, true);
         this.loadSound('Goal', '/sound/Goal.mp3', 0.3, false);
         this.loadSound('endTournament', '/sound/Fin-tournois.mp3', 0.3, false);
     }
@@ -34,6 +34,9 @@ export default class Sound {
                 this.sounds[name] = sound;
             else
                 this.soundsInGame[name] = sound;
+			if (name.startsWith('song')) {
+				sound.onEnded = () => this.onSongEnd();
+			}
         });
     }
 
@@ -61,5 +64,50 @@ export default class Sound {
         } else {
             console.error(`Sound ${name} not found!`);
         }
+    }
+
+	playMusic() {
+        const songKeys = ['song1', 'song2', 'song3', 'song4', 'song5'];
+
+        this.activeSongs = this.shuffleArray(songKeys);
+        this.currentSongIndex = 0;
+
+        this.playNextSong();
+    }
+
+    playNextSong() {
+        if (this.currentSong && this.currentSong.isPlaying) {
+            this.currentSong.stop();
+        }
+        
+        const nextSongName = this.activeSongs[this.currentSongIndex];
+        const nextSong = this.soundsInGame[nextSongName];
+        
+        if (nextSong) {
+            this.currentSong = nextSong;
+            nextSong.play();
+        }
+    }
+
+    onSongEnd() {
+        this.currentSongIndex++;
+        if (this.currentSongIndex >= this.activeSongs.length) {
+            this.currentSongIndex = 0;
+        }
+        this.playNextSong();
+    }
+
+    stopMusic() {
+        if (this.currentSong && this.currentSong.isPlaying) {
+            this.currentSong.stop();
+        }
+    }
+
+    shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
     }
 }
