@@ -13,11 +13,13 @@ export default class Sound {
         this.loadSound('ambient', '/sound/ambient.wav', 0.2, true);
         this.loadSound('lobby', '/sound/lobby.wav', 0.1, true);
         this.loadSound('inGame', '/sound/inGame.mp3', 0.1, true, true);
-        this.loadSound('song1', '/sound/song1.wav', 0.1, false, true);
-        this.loadSound('song2', '/sound/song2.mp3', 0.1, false, true);
-        this.loadSound('song3', '/sound/song3.wav', 0.1, false, true);
-        this.loadSound('song4', '/sound/song4.wav', 0.1, false, true);
-        this.loadSound('song5', '/sound/song5.wav', 0.1, false, true);
+        this.loadSound('song1', '/sound/song1.wav', 0.1, true, true);
+        this.loadSound('song2', '/sound/song2.mp3', 0.1, true, true);
+        this.loadSound('song3', '/sound/song3.wav', 0.1, true, true);
+        this.loadSound('song4', '/sound/song4.wav', 0.1, true, true);
+        this.loadSound('song5', '/sound/song5.wav', 0.1, true, true);
+		this.loadSound('win', '/sound/win.mp3', 0.1, false);
+		this.loadSound('loose', '/sound/loose.mp3', 0.1, false);
         this.loadSound('Goal', '/sound/Goal.mp3', 0.3, false);
         this.loadSound('endTournament', '/sound/Fin-tournois.mp3', 0.3, false);
     }
