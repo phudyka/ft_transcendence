@@ -30,6 +30,7 @@ body {
     outline: none;
     border: none;
     overflow: hidden;
+	backdrop-filter: blur(10px);
 }
 
 #start-game-button::before {
@@ -50,6 +51,7 @@ body {
     background: linear-gradient(145deg, #FFCC00, #ff0000);
     color: #fff700;
     box-shadow: 0px 20px 60px rgba(252, 219, 128, 0.9), 0 0 20px rgba(255, 255, 0, 0.6);
+	transform: translateY(-10px); 
 }
 
 #start-game-button:hover::before {
@@ -59,7 +61,7 @@ body {
 }
 
 #start-game-button:active {
-    transform: scale(0.95);
+    transform: scale(0.95) translateY(0);
     box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.8);
 }
 
@@ -77,6 +79,8 @@ body {
 
 #start-game-button {
     animation: pulse 1s infinite;
+	border: 2px solid rgba(255, 255, 255, 0.3);
+    background-clip: padding-box;
 }
 
 #fpsDisplay {
@@ -139,7 +143,7 @@ body {
     position: absolute;
     top: 50%;
     left: 50%;
-	font-family: 'Bebas Neue', sans-serif;
+	font-family: 'Roboto', Arial, sans-serif;
     transform: translate(-50%, -50%);
     background: #00a2ff(0, 0, 0, 0.6);
     border: 5px solid #FFCC00;
@@ -155,8 +159,58 @@ body {
 }
 
 #winner-message {
-    font-size: 33px;
+    font-size: 50px;
     font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+    background: linear-gradient(135deg, #000000, #333333bd);
+    color: #FFD700;
+    position: relative;
+    padding: 20px 40px;
+    border-radius: 20px;
+    letter-spacing: 4px;
+    z-index: 1;
+    font-family: 'Bebas Neue', sans-serif;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6);
+    overflow: hidden;
+    animation: neon-glow 3s infinite ease-in-out;
+}
+
+@keyframes neon-glow {
+    0%, 100% {
+        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.4);
+    }
+    50% {
+        text-shadow: 0 0 30px rgba(255, 215, 0, 0.9), 0 0 50px rgba(255, 215, 0, 0.7);
+    }
+}
+
+#winner-message::before {
+	font-family: 'Roboto', Arial, sans-serif;
+	font-weight: 900;
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -150%;
+    width: 400%;
+    height: 100%;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
+    animation: light-sweep 5s infinite ease-in-out;
+    z-index: 0;
+    opacity: 0.4;
+    border-radius: 20px;
+}
+
+@keyframes light-sweep {
+    0% {
+        left: -150%;
+    }
+    50% {
+        left: 0%;
+    }
+    100% {
+        left: 150%;
+    }
 }
 
 .tournament-item {
@@ -184,16 +238,18 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background: #00a2ff(255, 255, 255, 0.1);
+    background: rgba(0, 162, 255, 0.1);
     border: 3px solid #FFCC00;
     padding: 40px;
     border-radius: 20px;
     text-align: center;
     color: #000000;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
     flex-direction: column;
     align-items: center;
     z-index: 10;
+	transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
 }
 
 .menu.show, .waiting.show, .multi.show, .tournament.show {
@@ -214,10 +270,18 @@ body {
     border-radius: 12px;
 	font-family: 'Roboto', Arial, sans-serif;
     transition: background-color 0.3s, transform 0.3s;
+	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    backdrop-filter: blur(5px);
+}
+
+.button-tournament:hover {
+    background-color: #0091e6;
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 162, 255, 0.5);
 }
 
 .menu-button {
-    background-color: #0066ff;
+    background-color: #0091e6;
     border: 2px solid #FFCC00;
     color: rgb(255, 255, 255);
     padding: 18px 36px;
@@ -230,10 +294,12 @@ body {
     border-radius: 16px;
 	font-family: 'Roboto', Arial, sans-serif;
     transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(6px);
 }
 
 .menu-button:hover {
-    background-color: #0066ff;
+    background-color: #0055cc;
     transform: scale(1.05);
 }
 
@@ -249,48 +315,74 @@ body {
 
 .score-container {
     position: absolute;
-    bottom: 2vh;
+    bottom: 8vh;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    width: 60vw;
-    height: 10vh;
-    background-color: rgba(0, 0, 0, 0.8);
+    width: 40vw;
+    height: 11vh;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.6));
     font-family: 'Bebas Neue', sans-serif;
     color: white;
     font-size: 2vw;
-    padding: 1vh 2vw;
+    padding: 1vh 1.5vw;
+    border-radius: 15px;
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: score-appear 1s ease forwards;
 }
 
 #scoreLeft, #scoreRight {
-    font-size: 5vw;
+    font-size: 4.5vw;
     font-weight: bold;
     color: #FFF;
-    padding: 1vh 2vw;
-    background-color: transparent;
-    min-width: 10vw;
+    padding: 0.5vh 0.5vw;
+    background-color: rgba(255, 255, 255, 0.05); 
+    min-width: 5vw;
     text-align: center;
     flex-grow: 1;
+    border-radius: 8px;
+    box-shadow: inset 0 0 6px rgba(255, 255, 255, 0.4);
+    transition: transform 0.3s ease;
+    border: 2px solid;
 }
 
 #scoreLeft {
     color: #FFCC00;
-    margin-right: 5vw;
+    border-color: #FFCC00;
+    margin-right: 2vw;
+    transform: rotate(-1deg);
 }
 
 #scoreRight {
     color: #0066ff;
-    margin-left: 5vw;
+    border-color: #0066ff;
+    margin-left: 2vw;
+    transform: rotate(1deg);
 }
 
 #scoreTitle {
-    font-size: 3vw;
+    font-size: 2.8vw;
     color: #FFF;
     text-align: center;
-    margin: 0 2vw;
+    margin: 0 1vw;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+    animation: glow 1.5s ease-in-out infinite;
 }
+
+
+@keyframes glow {
+    0%, 100% {
+        text-shadow: 1px 1px 3px rgba(255, 255, 255, 0.8);
+    }
+    50% {
+        text-shadow: 1px 1px 6px rgba(255, 255, 255, 1);
+    }
+}
+
 
 @media (max-width: 768px) {
     .score-container {
@@ -398,7 +490,7 @@ body {
 	cursor: pointer;
 	margin: 15px auto;
 	border-radius: 16px;
-	font-family: 'Bebas Neue', sans-serif;
+	font-family: 'Roboto', 'Arial', sans-serif;
 	transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
 
