@@ -20,6 +20,9 @@ from django.views.decorators.http import require_GET
 from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from django.views.decorators.http import require_http_methods
+from django.views.decorators.csrf import csrf_exempt
+
 
 User = get_user_model()
 
@@ -140,6 +143,23 @@ def get_user_by_display_name(request, display_name):
         return JsonResponse({'success': True, 'user': user_data})
     except User.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+
+@require_http_methods(["GET"])
+@permission_classes([IsAuthenticated])
+def get_user_stats(request):
+    user = request.user  # Récupérer l'utilisateur authentifié
+
+    # Retourner les informations de l'utilisateur
+    user_data = {
+        'username': user.username,
+        'email': user.email,
+        'avatar_url': user.avatar_url,
+        'display_name': user.display_name,
+        'is_online': user.is_online,
+        'wins': user.wins,
+        'losses': user.losses,
+    }
+    return JsonResponse({'success': True, 'user': user_data})
 
 def auth_42_redirect(request):
     redirect_uri = request.build_absolute_uri('/api/auth/42/callback/')

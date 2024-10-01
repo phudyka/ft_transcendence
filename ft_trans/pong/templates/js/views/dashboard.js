@@ -67,9 +67,10 @@ export function dashboard(player_name) {
     iframe.onload = function () {
     const username = localStorage.getItem('username');
     const token = localStorage.getItem('accessToken');
+    const csrfToken = localStorage.getItem('csrfToken');
     console.log(localStorage);
     const avatar = localStorage.getItem('avatar_url');
-    iframe.contentWindow.postMessage({ username: username, token: token, avatar: avatar }, 'http://localhost:4000');
+    iframe.contentWindow.postMessage({ username: username, token: token, csrfToken: csrfToken, avatar: avatar }, 'http://localhost:4000');
     };
 
 	setupDashboardEvents(navigateTo, username);

@@ -4,7 +4,7 @@ import { setupSoloGame, setupMultiGame, setupMultiGameFour} from './game.mjs';
 import { setupTournamentEvents } from './tournament.mjs';
 import { findRoomForSocket, findOrCreateRoom } from './socketUtils.mjs';
 import { Client } from './client.mjs'
-import fetch from 'node-fetch';
+
 
 export const rooms = {};
 export const roomsTypes = {};
@@ -255,6 +255,10 @@ export default function setupSockets(io) {
                 setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, keysPressedMap.get(room), rooms[room]);
             }
         });
+
+        /*socket.on('update_win_loose', (data) => {
+            updateUserStats(clients.get(socket.id).getName(), clients.get(socket.id).getToken(), data);
+        });*/
 
         // Tournoi
         setupTournamentEvents(io, socket, padsMap);

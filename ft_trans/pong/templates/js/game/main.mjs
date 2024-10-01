@@ -22,20 +22,24 @@ import loadModel from './loadIsland.mjs';
 import { Ball } from './ball.mjs';
 import { hitPadEvent, initSocketEvent, SoundLobby } from './socketEvent.mjs';
 import Sound from './sounds.mjs';
+import { updateUserStats } from './api.mjs';
 
 const socket = io();
 
 let username;
 let token;
+let csrfToken;
 let avatar;
 
 window.addEventListener('message', function(event) {
     if (event.origin === 'http://localhost:8000') {
         username = event.data.username;
         token = event.data.token;
+        csrfToken = event.data.csrfToken;
         avatar = event.data.avatar;
         console.log('Nom d utilisateur recu:', username);
         console.log('token recu :', token);
+        console.log('csrfToken recu :', csrfToken);
         console.log('avatar recu :', avatar);
         socket.emit('username', { username, token, avatar });
 
@@ -284,10 +288,12 @@ socket.on('gameOver', (data) => {
 	if (data.winner === username && data.roomType !== 'multi-2-local'){
 		sounds.play('win');
         winnerMessage.textContent = `YOU WIN !`;
+        updateUserStats(username, token, true);
     }
 	else if (data.winner !== username && data.roomType !== 'multi-2-local') {
         sounds.play('loose');
         winnerMessage.textContent = `YOU LOOSE ! ${winner} is the winner`;
+        updateUserStats(username, token, false);
     }
     else if (data.winner.length === 2){
         winnerMessage.textContent = `the winners is : ${winner} !`;

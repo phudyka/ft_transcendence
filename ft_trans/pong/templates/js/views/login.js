@@ -121,6 +121,7 @@ async function handleLogin(event) {
         const data = await response.json();
         if (data.success) {
             console.log('Connexion réussie');
+            localStorage.setItem('csrfToken', csrfToken);
             localStorage.setItem('accessToken', data.access);
             localStorage.setItem('refreshToken', data.refresh);
             localStorage.setItem('username', data.username);

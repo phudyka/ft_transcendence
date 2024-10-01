@@ -24,6 +24,10 @@ export class Client {
         return this.room;
     }
 
+    getToken() {
+        return this.accessToken;
+    }
+    
     resetScore() {
         this.score = 0;
     }
