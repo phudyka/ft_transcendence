@@ -4,54 +4,32 @@ import { getCsrfToken } from '../utils/token.js';
 export function login() {
     console.log('login view');
     document.getElementById('ft_transcendence').innerHTML = `
-    <img src="${staticUrl}content/logo_400_400.png" id="logo_pong_login" alt="Logo" width="250" height="250" style="margin-bot:10%;">
     <div class="container login-container">
-      <form id="loginForm">
+    <img src="${staticUrl}content/logo_400_400.png" id="logo_pong_login" alt="Logo" width="200" height="200">
+    <form id="loginForm">
         <p>
-          <label for="username" style="margin-top:3%;">username</label>
-          <input type="text" class="value="" placeholder="Enter Username" id="username">
+            <label for="username">Username</label>
+            <input type="text" placeholder="Enter Username" id="username">
         </p>
         <p>
-          <label for="password">password</label>
-          <div class="password-wrapper">
-            <input type="password" value="" placeholder="Enter Password" id="password" class="password">
-            <button class="unmask" type="button" title="Mask/Unmask password to check content">
-              <i class="fas fa-lock"></i>
-            </button>
-          </div>
+            <label for="password">Password</label>
+            <div class="password-wrapper">
+                <input type="password" placeholder="Enter Password" id="password" class="password">
+                <button class="unmask" type="button" title="Mask/Unmask password to check content">
+                    <i class="fas fa-lock"></i>
+                </button>
+            </div>
         </p>
         <button type="submit" class="btn btn-primary">Login</button>
         <button type="submit" class="btn btn-primary">Login with 42</button>
-        <div class="text-center">
+        <div>
             <button type="button" id="create_account" class="btn btn-outline-light">Create account</button>
         </div>
-      </form>
-    </div>
-    <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 11">
-        <div id="loginToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header bg-danger text-white">
-          <strong class="me-auto">Login Error</strong>
-          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body">
-          Invalid username or password
-        </div>
-        </div>
-    </div>
-    <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 11">
-        <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header bg-success text-white">
-          <strong class="me-auto">Success</strong>
-          <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body">
-          Account created successfully. Please log in.
-        </div>
-        </div>
-    </div>
-    <footer class="py-3 my-4">
-        <p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
-    </footer>
+    </form>
+</div>
+<footer>
+    <p>© 2024 42Company, Inc</p>
+</footer>
     `;
     attachEventLoginPage(navigateTo);
     checkRegistrationSuccess();
