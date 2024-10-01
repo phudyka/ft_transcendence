@@ -10,11 +10,11 @@ export function register() {
       <form id="registerForm">
         <p>
           <label for="username" style="margin-top:3%;">username</label>
-          <input type="text" value="" placeholder="Enter Username" id="username" required>
+          <input type="text" value="" placeholder="Username" id="username" required>
         </p>
         <p>
           <label for="email">Email</label>
-          <input type="email" value="" placeholder="Enter Email" id="email" required>
+          <input type="email" value="" placeholder="Email" id="email" required>
         </p>
         <p>
           <label for="password">password</label>
@@ -27,7 +27,7 @@ export function register() {
         </p>
         <p>
         <p>
-          <label for="confirmPassword">confirm password</label>
+          <label for="confirmPassword">Confirm Password</label>
         <div class="password-wrapper">
           <input type="password" value="" placeholder="Confirm Password" id="confirmPassword" class="password">
           <button class="unmask" type="button" title="Mask/Unmask password to check content">
@@ -35,7 +35,7 @@ export function register() {
           </button>
         </div>
         </p>
-        <label for="email">choose avatar</label>
+        <label for="email">Choose your Avatar</label>
         <div class="choose-avatar-container">
         <a class="carousel-control-prev" role="button" data-slide="prev">
           <span class="carousel-control-prev-icon" id="carousel-control-prev-icon" aria-hidden="true"></span>

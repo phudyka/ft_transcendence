@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400,500,700&display=swap');
 
 * {
     margin: 0;
@@ -6,11 +7,13 @@
     box-sizing: border-box;
 }
 
-body {
+html, body {
     font-family: 'Roboto', sans-serif;
     background-color: #121212;
     color: #e0e0e0;
     margin: 0;
+    justify-content: center;
+    align-items: center;
 }
 
 .dashboard-container {
@@ -22,7 +25,7 @@ body {
 
 .header {
     display: flex;
-    justify-content: space-between; 
+    justify-content: space-between;
     align-items: center;
     padding: 20px;
     background: rgba(34, 34, 34, 0.9);
@@ -30,8 +33,8 @@ body {
 }
 
 .logo {
-	margin: 0 auto;
-	display: block;
+    margin: 0 auto;
+    display: block;
     width: 100px;
     transition: transform 0.3s ease, filter 0.3s ease;
 }
@@ -42,7 +45,7 @@ body {
 }
 
 .profile-container {
-	margin-left: auto;
+    margin-left: auto;
 }
 
 .profile-icon {
@@ -84,34 +87,18 @@ body {
     background: rgba(98, 98, 98, 0.7);
 }
 
-.list-group-item {
-    background: rgba(34, 34, 34, 0.7); 
-    margin: 5px 0;
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.3s ease, color 0.3s ease; 
-    color: #e0e0e0;
-    font-size: 1rem;
-}
-
-.list-group-item:hover {
-    background: rgba(98, 98, 98, 0.7);
-    color: #ffffff; 
-}
-
-.title-friends {
+.title-friends, .title-chat {
     font-size: 1.5rem;
     color: #ff5722;
     text-align: center;
     margin-bottom: 10px;
 }
 
-.title-chat {
-    font-size: 1.5rem;
+.title-register {
+    font-size: 2rem;
     color: #ff5722;
+    margin-bottom: 20px;
     text-align: center;
-    margin-bottom: 10px;
 }
 
 .game-container {
@@ -175,10 +162,195 @@ iframe {
     background: #e64a19;
 }
 
-footer {
+.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px;
+    background: linear-gradient(135deg, #242424, #333);
+    border-radius: 20px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.7);
+    max-width: 400px;
+    width: 100%;
     text-align: center;
+}
+
+#logo_pong_login {
+    margin-bottom: 20px;
+    transition: transform 0.3s ease;
+}
+
+#logo_pong_login:hover {
+    transform: scale(1.05);
+}
+
+input[type="text"], input[type="password"], input[type="email"] {
     padding: 10px;
-    background: rgba(34, 34, 34, 0.8);
+    border: 1px solid #333;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.1);
     color: #e0e0e0;
-    box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.6);
+    transition: border-color 0.3s ease;
+    width: calc(100% - 20px);
+}
+
+input[type="text"]:focus, input[type="password"]:focus, input[type="email"]:focus {
+    border-color: #ff5722;
+    outline: none;
+}
+
+button {
+    padding: 10px;
+    background: #ff5722;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background: #e64a19;
+}
+
+.password-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.unmask {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: #e0e0e0;
+    cursor: pointer;
+    transition: color 0.3s ease;
+}
+
+.unmask:hover {
+    color: #ff5722;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    margin: 15px 0;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-primary {
+    background-color: #ff5722;
+    color: white;
+}
+
+.btn-primary:hover {
+    background-color: #e64a19;
+    transform: scale(1.05);
+}
+
+.btn-outline-light {
+    background-color: transparent;
+    border: 2px solid #ff5722;
+    color: #ff5722;
+}
+
+.btn-outline-light:hover {
+    background-color: #ff5722;
+    color: white;
+}
+
+.toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 11;
+}
+
+.toast-body {
+    padding: 10px;
+    font-size: 0.9rem;
+}
+
+.toast-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+p {
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    text-align: center;
+    margin-bottom: 5px;
+    width: 100%;
+    font-weight: 500;
+}
+
+#profile-picture {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+    border-radius: 100px;
+    border: 3px solid black;
+}
+
+.img-thumbnail {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    padding: 0;
+}
+
+@media (max-width: 768px) {
+    .user-info {
+        width: 100%;
+        padding: 20px;
+    }
+}
+
+.unmask:hover {
+    color: #ff5722;
+}
+
+.choose-avatar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 300px;
+    margin: 20px 0;
+}
+
+.choose-avatar {
+    width: 200px;
+    height: 200px;
+    overflow: hidden;
+}
+
+.carousel-inner, .carousel-item {
+    width: 100%;
+    height: 100%;
+}
+
+.avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.2s ease-in-out;
 }
