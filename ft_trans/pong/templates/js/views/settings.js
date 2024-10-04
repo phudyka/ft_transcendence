@@ -13,90 +13,93 @@ export function settings() {
     console.log('settings view');
 
     document.getElementById('ft_transcendence').innerHTML = `
-        <div class="dashboard-container">
-            <ul class="nav justify-content-between align-items-center">
-                <a class="navbar-brand" href="#">
-                    <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="30" height="30">
-                </a>
-                <li class="nav-item">
-                    <a class="nav-link disabled">${player_name}</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" id="logoutLink">Logout</a>
-                </li>
-            </ul>
-            <h3 id="header-dashboard" class="text-center">User Settings</h3>
-            <div class="container mt-4">
-                <form id="settingsForm">
-                    <div class="mb-3">
-                        <label for="displayName" class="form-label">Display Name</label>
-                        <input type="text" class="form-control" id="displayName" name="displayName">
+    <div class="dashboard-container">
+        <ul class="nav justify-content-between align-items-center">
+            <a class="navbar-brand" href="#">
+                <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="30" height="30">
+            </a>
+            <li class="nav-item">
+                <a class="nav-link disabled">${player_name}</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#" id="logoutLink">Logout</a>
+            </li>
+        </ul>
+
+        <h3 id="header-dashboard" class="text-center settings-title">User Settings</h3>
+
+        <div class="container mt-4 settings-form-container">
+            <form id="settingsForm">
+                <div class="mb-3">
+                    <label for="displayName" class="form-label">Display Name</label>
+                    <input type="text" class="form-control" id="displayName" name="displayName">
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email">
+                </div>
+                <div class="mb-3">
+                    <label for="avatar" class="form-label">Avatar</label>
+                    <div class="d-flex align-items-center">
+                        <img id="currentAvatar" src="https://i.ibb.co/FDg3t8m/avatar7.png" alt="Current Avatar" class="img-thumbnail rounded-circle me-3 avatar-img">
+                        <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
                     </div>
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" class="form-control" id="email" name="email">
-                    </div>
-                    <div class="mb-3">
-                        <label for="avatar" class="form-label">Avatar</label>
-                        <div class="d-flex align-items-center">
-                            <img id="currentAvatar" src="https://i.ibb.co/FDg3t8m/avatar7.png" alt="Current Avatar" class="img-thumbnail rounded-circle me-3" style="width: 100px; height: 100px;">
-                            <input type="file" class="form-control" id="avatar" name="avatar" accept="image/*">
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <div class="form-check">
+                </div>
+                <div class="mb-3">
+                    <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="emailNotifications" name="emailNotifications">
                         <label class="form-check-label" for="emailNotifications">
-                        Email Notifications
+                            Email Notifications
                         </label>
-                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Save Settings</button>
-                </form>
+                </div>
+                <button type="submit" class="btn btn-primary">Save Settings</button>
+            </form>
 
-                <h4 class="mt-5">Change Password</h4>
-                <form id="changePasswordForm">
-                    <div class="mb-3">
-                        <label for="newPassword" class="form-label">New Password</label>
-                        <input type="password" class="form-control" id="newPassword" name="newPassword">
-                    </div>
-                    <div class="mb-3">
-                        <label for="confirmPasswordsetttings" class="form-label">Confirm New Password</label>
-                        <input type="password" class="form-control" id="confirmPasswordsetttings" name="confirmPasswordsetttings">
-                    </div>
-                    <button type="submit" class="btn btn-primary" style="margin-bottom: 3%;margin-top:10%;">Change Password</button>
-                </form>
-                <button id="backToDashboard" class="btn btn-primary" style="margin-bottom: 3%;">Back to Dashboard</button>
+            <h4 class="mt-5 settings-subtitle">Change Password</h4>
+
+            <form id="changePasswordForm">
+                <div class="mb-3">
+                    <label for="newPassword" class="form-label">New Password</label>
+                    <input type="password" class="form-control" id="newPassword" name="newPassword">
+                </div>
+                <div class="mb-3">
+                    <label for="confirmPasswordsetttings" class="form-label">Confirm New Password</label>
+                    <input type="password" class="form-control" id="confirmPasswordsetttings" name="confirmPasswordsetttings">
+                </div>
+                <button type="submit" class="btn btn-primary">Change Password</button>
+            </form>
+            <button id="backToDashboard" class="btn btn-secondary">Back to Dashboard</button>
+        </div>
+
+        <footer class="footer py-3 my-4">
+            <p class="text-center">© 2024 42 Company, Inc</p>
+        </footer>
+
+        <div class="toast-container position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 11;">
+            <div id="saveSettingsToast" class="toast">
+                <div class="toast-header">
+                    <strong class="me-auto">Settings Saved!</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    Your profile settings have been successfully updated.
+                </div>
+            </div>
+            <div id="savePasswordToast" class="toast">
+                <div class="toast-header">
+                    <strong class="me-auto">Password Saved!</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    Your password has been successfully updated.
+                </div>
             </div>
         </div>
-        <footer class="py-3 my-4" style="margin-top: 5%;">
-            <p class="text-center text-body-secondary">© 2024 42 Company, Inc</p>
-        </footer>
-        <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 11">
-		<div id="saveSettingsToast" class="toast" aria-live="assertive" aria-atomic="true">
-		<div class="toast-header">
-		  <strong class="me-auto">Settings Saved!</strong>
-		  <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-		</div>
-		<div class="toast-body">
-        Your profile settings have been successfully updated.
-		</div>
-		</div>
-	</div>
-    <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 11">
-    <div id="savePasswordToast" class="toast" aria-live="assertive" aria-atomic="true">
-    <div class="toast-header">
-      <strong class="me-auto">Password Saved!</strong>
-      <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
     </div>
-    <div class="toast-body">
-    Your password have been successfully updated.
-    </div>
-    </div>
-</div>
-    `;
+`;
 
-    attachEventSettingsPage(navigateTo, player_name);
+attachEventSettingsPage(navigateTo, player_name);
 }
 
 function attachEventSettingsPage(navigateTo, player_name) {
