@@ -14,38 +14,43 @@ async function getUserByDisplayName(displayName, token) {
   }
 }
 
-async function getCsrfToken() {
-  const response = await fetch('http://localhost:8000/api/set-csrf-token/', {
-    method: 'GET',
-    credentials: 'include' 
-  });
-
-  if (response.ok) {
-    const data = await response.json();
-    return data.csrfToken;
-  } else {
-    throw new Error('Erreur lors de la récupération du token CSRF');
-  }
-}
-
 export async function updateUserStats(displayName, token, hasWon) {
   try {
-    const csrfToken = await getCsrfToken();
-
-    console.log(token);
-
     const userData = await getUserByDisplayName(displayName, token);
     let currentWins = userData.user.wins;
     let currentLosses = userData.user.losses;
+
     console.log('user data :', userData);
 
+    // Incrémente les victoires ou les défaites selon le résultat du match
     if (hasWon) {
       currentWins += 1;
     } else {
       currentLosses += 1;
     }
 
-    console.log(csrfToken);
+    // Construction de la requête PUT pour mettre à jour les statistiques de l'utilisateur
+    const response = await fetch(`http://localhost:8000/users/display_name/${displayName}/update_stats/`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        wins: currentWins,
+        losses: currentLosses,
+        is_online: true
+      })
+    });
+    
+
+    // Vérifie si la requête a réussi
+    if (response.ok) {
+      const updatedUserData = await response.json();
+      console.log('Statistiques mises à jour avec succès :', updatedUserData);
+    } else {
+      console.error('Erreur lors de la mise à jour des statistiques :', response.statusText);
+    }
 
   } catch (error) {
     console.error('Erreur :', error.message);

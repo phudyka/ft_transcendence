@@ -8,6 +8,8 @@ from django.middleware.csrf import get_token
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db import IntegrityError
 from django.shortcuts import redirect
+from rest_framework import viewsets, status
+from .serializers import CustomUserSerializer
 import json
 import logging
 import requests
@@ -22,6 +24,11 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import permission_classes
+
 
 
 User = get_user_model()
@@ -36,6 +43,24 @@ def create_user(request):
 
 def index(request, path=''):
 	return render(request, 'index.html')
+
+@permission_classes([IsAuthenticated])
+class CustomUserViewSet(viewsets.ModelViewSet):
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+
+    @action(detail=False, methods=['put'], url_path='display_name/(?P<display_name>[^/.]+)/update_stats')
+    def update_stats_by_display_name(self, request, display_name=None):
+        user = CustomUser.objects.get(display_name=display_name)
+        data = request.data
+
+        user.is_online = data.get('is_online', user.is_online)
+        user.wins = data.get('wins', user.wins)
+        user.losses = data.get('losses', user.losses)
+        user.save()
+
+        serializer = self.get_serializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 @ensure_csrf_cookie
 def login_view(request):
