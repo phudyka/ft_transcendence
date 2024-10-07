@@ -26,6 +26,8 @@ export function dashboard(player_name) {
         return;
     }
 
+    new Image().src = `${staticUrl}content/send-button.png`;
+
     document.getElementById('ft_transcendence').innerHTML = `
     <div class="dashboard-container">
         <div class="header">
@@ -68,7 +70,7 @@ export function dashboard(player_name) {
                 <div class="chat-log" id="chat-log"></div>
                 <div class="input-container">
                     <input id="message-input" placeholder="Tapez votre message..." rows="1"></input>
-                    <button id="send-button">Envoyer</button>
+                    <button id="send-button">►</button>
                 </div>
             </div>
         </div>
@@ -86,7 +88,7 @@ export function dashboard(player_name) {
                 <div id="private-chats-container"></div>
                 <div class="input-container2">
                     <textarea id="message-input2" placeholder="Type your message..." rows="1"></textarea>
-                    <button id="send-button2">Send</button>
+                    <button id="send-button2" style="background-image: url('${staticUrl}content/send-button.png');"></button>
                 </div>
             </div>
         </div>
@@ -447,7 +449,7 @@ function receiveMessage(msg) {
 
     // Créer l'élément message et définir son texte
     const messageTextElement = document.createElement('span');
-    messageTextElement.innerText = `: ${msg.message}`;
+    messageTextElement.innerText = ` : ${msg.message}`;
 
     // Ajouter les éléments username et message à l'élément message
     messageElement.appendChild(usernameElement);

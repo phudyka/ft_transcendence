@@ -23,9 +23,8 @@ export function login() {
         <button type="submit" class="btn btn-primary">Login</button>
         <button type="submit" class="btn btn-primary">Login with 42</button>
         <div>
-        <button type="submit" class="btn btn-primary" style="margin-top: 5px;">Login with 42</button>
         <div class="text-center">
-            <button type="button" id="create_account" class="btn btn-outline-light">Create account</button>
+            <button type="button" id="create_account" style="margin-top: 5px;" class="btn btn-outline-light">Create account</button>
         </div>
     </form>
 </div>

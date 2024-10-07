@@ -53,7 +53,6 @@ function initRouter() {
                     break;
                 default:
                     console.log('404: Page not found');
-                    // Vous pouvez ajouter ici une page 404 personnalisée si vous le souhaitez
             }
         }
     };

@@ -4,7 +4,7 @@ import { getCsrfToken } from '../utils/token.js';
 export function register() {
     document.getElementById('ft_transcendence').innerHTML = `
     <div class="container register-container">
-        <h1 class="register-title">Create Your Account</h1>
+        <h1 class="register-title" style="margin-top: 5%;">Create Your Account</h1>
         <form id="registerForm">
             <div class="form-group">
                 <label for="username" class="form-label">Username</label>

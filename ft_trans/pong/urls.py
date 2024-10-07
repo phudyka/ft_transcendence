@@ -3,11 +3,8 @@ from . import views
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-router = DefaultRouter()
-router.register(r'users', views.CustomUserViewSet)
 
 urlpatterns = [
-	path('', include(router.urls)),
 	path('api/auth/42/', views.auth_42_redirect, name='auth_42_redirect'),
 	path('api/auth/42/callback/', views.auth_42_callback, name='auth_42_callback'),
 	path('api/content/', views.content, name='content'),
