@@ -17,45 +17,100 @@ export function generateRandomUsername() {
 }
 
 export function dashboard(player_name) {
-    const username = localStorage.getItem('username');
+    const username = localStorage.getItem('username') || player_name;
     const displayName = localStorage.getItem('display_name');
     const avatarUrl = localStorage.getItem('avatar_url');
 
-	if (!username) {
+    if (!username) {
         navigateTo('/login');
         return;
     }
 
-	document.getElementById('ft_transcendence').innerHTML = `
+    document.getElementById('ft_transcendence').innerHTML = `
     <div class="dashboard-container">
         <div class="header">
             <a class="navbar-brand" href="#">
                 <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" class="logo">
             </a>
+            <span class="nav-item">${username}</span>
             <div class="profile-container">
-                <img src="https://i.ibb.co/FDg3t8m/avatar7.png" class="profile-icon img-thumbnail rounded-circle" alt="Profile Picture" id="img_profile_pic">
+                <img src="${avatarUrl || 'https://i.ibb.co/FDg3t8m/avatar7.png'}" class="profile-icon" alt="Profile Picture" id="img_profile_pic">
             </div>
         </div>
 
         <div class="content">
             <div class="sidebar">
-                <h2 class="title-friends">Friends</h2>
+                <h2 class="title-friends">Amis</h2>
                 <ul id="friends" class="list-group">
-                    <li class="list-group-item" data-friend="Friend1">${generateRandomUsername()}</li>
-                    <li class="list-group-item" data-friend="Friend2">${generateRandomUsername()}</li>
+                    <li class="list-group-item" data-friend="Friend1">Friend1</li>
+                    <li class="list-group-item" data-friend="Friend2">Friend2</li>
+                    <li class="list-group-item" data-friend="Friend3">Friend3</li>
                 </ul>
+                <div id="friendDropdown" class="dropdown-menu" style="display: none;">
+                    <a class="dropdown-item" href="#" id="sendMessage">Send Private Message</a>
+                    <a class="dropdown-item" href="#" id="startGame">Start a Game</a>
+                    <a class="dropdown-item" href="#" id="viewProfile">View Profile</a>
+                </div>
+                <div id="friendDropdown_chat" class="dropdown-menu_chat" style="display: none;">
+                    <a class="dropdown-item" href="#" id="sendMessage">Send Private Message</a>
+                    <a class="dropdown-item" href="#" id="addToFriend">Add To Friend</a>
+                    <a class="dropdown-item" href="#" id="blockUser">Block User</a>
+                    <a class="dropdown-item" href="#" id="viewProfile">View Profile</a>
+                </div>
             </div>
 
-            <div class="game-container">
-                <iframe id="pong" title="Pong" src="http://localhost:4000"></iframe>
-            </div>
+                <div class="game-container">
+                    <iframe id="pong" title="Pong" src="http://localhost:4000"></iframe>
+                </div>
 
             <div class="chat-container">
                 <h2 class="title-chat">Chat</h2>
                 <div class="chat-log" id="chat-log"></div>
                 <div class="input-container">
-                    <textarea id="message-input" placeholder="Type your message..."></textarea>
-                    <button id="send-button">Send</button>
+                    <input id="message-input" placeholder="Tapez votre message..." rows="1"></input>
+                    <button id="send-button">Envoyer</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="profileDropdown" class="dropdown-menu" style="display: none;">
+            <a class="dropdown-item" href="#" id="settings">Settings</a>
+            <a class="dropdown-item" href="#" id="logoutLink">Logout</a>
+        </div>
+
+        <div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="chatbox" aria-labelledby="chatboxLabel">
+            <div class="offcanvas-header">
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <div id="private-chats-container"></div>
+                <div class="input-container2">
+                    <textarea id="message-input2" placeholder="Type your message..." rows="1"></textarea>
+                    <button id="send-button2">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div id="addFriendToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">Friend Request</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    Friend request sent successfully!
+                </div>
+            </div>
+        </div>
+
+        <div class="toast-container position-fixed bottom-0 end-0 p-3">
+            <div id="blockUserToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">Block User</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    User blocked successfully!
                 </div>
             </div>
         </div>
@@ -76,6 +131,10 @@ export function dashboard(player_name) {
 	setupDashboardEvents(navigateTo, username);
 	initializeSocket();
 	checkForFriendRequests();
+    setupDashboardEvents(navigateTo, username);
+    initializeSocket();
+    checkForFriendRequests();
+    fetchAndDisplayFriends();
 }
 
 setInterval(checkForFriendRequests, 600000);
@@ -162,20 +221,11 @@ function receivePrivateMessage(from, message) {
     }
 }
 
-function setupDashboardEvents(navigateTo, player_name) {
+function setupDashboardEvents(navigateTo, username) {
 	//Logout
 	document.getElementById('logoutLink').addEventListener('click', function (event) {
 		event.preventDefault();
 		logout();
-	});
-
-	//Game solo
-	document.getElementById('game_alone').addEventListener('click', function (event) {
-		event.preventDefault();
-		console.log('Play game_alone button clicked');
-
-		window.location.href = 'http://localhost:4000';
-		//Voir avec iFrame pour ouvrir le jeu sans quitter la page actuelle
 	});
 
 	// Friend menu
@@ -256,55 +306,45 @@ function formatMessage(message) {
 	return `${message}`;
   }
 
-function handleProfilePictureClick() {
-	event.stopPropagation();
-	const dropdown = document.getElementById('profileDropdown');
+function handleProfilePictureClick(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('profileDropdown');
 
-	const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
-	visibleDropdowns.forEach(dropdown => {
-		dropdown.style.display = 'none';
-	});
+    const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
+    visibleDropdowns.forEach(dropdown => {
+        dropdown.style.display = 'none';
+    });
 
-	dropdown.style.top = `${event.clientY}px`;
-	dropdown.style.left = `${event.clientX}px`;
-	dropdown.style.display = 'block';
+    dropdown.style.top = `${event.clientY}px`;
+    dropdown.style.left = `${event.clientX}px`;
+    dropdown.style.display = 'block';
 }
 
-function handleFriendClick() {
-		event.stopPropagation();
-		const dropdown = document.getElementById('friendDropdown');
-		const friendName = this.getAttribute('data-friend');
+function handleFriendClick(event) {
+    event.stopPropagation();
+    const dropdown = document.getElementById('friendDropdown');
+    const friendName = this.getAttribute('data-friend');
 
-		// Hide all visible dropdowns
-		const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
-		visibleDropdowns.forEach(dropdown => {
-			dropdown.style.display = 'none';
-		});
+    // Hide all visible dropdowns
+    const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
+    visibleDropdowns.forEach(dropdown => {
+        dropdown.style.display = 'none';
+    });
 
-		// Position the dropdown near the clicked friend item
-		dropdown.style.top = `${event.clientY}px`;
-		dropdown.style.left = `${event.clientX}px`;
-		dropdown.style.display = 'block';
+    // Position the dropdown near the clicked friend item
+    dropdown.style.top = `${event.clientY}px`;
+    dropdown.style.left = `${event.clientX}px`;
+    dropdown.style.display = 'block';
 
-		// Store the clicked friend's name
-		dropdown.setAttribute('data-friend', friendName);
+    // Store the clicked friend's name
+    dropdown.setAttribute('data-friend', friendName);
 }
 
 function hideDropdowns() {
-	const dropdown = document.getElementById('friendDropdown');
-	if (dropdown) {
-		dropdown.style.display = 'none';
-	}
-
-	const dropdown2 = document.getElementById('friendDropdown_chat');
-	if (dropdown2) {
-		dropdown2.style.display = 'none';
-	}
-
-	const dropdown3 = document.getElementById('profileDropdown');
-	if (dropdown3) {
-		dropdown3.style.display = 'none';
-	}
+    const dropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
+    dropdowns.forEach(dropdown => {
+        dropdown.style.display = 'none';
+    });
 }
 
 function showChatbox(event) {
@@ -395,6 +435,7 @@ function receiveMessage(msg) {
         });
 
         // Positionner le menu déroulant près de l'élément ami cliqué
+        dropdown.style.position = 'fixed';
         dropdown.style.top = `${event.clientY}px`;
         dropdown.style.left = `${event.clientX}px`;
         dropdown.style.display = 'block';
