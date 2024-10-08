@@ -110,3 +110,22 @@ footer {
     color: #888;
     font-size: 0.9rem;
 }
+
+/* TOAST */
+.toast .toast-body {
+    color: white;
+}
+
+.toast-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+#loginToast .toast-body {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+#successToast .toast-body {
+    background-color: #ffffff;
+    color: #000000;
+}

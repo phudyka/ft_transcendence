@@ -19,4 +19,9 @@ urlpatterns = [
 	path('api/user/stats/', views.get_user_stats, name='get_user_stats'),
 	path('', views.index, name='index'),
 	path('<path:path>', views.index, name='catch_all'),
+	path('api/friends/', views.friend_list, name='friend-list'),
+	path('api/send-friend-request/', views.send_friend_request, name='send_friend_request'),
+    path('api/accept-friend-request/', views.accept_friend_request, name='accept_friend_request'),
+    path('api/reject-friend-request/', views.reject_friend_request, name='reject_friend_request'),
+    path('api/get-friend-requests/', views.get_friend_requests, name='get_friend_requests'),
 ]

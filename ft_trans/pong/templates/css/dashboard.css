@@ -152,7 +152,7 @@ iframe#pong {
     background: rgba(34, 34, 34, 0.8);
     border-radius: 25px;
     border: 1px dashed #555;
-    margin: 7px;    
+    margin: 7px;
 }
 
 #message-input {
@@ -200,4 +200,23 @@ footer {
 .username-link {
     color: #FF8C00;
     font-weight: 700;
+}
+
+
+/* ONLINE STATUS */
+
+.status-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.status-dot.online {
+    background-color: #28a745;
+}
+
+.status-dot.offline {
+    background-color: #dc3545;
 }

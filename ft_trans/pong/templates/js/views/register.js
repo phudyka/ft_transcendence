@@ -35,22 +35,34 @@ export function register() {
 
             <div class="form-group">
                 <label for="avatar" class="form-label">Choose your Avatar</label>
-                <div id="avatar-carousel" class="carousel slide" data-ride="carousel" data-interval="false">
-                    <div class="carousel-inner">
-                        <div class="carousel-item active">
-                            <img src="https://i.ibb.co/C2WLdyY/avatar1.png" class="d-block avatar-image" alt="Avatar 1">
+                <div class="choose-avatar">
+                    <div class="avatars-container">
+                        <span class="left"></span>
+                        <div class="avatars">
+                            <div class="avatar-item" style="background-image: url('https://i.ibb.co/C2WLdyY/avatar1.png');">
+                                <span id="text-avatar">Choose</span>
+                            </div>
+                            <div class="avatar-item" style="background-image: url('https://i.ibb.co/0t3JTMz/avatar2.png');">
+                                <span id="text-avatar">Choose</span>
+                            </div>
+                            <div class="avatar-item" style="background-image: url('https://i.ibb.co/K08BjJx/avatar3.png');">
+                                <span id="text-avatar">Choose</span>
+                            </div>
+                            <div class="avatar-item" style="background-image: url('https://i.ibb.co/6XW1X2L/avatar4.png');">
+                                <span id="text-avatar">Choose</span>
+                            </div>
+                            <div class="avatar-item" style="background-image: url('https://i.ibb.co/DVfTxB2/avatar5.png');">
+                                <span id="text-avatar">Choose</span>
+                            </div>
+                            <div class="avatar-item" style="background-image: url('https://i.ibb.co/Bzvqgg3/avatar6.png');">
+                                <span id="text-avatar">Choose</span>
+                            </div>
+                            <div class="avatar-item" style="background-image: url('https://i.ibb.co/FDg3t8m/avatar7.png');">
+                                <span id="text-avatar">Choose</span>
+                            </div>
                         </div>
-                        <div class="carousel-item">
-                            <img src="https://i.ibb.co/0t3JTMz/avatar2.png" class="d-block avatar-image" alt="Avatar 2">
-                        </div>
-                        <!-- Ajoute ici d'autres avatars -->
+                        <span class="right"></span>
                     </div>
-                    <a class="carousel-control-prev" href="#avatar-carousel" role="button" data-slide="prev">
-                        <span class="carousel-control-prev-icon"></span>
-                    </a>
-                    <a class="carousel-control-next" href="#avatar-carousel" role="button" data-slide="next">
-                        <span class="carousel-control-next-icon"></span>
-                    </a>
                 </div>
             </div>
 
@@ -97,7 +109,7 @@ function setupRegisterEvents(navigateTo) {
             return;
         }
 
-        const selectedAvatar = document.querySelector('.carousel-item.active img').src;
+        const selectedAvatar = document.querySelector('.avatar-item.current').style.backgroundImage;
 
         console.log('Registering user:', username, email, password, selectedAvatar);
         try {
@@ -144,15 +156,62 @@ function setupRegisterEvents(navigateTo) {
         navigateTo('/login');
     });
 
-    //carrousel
-    document.getElementById('carousel-control-next-icon').addEventListener('click', function(event) {
-        event.preventDefault();
-        $('#carouselExampleControls').carousel('next');
+    const prev = document.querySelector('.left');
+    const next = document.querySelector('.right');
+    const container = document.querySelector('.avatars');
+    const avatars = document.querySelectorAll('.avatars-container .avatar-item');
+    let currentIndex = Math.floor(avatars.length/2);
+    const val = (avatars.length - 1 - Math.floor(avatars.length/2)) * 195;
+    let translateVal = 0;
+
+    for (let i = 0; i < avatars.length; i++) {
+        if (i === Math.floor(avatars.length/2)) {
+            avatars[i].classList.add('current');
+        }
+        avatars[i].addEventListener('click', () => {
+            // Logique de sélection d'avatar
+            avatars.forEach(av => av.classList.remove('current'));
+            avatars[i].classList.add('current');
+        });
+    }
+
+    let defaultVal = 0;
+    if (avatars.length % 2 === 0) {
+        defaultVal = 90;
+        translateVal -= 90;
+        container.style.transform = `translateX(${translateVal}px)`;
+    }
+
+    prev.addEventListener('click', () => {
+        if (currentIndex - 1 < 0) {
+            avatars[currentIndex].classList.remove('current');
+            avatars[avatars.length - 1].classList.add('current');
+            currentIndex = avatars.length - 1;
+            translateVal = -val - defaultVal;
+            container.style.transform = `translateX(${translateVal}px)`;
+        } else {
+            avatars[currentIndex].classList.remove('current');
+            avatars[currentIndex - 1].classList.add('current');
+            currentIndex -= 1;
+            translateVal += 195;
+            container.style.transform = `translateX(${translateVal}px)`;
+        }
     });
 
-    document.getElementById('carousel-control-prev-icon').addEventListener('click', function(event) {
-        event.preventDefault();
-        $('#carouselExampleControls').carousel('prev');
+    next.addEventListener('click', () => {
+        if (currentIndex + 1 >= avatars.length) {
+            avatars[currentIndex].classList.remove('current');
+            avatars[0].classList.add('current');
+            currentIndex = 0;
+            translateVal = val + defaultVal;
+            container.style.transform = `translateX(${translateVal}px)`;
+        } else {
+            avatars[currentIndex].classList.remove('current');
+            avatars[currentIndex + 1].classList.add('current');
+            currentIndex += 1;
+            translateVal -= 195;
+            container.style.transform = `translateX(${translateVal}px)`;
+        }
     });
 
     document.getElementById('registerbutton42').addEventListener('click', function(event) {
@@ -175,4 +234,3 @@ function getCookie(name) {
     }
     return cookieValue;
 }
-

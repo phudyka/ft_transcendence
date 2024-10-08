@@ -1,5 +1,7 @@
 import { navigateTo } from '../app.js';
 import { logout, setGlobalSocket } from '../utils/token.js';
+import { getSocket } from '../utils/socketManager.js';
+import { initializeSocket } from '../utils/socketManager.js';
 
 let socket;
 const privateChatLogs = new Map();
@@ -17,16 +19,20 @@ export function generateRandomUsername() {
 }
 
 export function dashboard(player_name) {
-    const username = localStorage.getItem('username') || player_name;
+    const username = localStorage.getItem('username');
     const displayName = localStorage.getItem('display_name');
-    const avatarUrl = localStorage.getItem('avatar_url');
+    let avatarUrl = localStorage.getItem('avatar_url');
 
     if (!username) {
         navigateTo('/login');
         return;
     }
 
-    new Image().src = `${staticUrl}content/send-button.png`;
+    initializeSocket(username);
+
+    if (avatarUrl) {
+        avatarUrl = avatarUrl.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+    }
 
     document.getElementById('ft_transcendence').innerHTML = `
     <div class="dashboard-container">
@@ -34,9 +40,9 @@ export function dashboard(player_name) {
             <a class="navbar-brand" href="#">
                 <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" class="logo">
             </a>
-            <span class="nav-item">${username}</span>
+            <span class="nav-item" style="font-size: 3.5em; font-weight: bold;">${username}</span>
             <div class="profile-container">
-                <img src="${avatarUrl || 'https://i.ibb.co/FDg3t8m/avatar7.png'}" class="profile-icon" alt="Profile Picture" id="img_profile_pic">
+                <img src="${avatarUrl}" class="profile-icon" alt="Profile Picture" id="img_profile_pic">
             </div>
         </div>
 
@@ -88,7 +94,7 @@ export function dashboard(player_name) {
                 <div id="private-chats-container"></div>
                 <div class="input-container2">
                     <textarea id="message-input2" placeholder="Type your message..." rows="1"></textarea>
-                    <button id="send-button2" style="background-image: url('${staticUrl}content/send-button.png');"></button>
+                    <button id="send-button2">►</button>
                 </div>
             </div>
         </div>
@@ -131,59 +137,21 @@ export function dashboard(player_name) {
     };
 
 	setupDashboardEvents(navigateTo, username);
-	initializeSocket();
+	setupChatListeners();
 	checkForFriendRequests();
-    setupDashboardEvents(navigateTo, username);
-    initializeSocket();
-    checkForFriendRequests();
     fetchAndDisplayFriends();
 }
 
-setInterval(checkForFriendRequests, 600000);
+function setupChatListeners() {
+    const socket = getSocket();
+    if (socket) {
+        socket.off('chat message');
 
-function initializeSocket() {
-    if (socket && socket.connected) {
-        console.log('Connexion Socket.IO existante réutilisée');
-        return;
+        socket.on('chat message', (msg) => {
+            console.log('Message reçu du serveur:', msg);
+            receiveMessage(msg);
+        });
     }
-
-    const username = localStorage.getItem('username');
-    if (!username) {
-        console.error('Nom d\'utilisateur non trouvé');
-        return;
-    }
-
-    socket = io('http://localhost:3000', {
-        transports: ['websocket'],
-        query: {
-            username: username,
-        }
-    });
-
-	setGlobalSocket(socket);
-
-    socket.on('connect', () => {
-        console.log('Connecté au serveur de chat');
-		const username = localStorage.getItem('username');
-        if (username) {
-            socket.emit('register', username);
-        }
-    });
-
-    socket.on('connection_limit_reached', () => {
-        console.log('Limite de connexion atteinte');
-        alert('Vous êtes déjà connecté dans un autre onglet ou fenêtre.');
-        socket.disconnect();
-    });
-
-    socket.on('chat message', (msg) => {
-        console.log('Message reçu du serveur:', msg);
-        receiveMessage(msg);
-    });
-
-    socket.on('connect_error', (error) => {
-        console.error('Erreur de connexion:', error);
-    });
 }
 
 function generateUniqueId() {
@@ -227,6 +195,10 @@ function setupDashboardEvents(navigateTo, username) {
 	//Logout
 	document.getElementById('logoutLink').addEventListener('click', function (event) {
 		event.preventDefault();
+		const socket = getSocket();
+		if (socket) {
+			socket.disconnect();
+		}
 		logout();
 	});
 
@@ -386,21 +358,26 @@ function goTosettings(event) {
 }
 
 function sendMessage(event) {
-	event.preventDefault();
-	const username = localStorage.getItem('username');
-	const messageInput = document.getElementById('message-input');
-	const message = messageInput.value.trim();
-	if (message !== '' && socket && socket.connected) {
-		const messageData = {
-			name: username,
-			message: message
-		};
-		socket.emit('chat message', messageData);
-		console.log('Message envoyé:', messageData);
-		messageInput.value = '';
-	} else if (!socket || !socket.connected) {
-		console.error('La connexion au serveur de chat n\'est pas établie');
-	}
+    event.preventDefault();
+    const username = localStorage.getItem('username');
+    const messageInput = document.getElementById('message-input');
+    const message = messageInput.value.trim();
+    const socket = getSocket();
+
+    if (message !== '') {
+        if (socket && socket.connected) {
+            const messageData = {
+                name: username,
+                message: message
+            };
+            socket.emit('chat message', messageData);
+            console.log('Message envoyé:', messageData);
+            messageInput.value = '';
+        } else {
+            console.error('La connexion au serveur de chat n\'est pas établie');
+            initializeSocket(username);
+        }
+    }
 }
 
 function receiveMessage(msg) {
@@ -436,32 +413,40 @@ function receiveMessage(msg) {
             dropdown.style.display = 'none';
         });
 
-        // Positionner le menu déroulant près de l'élément ami cliqué
         dropdown.style.position = 'fixed';
-        dropdown.style.top = `${event.clientY}px`;
-        dropdown.style.left = `${event.clientX}px`;
         dropdown.style.display = 'block';
 
-        // Stocker le nom de l'ami cliqué
+        // Vérifier si le dropdown dépasse la fenêtre
+        const rect = dropdown.getBoundingClientRect();
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+
+        if (event.clientY + rect.height > windowHeight) {
+            dropdown.style.top = `${event.clientY - rect.height}px`;
+        } else {
+            dropdown.style.top = `${event.clientY}px`;
+        }
+
+        if (event.clientX + rect.width > windowWidth) {
+            dropdown.style.left = `${event.clientX - rect.width}px`;
+        } else {
+            dropdown.style.left = `${event.clientX}px`;
+        }
+
         dropdown.dataset.friend = friendName;
         console.log('Message reçu:', msg);
     });
 
-    // Créer l'élément message et définir son texte
     const messageTextElement = document.createElement('span');
     messageTextElement.innerText = ` : ${msg.message}`;
 
-    // Ajouter les éléments username et message à l'élément message
     messageElement.appendChild(usernameElement);
     messageElement.appendChild(messageTextElement);
 
     chatLog.appendChild(messageElement);
 
-    // Faire défiler jusqu'en bas du chat log
     chatLog.scrollTop = chatLog.scrollHeight;
 
-    // Console.log pour afficher le message reçu
-    console.log('Message reçu dans le chat-log:', msg);
 }
 
 function sendPrivateMessage(friendName) {
@@ -509,64 +494,6 @@ function viewProfile(event) {
 	navigateTo(`/profile/${friendName}`);
 }
 
-// socket.on('connect_error', (error) => {
-// 	console.error('Connection error:', error);
-// 	// Gérez l'erreur de manière appropriée
-// });
-
-// function fetchAndDisplayFriends() {
-//	 function callAPI(url, options) {
-//		 return fetch(url, options)
-//			 .then(response => {
-//				 if (!response.ok) {
-//					 throw new Error('Erreur réseau');
-//				 }
-//				 return response;
-//			 })
-//			 .catch(error => {
-//				 console.error('Erreur lors de l\'appel API:', error);
-//				 throw error;
-//			 });
-//	 }
-
-//	 callAPI('http://localhost:8000/api/friends/', {
-//		 method: 'GET',
-//		 headers: {
-//			 'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-//			 'Content-Type': 'application/json'
-//		 }
-//	 })
-//	 .then(response => response.json())
-//	 .then(data => {
-//		 const friendsList = document.getElementById('friends');
-//		 friendsList.innerHTML = '';
-
-//		 if (Array.isArray(data)) {
-//			 data.forEach(friend => {
-//				 const li = document.createElement('li');
-//				 li.className = 'list-group-item d-flex justify-content-between align-items-center';
-//				 li.setAttribute('data-friend', friend.username);
-
-//				 const statusDot = document.createElement('span');
-//				 statusDot.className = `status-dot ${friend.is_online ? 'online' : 'offline'}`;
-
-//				 const usernameSpan = document.createElement('span');
-//				 usernameSpan.textContent = friend.username;
-
-//				 li.appendChild(statusDot);
-//				 li.appendChild(usernameSpan);
-//				 li.addEventListener('click', handleFriendClick);
-//				 friendsList.appendChild(li);
-//			 });
-//		 } else {
-//			 console.error('Les données reçues ne sont pas un tableau:', data);
-//		 }
-//	 })
-//	 .catch(error => {
-//		 console.error('Erreur lors de la récupération des amis:', error);
-//	 });
-// }
-
 function saveMessage(friendName, message) {
 	let messages = JSON.parse(localStorage.getItem(`chat_${friendName}`)) || [];
 	messages.push({ sender: 'Player', message: message });
@@ -588,100 +515,147 @@ function loadMessages(friendName) {
 	chatLog.scrollTop = chatLog.scrollHeight;
 }
 
-// Function to show the friend request toast
-function showFriendRequestToast(friendName, requestId) {
-    const toastElement = document.querySelector('.toast');
-    const toast = new bootstrap.Toast(toastElement, { autohide: false });
+function checkForFriendRequests() {
+    fetch('/api/get-friend-requests/', {
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.friend_requests.length > 0) {
+            data.friend_requests.forEach(request => {
+                showFriendRequestToast(request.from_username, request.id);
+            });
+        }
+    })
+    .catch(error => console.error('Erreur lors de la récupération des demandes d\'ami:', error));
+}
 
-    document.getElementById('friend-name').textContent = friendName;
+function showFriendRequestToast(fromUsername, requestId) {
+    const toastHtml = `
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Demande d'ami</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                ${fromUsername} souhaite vous ajouter comme ami.
+                <div class="mt-2 pt-2 border-top">
+                    <button type="button" class="btn btn-primary btn-sm" onclick="acceptFriendRequest(${requestId})">Accepter</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="rejectFriendRequest(${requestId})">Refuser</button>
+                </div>
+            </div>
+        </div>
+    `;
 
-    const acceptButton = document.getElementById('accept-friend');
-    const refuseButton = document.getElementById('refuse-friend');
+    const toastContainer = document.createElement('div');
+    toastContainer.className = 'toast-container position-fixed top-0 start-50 translate-middle-x p-3';
+    toastContainer.innerHTML = toastHtml;
+    document.body.appendChild(toastContainer);
 
-    acceptButton.onclick = () => {
-        acceptFriendRequest(requestId);
-        toast.hide();
-    };
-
-    refuseButton.onclick = () => {
-        refuseFriendRequest(requestId);
-        toast.hide();
-    };
-
+    const toastElement = toastContainer.querySelector('.toast');
+    const toast = new bootstrap.Toast(toastElement);
     toast.show();
 }
 
-// Function to handle accepting a friend request
-async function acceptFriendRequest(requestId) {
-    try {
-        const response = await fetch('/api/friend-requests/accept', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-            },
-            body: JSON.stringify({ requestId })
-        });
-
-        if (response.ok) {
-            console.log(`Friend request ${requestId} accepted`);
-            // You might want to update the UI here, e.g., add the friend to the friends list
-        } else {
-            console.error('Failed to accept friend request');
+function acceptFriendRequest(requestId) {
+    fetch('/api/accept-friend-request/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+        body: JSON.stringify({ request_id: requestId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Demande d\'ami acceptée');
+            // Mettre à jour l'interface utilisateur si nécessaire
         }
-    } catch (error) {
-        console.error('Error accepting friend request:', error);
-    }
+    })
+    .catch(error => console.error('Erreur lors de l\'acceptation de la demande d\'ami:', error));
 }
 
-// Function to handle declining a friend request
-async function refuseFriendRequest(requestId) {
-    try {
-        const response = await fetch('/api/friend-requests/decline', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-            },
-            body: JSON.stringify({ requestId })
-        });
-
-        if (response.ok) {
-            console.log(`Friend request ${requestId} declined`);
-        } else {
-            console.error('Failed to decline friend request');
+function rejectFriendRequest(requestId) {
+    fetch('/api/reject-friend-request/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+        body: JSON.stringify({ request_id: requestId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Demande d\'ami rejetée');
+            // Mettre à jour l'interface utilisateur si nécessaire
         }
-    } catch (error) {
-        console.error('Error declining friend request:', error);
-    }
+    })
+    .catch(error => console.error('Erreur lors du rejet de la demande d\'ami:', error));
 }
 
-// Function to check for new friend requests
-async function checkForFriendRequests() {
-    try {
-        const response = await fetch('/api/friend-requests', {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
-            }
-        });
+// Ajoutez cette fonction à votre code existant pour envoyer une demande d'ami
+function sendFriendRequest(toUsername) {
+    fetch('/api/send-friend-request/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+        },
+        body: JSON.stringify({ to_username: toUsername })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log('Demande d\'ami envoyée');
+            // Mettre à jour l'interface utilisateur si nécessaire
+        }
+    })
+    .catch(error => console.error('Erreur lors de l\'envoi de la demande d\'ami:', error));
+}
 
+function fetchAndDisplayFriends() {
+    fetch('http://localhost:8000/api/friends/', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => {
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error('Erreur réseau');
         }
+        return response.json();
+    })
+    .then(data => {
+        const friendsList = document.getElementById('friends');
+        friendsList.innerHTML = '';
 
-        const contentType = response.headers.get("content-type");
-        if (!contentType || !contentType.includes("application/json")) {
-            throw new TypeError("La réponse n'est pas du JSON valide");
-        }
+        data.forEach(friend => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.setAttribute('data-friend', friend.username);
 
-        const requests = await response.json();
-        requests.forEach(request => {
-            showFriendRequestToast(request.fromUserName, request.id);
+            const statusDot = document.createElement('span');
+            statusDot.className = `status-dot ${friend.is_online ? 'online' : 'offline'}`;
+
+            const usernameSpan = document.createElement('span');
+            usernameSpan.textContent = friend.display_name || friend.username;
+
+            li.appendChild(statusDot);
+            li.appendChild(usernameSpan);
+            li.addEventListener('click', handleFriendClick);
+            friendsList.appendChild(li);
         });
-    } catch (error) {
-        console.error('Error checking for friend requests:', error);
-        // Gérer l'erreur de manière appropriée (par exemple, afficher un message à l'utilisateur)
-    }
+    })
+    .catch(error => {
+        console.error('Erreur lors de la récupération des amis:', error);
+    });
 }
 
-
+setInterval(fetchAndDisplayFriends, 600000);
+setInterval(checkForFriendRequests, 600000);

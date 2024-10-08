@@ -1,3 +1,6 @@
+import json
+import logging
+import requests
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
@@ -6,17 +9,18 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render
 from django.middleware.csrf import get_token
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import permission_classes
 from django.db import IntegrityError
 from django.shortcuts import redirect
 from rest_framework import viewsets, status
 from .serializers import CustomUserSerializer
-import json
-import logging
-import requests
 logger = logging.getLogger(__name__)
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from .models import CustomUser
+from .models import CustomUser, Friendship, FriendRequest
 from django.contrib.auth.hashers import check_password, make_password
 from django.views.decorators.http import require_GET
 from django.conf import settings
@@ -24,11 +28,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
-from rest_framework.decorators import action
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import permission_classes
-
+from .serializers import FriendshipSerializer
 
 
 User = get_user_model()
@@ -74,7 +74,6 @@ def login_view(request):
 			if user is not None:
 				login(request, user)
 
-				# Création du token JWT
 				refresh = RefreshToken.for_user(user)
 
 				return JsonResponse({
@@ -172,9 +171,8 @@ def get_user_by_display_name(request, display_name):
 @require_http_methods(["GET"])
 @permission_classes([IsAuthenticated])
 def get_user_stats(request):
-    user = request.user  # Récupérer l'utilisateur authentifié
+    user = request.user
 
-    # Retourner les informations de l'utilisateur
     user_data = {
         'username': user.username,
         'email': user.email,
@@ -203,7 +201,6 @@ def auth_42_callback(request):
         redirect_uri = request.build_absolute_uri('/api/auth/42/callback/')
         logger.info(f"URI de redirection : {redirect_uri}")
 
-        # Échange du code contre un token
         token_response = requests.post('https://api.intra.42.fr/oauth/token', data={
             'grant_type': 'authorization_code',
             'client_id': settings.FT_CLIENT_ID,
@@ -234,7 +231,6 @@ def auth_42_callback(request):
         user_info = user_info_response.json()
         logger.info(f"Informations utilisateur récupérées : {user_info}")
 
-        # Création ou mise à jour de l'utilisateur dans la base de données
         username = user_info.get('login')
         email = user_info.get('email', '')
         display_name = user_info.get('displayname', username)
@@ -254,18 +250,15 @@ def auth_42_callback(request):
         logger.info(f"Utilisateur {'créé' if created else 'existant'} : {user.username}")
 
         if not created:
-            # Mise à jour des informations si l'utilisateur existe déjà
             user.email = email
             user.avatar_url = avatar_url
             user.display_name = display_name
             user.save()
             logger.info(f"Informations utilisateur mises à jour pour : {user.username}")
 
-        # Connexion de l'utilisateur
         login(request, user)
         logger.info(f"Utilisateur connecté : {user.username}")
 
-        # Redirection vers la page d'accueil avec un paramètre de succès
         return redirect('/?auth_success=true')
 
     except Exception as e:
@@ -310,7 +303,6 @@ def auth_42_callback(request):
         redirect_uri = request.build_absolute_uri('/api/auth/42/callback/')
         logger.info(f"URI de redirection : {redirect_uri}")
 
-        # Échange du code contre un token
         token_response = requests.post('https://api.intra.42.fr/oauth/token', data={
             'grant_type': 'authorization_code',
             'client_id': settings.FT_CLIENT_ID,
@@ -329,7 +321,6 @@ def auth_42_callback(request):
         if not access_token:
             raise ValueError('Token d\'accès non obtenu')
 
-        # Récupération des informations de l'utilisateur
         user_info_response = requests.get('https://api.intra.42.fr/v2/me', headers={
             'Authorization': f'Bearer {access_token}'
         })
@@ -341,7 +332,6 @@ def auth_42_callback(request):
         user_info = user_info_response.json()
         logger.info(f"Informations utilisateur récupérées : {user_info}")
 
-        # Création ou mise à jour de l'utilisateur dans la base de données
         username = user_info.get('login')
         email = user_info.get('email', '')
         display_name = user_info.get('displayname', username)
@@ -361,20 +351,73 @@ def auth_42_callback(request):
         logger.info(f"Utilisateur {'créé' if created else 'existant'} : {user.username}")
 
         if not created:
-            # Mise à jour des informations si l'utilisateur existe déjà
             user.email = email
             user.avatar_url = avatar_url
             user.display_name = display_name
             user.save()
             logger.info(f"Informations utilisateur mises à jour pour : {user.username}")
 
-        # Connexion de l'utilisateur
         login(request, user)
         logger.info(f"Utilisateur connecté : {user.username}")
 
-        # Redirection vers la page d'accueil avec un paramètre de succès
         return redirect('/?auth_success=true')
 
     except Exception as e:
         logger.error(f"Erreur lors de l'authentification avec 42 : {str(e)}")
         return JsonResponse({'error': str(e)}, status=500)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def friend_list(request):
+    friendships = Friendship.objects.filter(user=request.user)
+    friends = [friendship.friend for friendship in friendships]
+    serializer = FriendshipSerializer(friends, many=True)
+    return Response(serializer.data)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def send_friend_request(request):
+    to_username = request.data.get('to_username')
+    try:
+        to_user = CustomUser.objects.get(username=to_username)
+        FriendRequest.objects.create(from_user=request.user, to_user=to_user)
+        return JsonResponse({'success': True, 'message': 'Demande d\'ami envoyée'})
+    except CustomUser.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Utilisateur non trouvé'}, status=404)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def accept_friend_request(request):
+    request_id = request.data.get('request_id')
+    try:
+        friend_request = FriendRequest.objects.get(id=request_id, to_user=request.user, status='pending')
+        friend_request.status = 'accepted'
+        friend_request.save()
+        Friendship.objects.create(user=request.user, friend=friend_request.from_user)
+        Friendship.objects.create(user=friend_request.from_user, friend=request.user)
+        return JsonResponse({'success': True, 'message': 'Demande d\'ami acceptée'})
+    except FriendRequest.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Demande d\'ami non trouvée'}, status=404)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def reject_friend_request(request):
+    request_id = request.data.get('request_id')
+    try:
+        friend_request = FriendRequest.objects.get(id=request_id, to_user=request.user, status='pending')
+        friend_request.status = 'rejected'
+        friend_request.save()
+        return JsonResponse({'success': True, 'message': 'Demande d\'ami rejetée'})
+    except FriendRequest.DoesNotExist:
+        return JsonResponse({'success': False, 'message': 'Demande d\'ami non trouvée'}, status=404)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_friend_requests(request):
+    friend_requests = FriendRequest.objects.filter(to_user=request.user, status='pending')
+    requests_data = [{
+        'id': fr.id,
+        'from_username': fr.from_user.username,
+        'created_at': fr.created_at
+    } for fr in friend_requests]
+    return JsonResponse({'success': True, 'friend_requests': requests_data})

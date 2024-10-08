@@ -4,6 +4,7 @@ import { dashboard } from './views/dashboard.js';
 import { profile } from './views/profile.js';
 import { settings } from './views/settings.js';
 import { generateRandomUsername } from './views/dashboard.js';
+import { initializeSocket, disconnectSocket } from './utils/socketManager.js';
 
 // Déclaration de router comme une variable globale au module
 let router;
@@ -14,7 +15,7 @@ function initRouter() {
         const path = window.location.pathname;
 
         // Liste des routes protégées
-        const protectedRoutes = ['/dashboard', '/settings'];
+        const protectedRoutes = ['/dashboard', '/settings', '/profile/*'];
 
         // Vérifier si l'utilisateur tente d'accéder à une route protégée sans être connecté
         if (protectedRoutes.includes(path) && !isUserLoggedIn()) {
@@ -69,6 +70,28 @@ function initRouter() {
 
     // Initial route call
     router();
+
+    function handleSocketConnection() {
+        const username = localStorage.getItem('username');
+        if (username) {
+            const socket = initializeSocket(username);
+            if (socket) {
+                console.log('Socket initialisé avec succès');
+            } else {
+                console.error('Échec de l\'initialisation du socket');
+            }
+        } else {
+            disconnectSocket();
+        }
+    }
+
+    handleSocketConnection();
+
+    window.addEventListener('storage', (event) => {
+        if (event.key === 'username') {
+            handleSocketConnection();
+        }
+    });
 }
 
 export function navigateTo(pathname) {
