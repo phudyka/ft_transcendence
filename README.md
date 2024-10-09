@@ -1,11 +1,8 @@
 # ft_transcendence
 
-remove init-database qui faisait bug mes request api.
-
-api/login et api/create_user/ marche.
-
-token a setup
-
-route a bloque si pas login grace a token
-
-
+a fix :
+- chat global dropdown
+- friend chat
+- friend features api add friend , update list friend , delete friend
+- settings api
+- profile view
