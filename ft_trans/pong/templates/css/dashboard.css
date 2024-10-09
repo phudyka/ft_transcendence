@@ -98,6 +98,10 @@ html, body {
     border: 1px solid transparent;
 }
 
+.list-group-item+.list-group-item {
+    border-top-width: 1px;
+}
+
 .list-group-item:hover {
     background: rgba(98, 98, 98, 0.7);
     transform: translateY(-2px);

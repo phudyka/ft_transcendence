@@ -118,3 +118,19 @@ export async function refreshAccessToken() {
 
 // Appeler régulièrement pour rafraîchir le token (par exemple, toutes les 50 minutes)
 setInterval(refreshAccessToken, 50 * 60 * 1000);
+
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}

@@ -50,9 +50,15 @@ export function dashboard(player_name) {
             <div class="sidebar">
                 <h2 class="title-friends">Amis</h2>
                 <ul id="friends" class="list-group">
-                    <li class="list-group-item" data-friend="Friend1">Friend1</li>
-                    <li class="list-group-item" data-friend="Friend2">Friend2</li>
-                    <li class="list-group-item" data-friend="Friend3">Friend3</li>
+                    <li class="list-group-item" data-friend="Friend1">
+                        <span class="status-dot online"></span>Friend1
+                    </li>
+                    <li class="list-group-item" data-friend="Friend2">
+                        <span class="status-dot offline"></span>Friend2
+                    </li>
+                    <li class="list-group-item" data-friend="Friend3">
+                        <span class="status-dot online"></span>Friend3
+                    </li>
                 </ul>
                 <div id="friendDropdown" class="dropdown-menu" style="display: none;">
                     <a class="dropdown-item" href="#" id="sendMessage">Send Private Message</a>
@@ -389,13 +395,11 @@ function receiveMessage(msg) {
     }
     const messageElement = document.createElement('div');
 
-    // Créer l'élément username et définir ses attributs
     const usernameElement = document.createElement('span');
     usernameElement.classList.add('username-link');
     usernameElement.dataset.friend = msg.name;
     usernameElement.innerText = `[${msg.name}]`;
 
-    // Activer le menu déroulant lorsque le nom d'utilisateur est cliqué
     usernameElement.addEventListener('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
@@ -446,7 +450,6 @@ function receiveMessage(msg) {
     chatLog.appendChild(messageElement);
 
     chatLog.scrollTop = chatLog.scrollHeight;
-
 }
 
 function sendPrivateMessage(friendName) {

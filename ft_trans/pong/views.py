@@ -4,15 +4,12 @@ import requests
 from django.http import JsonResponse
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render
 from django.middleware.csrf import get_token
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import permission_classes
 from django.db import IntegrityError
 from django.shortcuts import redirect
 from rest_framework import viewsets, status
@@ -27,8 +24,12 @@ from django.conf import settings
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from django.views.decorators.http import require_http_methods
-from django.views.decorators.csrf import csrf_exempt
 from .serializers import FriendshipSerializer
+from django.core.exceptions import ValidationError
+from django.core.files.images import get_image_dimensions
+from django.core.validators import validate_email
+from PIL import Image
+from django.views.decorators.csrf import csrf_exempt
 
 
 User = get_user_model()
@@ -421,3 +422,44 @@ def get_friend_requests(request):
         'created_at': fr.created_at
     } for fr in friend_requests]
     return JsonResponse({'success': True, 'friend_requests': requests_data})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def update_user_settings(request):
+    logger.info(f"Requête reçue pour update_user_settings: {request.data}")
+    logger.info(f"Utilisateur authentifié: {request.user}")
+    user = request.user
+    display_name = request.data.get('displayName')
+    email = request.data.get('email')
+    avatar = request.FILES.get('avatar')
+
+    if display_name:
+        if CustomUser.objects.filter(display_name=display_name).exclude(id=user.id).exists():
+            return JsonResponse({'success': False, 'message': 'Ce nom d\'affichage est déjà utilisé.'}, status=400)
+        user.display_name = display_name
+
+    if email:
+        try:
+            validate_email(email)
+            if CustomUser.objects.filter(email=email).exclude(id=user.id).exists():
+                return JsonResponse({'success': False, 'message': 'Cet email est déjà utilisé.'}, status=400)
+            user.email = email
+        except ValidationError:
+            return JsonResponse({'success': False, 'message': 'Email invalide.'}, status=400)
+
+    if avatar:
+        if avatar.size > 5 * 1024 * 1024:  # 5 MB
+            return JsonResponse({'success': False, 'message': 'Le fichier est trop volumineux. La taille maximale est de 5 MB.'}, status=400)
+
+        try:
+            img = Image.open(avatar)
+            width, height = img.size
+            if width < 100 or height < 100 or width > 1000 or height > 1000:
+                return JsonResponse({'success': False, 'message': 'Les dimensions de l\'image doivent être comprises entre 100x100 et 1000x1000 pixels.'}, status=400)
+        except:
+            return JsonResponse({'success': False, 'message': 'Fichier image invalide.'}, status=400)
+
+        user.avatar_url = avatar
+
+    user.save()
+    return JsonResponse({'success': True, 'message': 'Paramètres mis à jour avec succès.'})
