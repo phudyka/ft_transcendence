@@ -152,7 +152,9 @@ def set_csrf_token(request):
 def friend_requests(request):
     pass
 
-@require_GET
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
 def get_user_by_display_name(request, display_name):
     try:
         user = User.objects.get(display_name=display_name)

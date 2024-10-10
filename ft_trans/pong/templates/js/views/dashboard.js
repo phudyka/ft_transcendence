@@ -50,8 +50,8 @@ export function dashboard(player_name) {
             <div class="sidebar">
                 <h2 class="title-friends">Amis</h2>
                 <ul id="friends" class="list-group">
-                    <li class="list-group-item" data-friend="Friend1">
-                        <span class="status-dot online"></span>Friend1
+                    <li class="list-group-item" data-friend="momo">
+                        <span class="status-dot online"></span>momo
                     </li>
                     <li class="list-group-item" data-friend="Friend2">
                         <span class="status-dot offline"></span>Friend2
@@ -98,10 +98,6 @@ export function dashboard(player_name) {
             </div>
             <div class="offcanvas-body">
                 <div id="private-chats-container"></div>
-                <div class="input-container2">
-                    <textarea id="message-input2" placeholder="Type your message..." rows="1"></textarea>
-                    <button id="send-button2">►</button>
-                </div>
             </div>
         </div>
 
@@ -144,19 +140,37 @@ export function dashboard(player_name) {
 
 	setupDashboardEvents(navigateTo, username);
 	setupChatListeners();
-	checkForFriendRequests();
-    fetchAndDisplayFriends();
+	// checkForFriendRequests();
+    // fetchAndDisplayFriends();
 }
 
 function setupChatListeners() {
     const socket = getSocket();
     if (socket) {
         socket.off('chat message');
+        socket.off('private message');
 
         socket.on('chat message', (msg) => {
             console.log('Message reçu du serveur:', msg);
             receiveMessage(msg);
         });
+
+        document.addEventListener('privateMessage', (event) => {
+            receivePrivateMessage(event.detail);
+        });
+    }
+}
+
+function receivePrivateMessage(msg) {
+    console.log('Message privé reçu:', msg);
+    const chatLog = document.getElementById(`chat-log-${msg.from}`);
+    if (chatLog) {
+        const messageElement = document.createElement('div');
+        messageElement.innerHTML = `<strong>${msg.from}:</strong> ${msg.content}`;
+        chatLog.appendChild(messageElement);
+        chatLog.scrollTop = chatLog.scrollHeight;
+    } else {
+        console.log(`Chat log pour ${msg.from} non trouvé. Message: ${msg.content}`);
     }
 }
 
@@ -186,15 +200,6 @@ function openPrivateChat(friendName) {
 	chatContainer.appendChild(inputContainer);
 
 	document.getElementById(`send-button-${friendName}`).addEventListener('click', () => sendPrivateMessage(friendName));
-}
-
-function receivePrivateMessage(from, message) {
-    const chatLog = privateChatLogs.get(from);
-    if (chatLog) {
-        chatLog.innerHTML += `<div><strong>${from}:</strong> ${message}</div>`;
-    } else {
-        console.log(`Received message from ${from}: ${message}`);
-    }
 }
 
 function setupDashboardEvents(navigateTo, username) {
@@ -227,14 +232,19 @@ function setupDashboardEvents(navigateTo, username) {
 	// Dropdown actions
 	document.getElementById('sendMessage').addEventListener('click', showChatbox);
 	document.getElementById('friendDropdown_chat').querySelector('#sendMessage').addEventListener('click', showChatbox);
-	document.getElementById('startGame').addEventListener('click', startGame);
+	// document.getElementById('startGame').addEventListener('click', startGame);
 	document.getElementById('settings').addEventListener('click', goTosettings);
 
 	// Chat functionnalitis
 	document.getElementById('send-button').addEventListener('click', sendMessage);
 
 	//Private message with friend
-	document.getElementById('send-button2').addEventListener('click', sendPrivateMessage);
+	document.addEventListener('click', function(event) {
+		if (event.target && event.target.id.startsWith('send-button-')) {
+			const friendName = event.target.id.replace('send-button-', '');
+			sendPrivateMessage(friendName);
+		}
+	});
 
 	// Send message when pressing Enter key
 	document.addEventListener("keydown", handleEnterKey);
@@ -328,34 +338,45 @@ function hideDropdowns() {
 }
 
 function showChatbox(event) {
-	event.preventDefault();
-	const friendName = event.target.closest('.dropdown-menu').getAttribute('data-friend');
-	var chatbox = new bootstrap.Offcanvas(document.getElementById('chatbox'));
-	chatbox.show();
-	setupPrivateChat(friendName);
+    event.preventDefault();
+    const dropdown = event.target.closest('.dropdown-menu, .dropdown-menu_chat');
+    if (dropdown) {
+        const friendName = dropdown.getAttribute('data-friend');
+        if (friendName) {
+            var chatbox = new bootstrap.Offcanvas(document.getElementById('chatbox'));
+            chatbox.show();
+            setupPrivateChat(friendName);
 
-	document.getElementById('chat-log2').innerHTML = ' ';
+            document.getElementById('chat-log2').innerHTML = ' ';
+        } else {
+            console.error('Friend name not found');
+        }
+    } else {
+        console.error('Dropdown not found');
+    }
 }
 
 function setupPrivateChat(friendName) {
-	const privateChatContainer = document.getElementById('private-chats-container');
-	privateChatContainer.innerHTML = `
-		<h5 class="offcanvas-title" id="chatboxLabel">Private Message: ${friendName}</h5>
-		<div class="chat-container2">
-			<div class="chat-log2" id="chat-log-${friendName}"></div>
-		</div>
-	`;
-	loadMessages(friendName);
-	// Update send button click event
-	document.getElementById('send-button2').onclick = () => sendPrivateMessage(friendName);
+    const privateChatContainer = document.getElementById('private-chats-container');
+    privateChatContainer.innerHTML = `
+        <h5 class="offcanvas-title" id="chatboxLabel">Message privé : ${friendName}</h5>
+        <div class="chat-container2">
+            <div class="chat-log2" id="chat-log-${friendName}"></div>
+        </div>
+        <div class="input-container2">
+            <input type="text" id="message-input-${friendName}" placeholder="Tapez votre message...">
+            <button id="send-button-${friendName}">►</button>
+        </div>
+    `;
+    loadMessages(friendName);
+    document.getElementById(`send-button-${friendName}`).onclick = () => sendPrivateMessage(friendName);
 }
 
-function startGame(event) {
-	event.preventDefault();
-	const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
-	console.log(`Start a game with ${friendName}`);
-	navigateTo('/gameplay');
-}
+// function startGame(event) {
+// 	event.preventDefault();
+// 	const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
+// 	console.log(`Start a game with ${friendName}`);
+// }
 
 function goTosettings(event) {
 	event.preventDefault();
@@ -403,10 +424,8 @@ function receiveMessage(msg) {
     usernameElement.addEventListener('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
-        const isOwnUsername = msg.name === username;
-		if (isOwnUsername) {
-			console.log('You click on you\'re name');
-		}
+        const currentUsername = localStorage.getItem('username');
+        const isOwnUsername = msg.name === currentUsername;
         const dropdown = isOwnUsername ? document.getElementById('profileDropdown') : document.getElementById('friendDropdown_chat');
         const friendName = this.dataset.friend;
         usernameElement.classList.add('username-link', 'bold-username');
@@ -417,27 +436,29 @@ function receiveMessage(msg) {
             dropdown.style.display = 'none';
         });
 
-        dropdown.style.position = 'fixed';
-        dropdown.style.display = 'block';
+        if (dropdown) {
+            dropdown.style.position = 'fixed';
+            dropdown.style.display = 'block';
 
-        // Vérifier si le dropdown dépasse la fenêtre
-        const rect = dropdown.getBoundingClientRect();
-        const windowWidth = window.innerWidth;
-        const windowHeight = window.innerHeight;
+            // Vérifier si le dropdown dépasse la fenêtre
+            const rect = dropdown.getBoundingClientRect();
+            const windowWidth = window.innerWidth;
+            const windowHeight = window.innerHeight;
 
-        if (event.clientY + rect.height > windowHeight) {
-            dropdown.style.top = `${event.clientY - rect.height}px`;
-        } else {
-            dropdown.style.top = `${event.clientY}px`;
+            if (event.clientY + rect.height > windowHeight) {
+                dropdown.style.top = `${event.clientY - rect.height}px`;
+            } else {
+                dropdown.style.top = `${event.clientY}px`;
+            }
+
+            if (event.clientX + rect.width > windowWidth) {
+                dropdown.style.left = `${event.clientX - rect.width}px`;
+            } else {
+                dropdown.style.left = `${event.clientX}px`;
+            }
+
+            dropdown.dataset.friend = friendName;
         }
-
-        if (event.clientX + rect.width > windowWidth) {
-            dropdown.style.left = `${event.clientX - rect.width}px`;
-        } else {
-            dropdown.style.left = `${event.clientX}px`;
-        }
-
-        dropdown.dataset.friend = friendName;
         console.log('Message reçu:', msg);
     });
 
@@ -457,10 +478,16 @@ function sendPrivateMessage(friendName) {
     if (input) {
         const message = input.value.trim();
         if (message && socket && socket.connected) {
-            socket.emit('private message', { to: friendName, message: message });
-            const chatLog = privateChatLogs.get(friendName);
+            socket.emit('private message', {
+                content: message,
+                to: friendName
+            });
+            const chatLog = document.getElementById(`chat-log-${friendName}`);
             if (chatLog) {
-                chatLog.innerHTML += `<div><strong>You:</strong> ${message}</div>`;
+                const messageElement = document.createElement('div');
+                messageElement.innerHTML = `<strong>You:</strong> ${message}`;
+                chatLog.appendChild(messageElement);
+                chatLog.scrollTop = chatLog.scrollHeight;
             }
             input.value = '';
         }
@@ -660,5 +687,5 @@ function fetchAndDisplayFriends() {
     });
 }
 
-setInterval(fetchAndDisplayFriends, 600000);
-setInterval(checkForFriendRequests, 600000);
+// setInterval(fetchAndDisplayFriends, 600000);
+// setInterval(checkForFriendRequests, 600000);

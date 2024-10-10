@@ -1,10 +1,16 @@
 export async function fetchWithToken(url, options = {}) {
-    const token = localStorage.getItem('access_token');
-    const defaultOptions = {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
+    const token = localStorage.getItem('accessToken');
+    const csrfToken = localStorage.getItem('csrfToken');
+    const headers = {
+        ...options.headers,
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRFToken': csrfToken,
     };
-    return fetch(url, { ...defaultOptions, ...options });
+
+    console.log('En-têtes de la requête:', headers);
+    const method = options.method || 'GET';
+    const response = await fetch(url, { ...options, method, headers });
+    return response;
 }

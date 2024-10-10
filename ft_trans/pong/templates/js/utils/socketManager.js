@@ -26,8 +26,21 @@ export function initializeSocket(username) {
         console.log('Déconnecté du serveur de chat');
     });
 
+    socket.on('chat message', (msg) => {
+        console.log('Message reçu:', msg);
+        // Diffuser le message à tous les clients connectés, y compris l'expéditeur
+        io.emit('chat message', msg);
+    });
+
     socket.on('connect_error', (error) => {
         console.error('Erreur de connexion:', error);
+    });
+
+    socket.on('private message', (msg) => {
+        console.log('Message privé reçu:', msg);
+        // Ici, nous allons émettre un événement personnalisé que nous écouterons dans dashboard.js
+        const event = new CustomEvent('privateMessage', { detail: msg });
+        document.dispatchEvent(event);
     });
 
     return socket;
