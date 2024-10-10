@@ -114,8 +114,8 @@ html, body {
     justify-content: center;
     align-items: center;
     background: rgba(34, 34, 34, 0.8);
-    padding: 20px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+    padding: 5px;
+    /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6); */
 }
 
 iframe#pong {
@@ -199,15 +199,6 @@ iframe#pong {
     background-color: #FFA500;
 }
 
-/* OTHER */
-
-footer {
-    margin-top: 20px;
-    text-align: center;
-    color: #888;
-    font-size: 0.9rem;
-}
-
 /* CHAT */
 .username-link {
     color: #FF8C00;
@@ -287,4 +278,8 @@ footer {
 
 .btn-close:hover {
     opacity: 1;
+}
+
+#footer-dashboard {
+    background-color: rgba(34, 34, 34, 0.9)
 }

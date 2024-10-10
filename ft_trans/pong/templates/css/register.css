@@ -10,7 +10,6 @@ body {
     align-items: center;
     min-height: 100vh;
 	overflow: auto;
-	padding: 20px 0;
 	overflow-y: auto;
 }
 
@@ -23,13 +22,22 @@ body {
     overflow-y: auto;
 }
 
+.container.register-container {
+    margin-top: 25%;
+    width: 100%;
+    width: 600px;
+    padding: 20px;
+    overflow-y: auto;
+}
+
 .register-title {
     font-family: 'Poppins', sans-serif;
-    font-size: 24px;
+    font-size: 35px;
     font-weight: 700;
     color: #ff5722;
     text-align: center;
     margin-bottom: 20px;
+    margin-top: 30%
 }
 
 .form-group {
@@ -44,7 +52,7 @@ body {
 }
 
 .form-input {
-    width: 100%;
+    width: 450px; /* Changé de 100% à 450px */
     padding: 12px;
     background-color: #2a2a2a;
     border: 1px solid #3e3e3e;
@@ -57,14 +65,41 @@ body {
 .password-wrapper {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
+    position: relative;
+    width: 450px;
+}
+
+.password-wrapper input[type="password"],
+.password-wrapper input[type="text"] {
+    width: 100%;
+    padding-right: 40px; /* Espace pour le bouton */
 }
 
 .toggle-password {
-    background: none;
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
     border: none;
-    color: #ff5722;
+    background-color: #ff5722;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.toggle-password:hover {
+    background-color: #ff7043;
+}
+
+.toggle-password i {
+    font-size: 14px;
 }
 
 .form-actions {
@@ -84,6 +119,7 @@ body {
     border-radius: 5px;
     transition: background-color 0.3s ease;
     font-family: 'Roboto', sans-serif;
+    width: 450px; /* Changé pour correspondre à la largeur des inputs */
 }
 
 .btn-primary:hover {
@@ -99,6 +135,7 @@ body {
     cursor: pointer;
     border-radius: 5px;
     transition: background-color 0.3s ease;
+    width: 450px; /* Changé pour correspondre à la largeur des inputs */
 }
 
 .btn-secondary:hover {
@@ -119,12 +156,6 @@ body {
 
 .btn-back:hover {
     background-color: #ff5722;
-    color: #ffffff;
-}
-
-.footer {
-    margin-top: 20px;
-    text-align: center;
     color: #ffffff;
 }
 
@@ -244,4 +275,36 @@ body {
 .avatars-container::after {
     right: 0;
     background: linear-gradient(to left, #1e1e1e, transparent);
+}
+
+.unmask {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background-color: #ff5722;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.unmask:hover {
+    background-color: #ff7043;
+}
+
+.unmask i {
+    font-size: 14px;
+}
+
+#registerbutton, #registerbutton42 {
+    width: 450px;
+    margin: 0 auto;
+    display: block;
 }

@@ -8,11 +8,11 @@ export function login() {
         <img src="${staticUrl}content/logo_400_400.png" id="logo_pong_login" alt="Logo" width="200" height="200">
         <form id="loginForm">
             <p>
-                <label for="username">Username</label>
+                <label for="username" style="color: #ff5722; margin-top:15px;">Username</label>
                 <input type="text" placeholder="Enter Username" id="username">
             </p>
             <p>
-                <label for="password">Password</label>
+                <label for="password" style="color: #ff5722;">Password</label>
                 <div class="password-wrapper">
                     <input type="password" placeholder="Enter Password" id="password" class="password">
                     <button class="unmask" type="button" title="Mask/Unmask password to check content">
@@ -20,11 +20,11 @@ export function login() {
                     </button>
                 </div>
             </p>
-            <button type="submit" class="btn btn-primary">Login</button>
+            <button type="submit" class="btn btn-primary" id="login_button" style="margin-top: 25px;">Login</button>
             <button type="submit" class="btn btn-primary" id="login_with_42">Login with 42</button>
             <div>
                 <div class="text-center">
-                    <button type="button" id="create_account" style="margin-top: 5px;" class="btn btn-outline-light">Create account</button>
+                    <button type="button" id="create_account" style="margin-top: 40px;" class="btn btn-outline-light">Create account</button>
                 </div>
             </div>
         </form>

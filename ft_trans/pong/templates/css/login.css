@@ -1,28 +1,17 @@
 @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400,500,700&display=swap');
 
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html, body {
-    font-family: 'Roboto', sans-serif;
-    background-color: #121212;
-    color: #e0e0e0;
-    height: 100%;
-}
-
 /* CONTAINER */
 
 .container.login-container {
     display: flex;
     flex-direction: column;
     justify-content: center;
-	align-items: center;
+    align-items: center;
     height: 100%;
     padding: 20px;
+    background-color: #121212; /* Ajout de cette ligne */
+    box-shadow: none;
 }
 
 /* LOGO */
@@ -40,11 +29,39 @@ html, body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    width: 300px;
+    width: 600px;
     padding: 20px;
     background: rgba(34, 34, 34, 0.8);
     border-radius: 8px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+#loginForm p {
+    width: 100%;
+    text-align: center;
+}
+
+#loginForm label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+#loginForm input[type="text"],
+#loginForm input[type="password"],
+.password-wrapper {
+    width: 80%;
+}
+
+.password-wrapper {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+}
+
+.password-wrapper input[type="password"],
+.password-wrapper input[type="text"] {
+    width: 100%;
 }
 
 /* TITLE */
@@ -105,9 +122,9 @@ input[type="text"], input[type="password"] {
 /* FOOTER */
 
 footer {
-    margin-top: 20px;
+    margin-top: 2px;
     text-align: center;
-    color: #888;
+    color: #888888;
     font-size: 0.9rem;
 }
 
@@ -128,4 +145,41 @@ footer {
 #successToast .toast-body {
     background-color: #ffffff;
     color: #000000;
+}
+
+.unmask {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background-color: #ff5722;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.unmask:hover {
+    background-color: #ff7043;
+}
+
+.unmask i {
+    font-size: 14px;
+}
+
+#loginForm input[type="text"],
+#loginForm
+
+#login_button, #login_with_42 {
+    max-width: 450px;
+}
+
+#create_account {
+    width: 450px;
 }

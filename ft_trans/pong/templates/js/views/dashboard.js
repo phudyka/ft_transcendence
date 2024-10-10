@@ -125,7 +125,7 @@ export function dashboard(player_name) {
             </div>
         </div>
 
-        <footer>© 2024 42Company, Inc</footer>
+        <footer id="footer-dashboard">© 2024 42Company, Inc</footer>
     </div>`;
 
     const iframe = document.getElementById('pong');

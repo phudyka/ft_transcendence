@@ -6,35 +6,44 @@ export function register() {
     <div class="container register-container">
         <h1 class="register-title" style="margin-top: 5%;">Create Your Account</h1>
         <form id="registerForm">
-            <div class="form-group">
+            <div style="display: flex; justify-content: center; align-items: center;">
                 <label for="username" class="form-label">Username</label>
-                <input type="text" id="username" placeholder="Enter your username" required class="form-input">
             </div>
             <div class="form-group">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" id="email" placeholder="Enter your email" required class="form-input">
+                <input type="text" id="username" placeholder="Enter your username" required class="form-input" style="width: 450px; margin: 0 auto; display: block;">
             </div>
-            <div class="form-group password-group">
+            <div style="display: flex; justify-content: center; align-items: center;">
+                <label for="email" class="form-label">Email</label>
+            </div>
+            <div class="form-group">
+                <input type="email" id="email" placeholder="Enter your email" required class="form-input" style="width: 450px; margin: 0 auto; display: block;">
+            </div>
+            <div style="display: flex; justify-content: center; align-items: center;">
                 <label for="password" class="form-label">Password</label>
+            </div>
+            <div class="form-group password-group" style="width: 450px; margin: 0 auto; display: block;">
                 <div class="password-wrapper">
                     <input type="password" id="password" placeholder="Enter your password" required class="form-input">
-                    <button type="button" class="toggle-password">
-                        <i class="fas fa-eye"></i>
+                    <button type="button" class="unmask" title="Mask/Unmask password to check content">
+                        <i class="fas fa-lock"></i>
                     </button>
                 </div>
             </div>
-            <div class="form-group password-group">
+            <div style="display: flex; justify-content: center; align-items: center;">
                 <label for="confirmPassword" class="form-label">Confirm Password</label>
+            </div>
+            <div class="form-group password-group" style="width: 450px; margin: 0 auto; display: block;">
                 <div class="password-wrapper">
                     <input type="password" id="confirmPassword" placeholder="Confirm your password" required class="form-input">
-                    <button type="button" class="toggle-password">
-                        <i class="fas fa-eye"></i>
+                    <button type="button" class="unmask" title="Mask/Unmask password to check content">
+                        <i class="fas fa-lock"></i>
                     </button>
                 </div>
             </div>
-
-            <div class="form-group">
+            <div style="display: flex; justify-content: center; align-items: center;">
                 <label for="avatar" class="form-label">Choose your Avatar</label>
+            </div>
+            <div class="form-group">
                 <div class="choose-avatar">
                     <div class="avatars-container">
                         <span class="left"></span>
@@ -67,11 +76,11 @@ export function register() {
             </div>
 
             <div class="form-actions">
-                <button id="registerButton" type="submit" class="btn-primary">Register</button>
-                <button id="registerButton42" type="button" class="btn-secondary">Register with 42</button>
+                <button id="registerbutton" type="submit" class="btn-primary">Register</button>
+                <button id="registerbutton42" type="button" class="btn-secondary">Register with 42</button>
             </div>
         </form>
-        <button id="arrowbackregister" class="btn-back">Back</button>
+        <button id="arrowbackregister" class="btn-back" style="width: 450px; margin: 40px auto 0; display: block;">Back</button>
     </div>
     <footer class="footer">
         <p>© 2024 42Company, Inc</p>
@@ -82,20 +91,33 @@ export function register() {
 
 function setupRegisterEvents(navigateTo) {
     document.addEventListener('click', function (event) {
-        if (event.target.classList.contains('unmask') || event.target.closest('.unmask')) {
-          const button = event.target.closest('.unmask');
-          const input = button.previousElementSibling;
-          if (input.type === 'password') {
-            input.type = 'text';
-            button.querySelector('i').classList.remove('fa-lock');
-            button.querySelector('i').classList.add('fa-lock-open');
-          } else {
-            input.type = 'password';
-            button.querySelector('i').classList.remove('fa-lock-open');
-            button.querySelector('i').classList.add('fa-lock');
-          }
+        if (event.target.classList.contains('toggle-password') || event.target.closest('.toggle-password')) {
+            const button = event.target.closest('.toggle-password');
+            const input = button.previousElementSibling;
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.querySelector('i').classList.remove('fa-eye');
+                button.querySelector('i').classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                button.querySelector('i').classList.remove('fa-eye-slash');
+                button.querySelector('i').classList.add('fa-eye');
+            }
         }
-      });
+        if (event.target.classList.contains('unmask') || event.target.closest('.unmask')) {
+            const button = event.target.closest('.unmask');
+            const input = button.previousElementSibling;
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.querySelector('i').classList.remove('fa-eye');
+                button.querySelector('i').classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                button.querySelector('i').classList.remove('fa-eye-slash');
+                button.querySelector('i').classList.add('fa-eye');
+            }
+        }
+    });
 
     document.getElementById('registerForm').addEventListener('submit', async function(event) {
         event.preventDefault();
