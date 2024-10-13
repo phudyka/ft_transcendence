@@ -1,6 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400,500,700&display=swap');
-
 /* CONTAINER */
 
 .container.login-container {
@@ -43,7 +40,6 @@
 
 #loginForm label {
     display: block;
-    margin-bottom: 5px;
 }
 
 #loginForm input[type="text"],

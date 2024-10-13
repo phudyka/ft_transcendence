@@ -23,11 +23,10 @@ body {
 }
 
 .container.register-container {
-    margin-top: 25%;
+    margin-top: 20%;
     width: 100%;
     width: 600px;
     padding: 20px;
-    overflow-y: auto;
 }
 
 .register-title {

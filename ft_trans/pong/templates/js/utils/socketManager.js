@@ -29,6 +29,7 @@ export function initializeSocket(username) {
     socket.on('chat message', (msg) => {
         console.log('Message reçu:', msg);
         // Diffuser le message à tous les clients connectés, y compris l'expéditeur
+        receiveMessage(msg);
         io.emit('chat message', msg);
     });
 

@@ -7,6 +7,8 @@ from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 urlpatterns = [
 	path('api/auth/42/', views.auth_42_redirect, name='auth_42_redirect'),
 	path('api/auth/42/callback/', views.auth_42_callback, name='auth_42_callback'),
+	path('api/auth/42/login/', views.auth_42_login_redirect, name='auth_42_login_redirect'),
+	path('api/auth/42/login/callback/', views.auth_42_login_callback, name='auth_42_login_callback'),
 	path('api/content/', views.content, name='content'),
 	path('api/set-csrf-token/', views.set_csrf_token, name='set_csrf_token'),
 	path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),

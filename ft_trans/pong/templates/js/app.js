@@ -2,7 +2,7 @@ import { login } from './views/login.js';
 import { register } from './views/register.js';
 import { dashboard } from './views/dashboard.js';
 import { profile } from './views/profile.js';
-import { settings } from './views/settings.js';
+import { settings } from './views/settingsv.js';
 import { generateRandomUsername } from './views/dashboard.js';
 import { initializeSocket, disconnectSocket } from './utils/socketManager.js';
 

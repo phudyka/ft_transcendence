@@ -1,5 +1,5 @@
 import { navigateTo } from '../app.js';
-
+import { getCookie } from '../views/settingsv.js';
 // Déclarez une variable globale pour stocker la référence au socket
 let globalSocket;
 
@@ -72,15 +72,12 @@ export function logout() {
         globalSocket.disconnect();
         console.log('Utilisateur déconnecté du socket');
     }
-
-    // Suppression des données locales
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     localStorage.removeItem('username');
     localStorage.removeItem('display_name');
     localStorage.removeItem('avatar_url');
-
-    // Redirection vers la page de connexion
+    localStorage.removeItem('csrfToken');
     navigateTo('/login');
 }
 
@@ -116,21 +113,4 @@ export async function refreshAccessToken() {
     }
 }
 
-// Appeler régulièrement pour rafraîchir le token (par exemple, toutes les 50 minutes)
 setInterval(refreshAccessToken, 50 * 60 * 1000);
-
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}

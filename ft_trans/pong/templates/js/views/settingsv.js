@@ -1,5 +1,4 @@
 import { navigateTo } from '../app.js';
-import { logout } from '../utils/token.js';
 
 const player_name = localStorage.getItem('player_name');
 
@@ -24,10 +23,10 @@ export function settings() {
                 <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="70" height="70">
             </a>
             <li class="nav-item">
-                <span class="nav-item" style="font-size: 3.5em; font-weight: bold;">${username}</span>
+                <span class="nav-item" style="font-size: 2.5em; font-weight: bold;">${username}</span>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#" id="logoutLink">Logout</a>
+                <img src="${avatarUrl}" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Photo de profil" style="width: 50px; height: 50px;padding: 0px;">
             </li>
         </ul>
 
@@ -46,7 +45,7 @@ export function settings() {
                 <div class="mb-3">
                     <label for="avatar" class="form-label">Avatar</label>
                     <div class="d-flex align-items-center">
-                        <img id="currentAvatar" src="${avatarUrl}" alt="Avatar actuel" class="img-thumbnail rounded-circle me-3 avatar-img">
+                        <img id="currentAvatar" src="${avatarUrl}" alt="Avatar actuel" class="img-thumbnail rounded-circle me-3 avatar-img" style="width: 100px; height: 100px;padding: 0px; border: 1px solid #ff5722;">
                         <input type="file" class="form-control" id="avatar" name="avatar" accept="image/jpeg,image/png,image/gif">
                     </div>
                     <small class="form-text text-muted">
@@ -58,19 +57,6 @@ export function settings() {
                     </small>
                 </div>
                 <button type="submit" class="btn btn-primary">Save changes</button>
-            </form>
-
-            <h4 class="mt-5 settings-subtitle">Change Password</h4>
-            <form id="changePasswordForm">
-                <div class="mb-3">
-                    <label for="newPassword" class="form-label">New Password</label>
-                    <input type="password" class="form-control" id="newPassword" name="newPassword">
-                </div>
-                <div class="mb-3">
-                    <label for="confirmPasswordsetttings" class="form-label">Confirm New Password</label>
-                    <input type="password" class="form-control" id="confirmPasswordsetttings" name="confirmPasswordsetttings">
-                </div>
-                <button type="submit" class="btn btn-primary">Change Password</button>
             </form>
             <button id="backToDashboard" class="btn btn-secondary">Back to Dashboard</button>
         </div>
@@ -107,7 +93,6 @@ attachEventSettingsPage(navigateTo, player_name);
 
 function attachEventSettingsPage(navigateTo, player_name) {
     const pongonlineLink = document.getElementById('pongonlineLink');
-    const logoutLink = document.getElementById('logoutLink');
     const backToDashboard = document.getElementById('backToDashboard');
     const settingsForm = document.getElementById('settingsForm');
     const changePasswordForm = document.getElementById('changePasswordForm');
@@ -116,10 +101,6 @@ function attachEventSettingsPage(navigateTo, player_name) {
     pongonlineLink.addEventListener('click', (event) => {
         event.preventDefault();
         navigateTo('/dashboard');
-    });
-
-    logoutLink.addEventListener('click', (event) => {
-        logout();
     });
 
     backToDashboard.addEventListener('click', () => navigateTo('/dashboard'));
@@ -218,7 +199,7 @@ function showsavePasswordToast() {
 	toast.show();
 }
 
-function getCookie(name) {
+export function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
         const cookies = document.cookie.split(';');

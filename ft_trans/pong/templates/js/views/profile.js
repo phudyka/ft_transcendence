@@ -1,6 +1,25 @@
 import { navigateTo } from '../app.js';
 import { logout } from '../utils/token.js';
 import { fetchWithToken } from '../utils/api.js';
+import { sendFriendRequest } from '../utils/friendManager.js';
+import { getCookie } from './settingsv.js';
+
+async function checkFriendshipStatus(username) {
+    try {
+        const response = await fetchWithToken(`/api/check-friendship-status/${username}/`, { method: 'GET' });
+        if (!response.ok) {
+            throw new Error(`Erreur HTTP: ${response.status}`);
+        }
+        const data = await response.json();
+        return {
+            isFriend: data.is_friend,
+            requestSent: data.request_sent
+        };
+    } catch (error) {
+        console.error('Erreur lors de la vérification du statut d\'amitié:', error);
+        return { isFriend: false, requestSent: false };
+    }
+}
 
 export async function profile(username) {
     try {
@@ -31,18 +50,19 @@ export async function profile(username) {
         }
         const totalGames = userProfile.wins + userProfile.losses;
 
+        // Ajout de l'historique des matchs (simulé pour l'instant)
+        const matchHistory = [
+            { result: 'Victoire', date: '2024-03-15' },
+            { result: 'Défaite', date: '2024-03-14' },
+            { result: 'Victoire', date: '2024-03-13' }
+        ];
+
         document.getElementById('ft_transcendence').innerHTML = `
         <div class="dashboard-container">
             <ul class="nav justify-content-between align-items-center">
                 <a class="navbar-brand" href="#">
                     <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="30" height="30">
                 </a>
-                <li class="nav-item" id="DisplayName">
-                    <a class="nav-link disabled">${localStorage.getItem('player_name')}</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#" id="logoutLink">Logout</a>
-                </li>
             </ul>
 
             <h3 id="header-dashboard" class="text-center">
@@ -58,7 +78,7 @@ export async function profile(username) {
             <button type="button" id="friendButton" class="btn-dark">Ajouter comme ami</button>
 
             <div class="row mt-4">
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Statistiques du joueur</h5>
@@ -66,19 +86,32 @@ export async function profile(username) {
                                 <strong>Victoires:</strong> ${userProfile.wins}<br>
                                 <strong>Défaites:</strong> ${userProfile.losses}<br>
                                 <strong>Total des parties:</strong> ${totalGames}<br>
-                                <strong>Ratio V/D:</strong> ${userProfile.wins}:${userProfile.losses}<br>
-                                ${totalGames > 0 ? `<strong>Taux de victoire:</strong> ${((userProfile.wins / totalGames) * 100).toFixed(2)}%` : ''}
                             </p>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Ratio Victoires/Défaites</h5>
                             <div id="chartContainer" style="height: 200px; width: 100%;">
                                 <canvas id="winLossChart"></canvas>
                             </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">Historique des matchs récents</h5>
+                            <ul class="list-group list-group-flush">
+                                ${matchHistory.map(match => `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        ${match.result}
+                                        <span class="badge bg-primary rounded-pill">${match.date}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -94,10 +127,12 @@ export async function profile(username) {
         </div>
         `;
 
-        attachEventHandlers2(navigateTo, username);
+        const { isFriend, requestSent } = await checkFriendshipStatus(username);
+
+        attachEventHandlers2(navigateTo, username, isFriend, requestSent);
+
         createWinLossChart(userProfile.wins, userProfile.losses);
 
-        // Ajout de l'événement pour le bouton "Retour au tableau de bord"
         document.getElementById('backToDashboard').addEventListener('click', () => {
             navigateTo('/dashboard');
         });
@@ -121,24 +156,13 @@ export async function profile(username) {
     }
 }
 
-function attachEventHandlers2(navigateTo, friendName) {
-
-    const DisplayName = document.getElementById('DisplayName');
-    const logoutLink = document.getElementById('logoutLink');
-
-    logoutLink.addEventListener('click', () => {
-        event.preventDefault();
-        logout();
-    });
+function attachEventHandlers2(navigateTo, friendName, isFriend, requestSent) {
 
     document.getElementById('pongonlineLink').addEventListener('click', function(event) {
         event.preventDefault();
         navigateTo('/dashboard');
     });
 
-    // Friend button logic (as before)
-    let isFriend = false;
-    let requestSent = false;
     const friendButton = document.getElementById('friendButton');
 
     function updateFriendButton() {
@@ -155,17 +179,15 @@ function attachEventHandlers2(navigateTo, friendName) {
     }
 
     friendButton.addEventListener('click', () => {
-        if (isFriend) {
-            isFriend = false;
-        } else if (requestSent) {
-            requestSent = false;
-        } else {
-            requestSent = true;
+        if (!isFriend && !requestSent) {
+            sendFriendRequest(friendName)
+                .then(() => {
+                    requestSent = true;
+                    updateFriendButton();
+                })
+                .catch(error => console.error('Erreur lors de l\'envoi de la demande d\'ami:', error));
         }
-        updateFriendButton();
     });
-
-    DisplayName.addEventListener('click', () => navigateTo('/dashboard'));
 
     updateFriendButton();
 }
@@ -200,7 +222,7 @@ function createWinLossChart(wins, losses) {
                     display: true,
                     position: 'bottom',
                     labels: {
-                        color: '#e0e0e0',
+                        color: '#222222CC',
                         font: {
                             size: 14
                         }

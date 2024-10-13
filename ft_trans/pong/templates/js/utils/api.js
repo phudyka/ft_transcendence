@@ -1,6 +1,8 @@
+import { getCookie } from '../views/settingsv.js';
+
 export async function fetchWithToken(url, options = {}) {
     const token = localStorage.getItem('accessToken');
-    const csrfToken = localStorage.getItem('csrfToken');
+    const csrfToken = getCookie('csrftoken');
     const headers = {
         ...options.headers,
         'Authorization': `Bearer ${token}`,

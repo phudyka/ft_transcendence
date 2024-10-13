@@ -2,6 +2,8 @@ import { navigateTo } from '../app.js';
 import { logout, setGlobalSocket } from '../utils/token.js';
 import { getSocket } from '../utils/socketManager.js';
 import { initializeSocket } from '../utils/socketManager.js';
+import { fetchFriendList, sendFriendRequest, fetchFriendRequests, acceptFriendRequest, rejectFriendRequest } from '../utils/friendManager.js';
+import { getCookie } from './settingsv.js';
 
 let socket;
 const privateChatLogs = new Map();
@@ -40,7 +42,7 @@ export function dashboard(player_name) {
             <a class="navbar-brand" href="#">
                 <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" class="logo">
             </a>
-            <span class="nav-item" style="font-size: 3.5em; font-weight: bold;">${username}</span>
+            <span class="nav-item" style="font-size: 2.5em; font-weight: bold;">${username}</span>
             <div class="profile-container">
                 <img src="${avatarUrl}" class="profile-icon" alt="Profile Picture" id="img_profile_pic">
             </div>
@@ -86,12 +88,10 @@ export function dashboard(player_name) {
                 </div>
             </div>
         </div>
-
         <div id="profileDropdown" class="dropdown-menu" style="display: none;">
             <a class="dropdown-item" href="#" id="settings">Settings</a>
             <a class="dropdown-item" href="#" id="logoutLink">Logout</a>
         </div>
-
         <div class="offcanvas offcanvas-end" data-bs-scroll="true" tabindex="-1" id="chatbox" aria-labelledby="chatboxLabel">
             <div class="offcanvas-header">
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
@@ -132,7 +132,7 @@ export function dashboard(player_name) {
     iframe.onload = function () {
     const username = localStorage.getItem('username');
     const token = localStorage.getItem('accessToken');
-    const csrfToken = localStorage.getItem('csrfToken');
+    const csrfToken = getCookie('csrftoken');
     console.log(localStorage);
     const avatar = localStorage.getItem('avatar_url');
     iframe.contentWindow.postMessage({ username: username, token: token, csrfToken: csrfToken, avatar: avatar }, 'http://localhost:4000');
@@ -305,9 +305,27 @@ function handleProfilePictureClick(event) {
         dropdown.style.display = 'none';
     });
 
-    dropdown.style.top = `${event.clientY}px`;
-    dropdown.style.left = `${event.clientX}px`;
+
+    // verifier si le dropdown depasse la fenetre
+    const rect = dropdown.getBoundingClientRect();
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    if (rect.bottom > windowHeight) {
+        dropdown.style.top = `${event.clientY}px`;
+        dropdown.style.left = `${event.clientX}px - ${rect.width}px`;
+        dropdown.style.display = 'block';
+    } else {
+        dropdown.style.top = `${event.clientY}px`;
+        dropdown.style.left = `${event.clientX}px`;
+        dropdown.style.display = 'block';
+    }
+
+
+    // dropdown.style.top = `${event.clientY}px`;
+    // dropdown.style.left = `${event.clientX}px`;
     dropdown.style.display = 'block';
+
 }
 
 function handleFriendClick(event) {
@@ -509,6 +527,7 @@ function addFriend(event) {
 	event.preventDefault();
 	const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
 	console.log(`Add ${friendName} to friends`);
+	sendFriendRequest(friendName);
 }
 
 function blockUser(event) {
@@ -546,20 +565,13 @@ function loadMessages(friendName) {
 }
 
 function checkForFriendRequests() {
-    fetch('/api/get-friend-requests/', {
-        headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-        }
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success && data.friend_requests.length > 0) {
-            data.friend_requests.forEach(request => {
+    fetchFriendRequests()
+        .then(friendRequests => {
+            friendRequests.forEach(request => {
                 showFriendRequestToast(request.from_username, request.id);
             });
-        }
-    })
-    .catch(error => console.error('Erreur lors de la récupération des demandes d\'ami:', error));
+        })
+        .catch(error => console.error('Erreur lors de la récupération des demandes d\'ami:', error));
 }
 
 function showFriendRequestToast(fromUsername, requestId) {
@@ -589,103 +601,34 @@ function showFriendRequestToast(fromUsername, requestId) {
     toast.show();
 }
 
-function acceptFriendRequest(requestId) {
-    fetch('/api/accept-friend-request/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-        body: JSON.stringify({ request_id: requestId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log('Demande d\'ami acceptée');
-            // Mettre à jour l'interface utilisateur si nécessaire
-        }
-    })
-    .catch(error => console.error('Erreur lors de l\'acceptation de la demande d\'ami:', error));
-}
-
-function rejectFriendRequest(requestId) {
-    fetch('/api/reject-friend-request/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-        body: JSON.stringify({ request_id: requestId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log('Demande d\'ami rejetée');
-            // Mettre à jour l'interface utilisateur si nécessaire
-        }
-    })
-    .catch(error => console.error('Erreur lors du rejet de la demande d\'ami:', error));
-}
-
-// Ajoutez cette fonction à votre code existant pour envoyer une demande d'ami
-function sendFriendRequest(toUsername) {
-    fetch('/api/send-friend-request/', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-        },
-        body: JSON.stringify({ to_username: toUsername })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            console.log('Demande d\'ami envoyée');
-            // Mettre à jour l'interface utilisateur si nécessaire
-        }
-    })
-    .catch(error => console.error('Erreur lors de l\'envoi de la demande d\'ami:', error));
-}
-
 function fetchAndDisplayFriends() {
-    fetch('http://localhost:8000/api/friends/', {
-        method: 'GET',
-        headers: {
-            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(response => {
-        if (!response.ok) {
-            throw new Error('Erreur réseau');
-        }
-        return response.json();
-    })
-    .then(data => {
-        const friendsList = document.getElementById('friends');
-        friendsList.innerHTML = '';
+    fetchFriendList()
+        .then(data => {
+            const friendsList = document.getElementById('friends');
+            friendsList.innerHTML = '';
 
-        data.forEach(friend => {
-            const li = document.createElement('li');
-            li.className = 'list-group-item d-flex justify-content-between align-items-center';
-            li.setAttribute('data-friend', friend.username);
+            data.forEach(friend => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center';
+                li.setAttribute('data-friend', friend.username);
 
-            const statusDot = document.createElement('span');
-            statusDot.className = `status-dot ${friend.is_online ? 'online' : 'offline'}`;
+                const statusDot = document.createElement('span');
+                statusDot.className = `status-dot ${friend.is_online ? 'online' : 'offline'}`;
 
-            const usernameSpan = document.createElement('span');
-            usernameSpan.textContent = friend.display_name || friend.username;
+                const usernameSpan = document.createElement('span');
+                usernameSpan.textContent = friend.display_name || friend.username;
 
-            li.appendChild(statusDot);
-            li.appendChild(usernameSpan);
-            li.addEventListener('click', handleFriendClick);
-            friendsList.appendChild(li);
+                li.appendChild(statusDot);
+                li.appendChild(usernameSpan);
+                li.addEventListener('click', handleFriendClick);
+                friendsList.appendChild(li);
+            });
+        })
+        .catch(error => {
+            console.error('Erreur lors de la récupération des amis:', error);
         });
-    })
-    .catch(error => {
-        console.error('Erreur lors de la récupération des amis:', error);
-    });
 }
 
+// Décommentez ces lignes pour activer la mise à jour automatique
 // setInterval(fetchAndDisplayFriends, 600000);
 // setInterval(checkForFriendRequests, 600000);
