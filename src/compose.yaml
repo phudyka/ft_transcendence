@@ -1,18 +1,27 @@
 networks:
   42nice:
     driver: bridge
-  monitoring:
+  monitoring_network:
     driver: bridge
-  # api_network:
-  #   driver: bridge
+  db_network:
+    driver: bridge
   
 volumes:
   static_admin:
+  postgres_data:
 
 services:
-## !!PENSER A VERSIONER LES PACKAGES
-## !!PENSER A VERSIONER LES PACKAGES
-## !!PENSER A VERSIONER LES PACKAGES
+## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ##
+  adminer:
+    image: adminer:latest
+    container_name: "adminer"
+    networks:
+      - db_network
+    ports:
+      - "5454:8080"
+    depends_on:
+      - postgresql
+## FRONTEND ## FRONTEND ## FRONTEND ## FRONTEND ## FRONTEND ## FRONTEND ##
   nginx:
     build: requirements/nginx
     container_name: "nginx"
@@ -21,131 +30,130 @@ services:
       - static_admin:/static
     networks:
       - 42nice
-      - monitoring
+      - monitoring_network
     ports:
-      - "443:443"
+      - "8080:443"
     depends_on:
+      # - grafana
       - django
-      - grafana
   ## BACKEND ## BACKEND ## BACKEND ## BACKEND ## BACKEND ## BACKEND ##
-## !!PENSER A VERSIONER LES PACKAGES
-## !!PENSER A VERSIONER LES PACKAGES
-## !!PENSER A VERSIONER LES PACKAGES
   django:
     build: requirements/django
     container_name: "django"
     restart: unless-stopped
-    volumes:
-      - static_admin:/app/.env/lib/python3.11/site-packages/django/contrib/admin/static
+    # ports:
+    #   - "8000:443"
+    depends_on:
+      - postgresql
+      - chat
+      - game_server
     environment:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DATABASE_URL=postgres://42:nice@postgresql/db
     networks:
       - 42nice
-      # - api_network
-    # ports:
-    #   - "8000:8000"
-    # depends_on:
-    #   - api_user
-    #   - api_auth
-  # postgresql:
-  #   build: requirements/postgresql
-  #   container_name: "postgresql"
-  #   restart: unless-stopped
-  #   networks:
-  #     - api_network
-  #     - 42nice
-  ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ##
-## !!PENSER A VERSIONER LES PACKAGES
-## !!PENSER A VERSIONER LES PACKAGES
-## !!PENSER A VERSIONER LES PACKAGES
-## !!PENSER A VERSIONER LES PACKAGES
-
-  # api_user:
-  #   build: requirements/api_user
-  #   container_name: "api_user"
-  #   restart: unless-stopped
-  #   networks:
-  #     - api_network
-  #   # ports:
-  #   #   - "5454:443"
-  #   depends_on:
-  #     - postgresql
-  # api_auth:
-  #   build: requirements/api_auth
-  #   container_name: "api_auth"
-  #   restart: unless-stopped
-  #   networks:
-  #     - api_network
-  #   # ports:
-  #   #   - "5454:443"
-  #   depends_on:
-  #     - postgresql
-  ## MONITORING ## MONITORING ## MONITORING ## MONITORING ## MONITORING ##
-  grafana:
-    build: requirements/grafana
-    container_name: "monitoring_grafana"
+      - db_network
+  chat:
+    build: requirements/chat
+    container_name: "chat"
     restart: unless-stopped
-    user: "1000"
-    networks:
-      - 42nice
-      - monitoring
     # ports:
     #   - "3000:3000"
-    depends_on:
-      - prometheus
-    environment:
-      - GRAFANA_USER_NAME=${GRAFANA_USER_NAME}
-      - GRAFANA_USER_PASSWORD=${GRAFANA_USER_PASSWORD}
-  prometheus:
-    build: requirements/prometheus
-    container_name: "monitoring_prometheus"
-    restart: unless-stopped
     networks:
-      - monitoring
+      - 42nice
+  game_server:
+    build: requirements/game_server
+    container_name: "game_server"
+    restart: unless-stopped
     # ports:
-    #   - "9090:9090"
-    depends_on:
-      - alertmanager
-      - cadvisor
-      - node-exporter
-  alertmanager:
-    build: requirements/alertmanager
-    container_name: "monitoring_alertmanager"
-    restart: unless-stopped
+    #   - "4000:4000"
     networks:
-      - monitoring
+      - 42nice
+  postgresql:
+    build: requirements/postgresql
+    restart: unless-stopped
+    container_name: "postgresql"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     # ports:
-    # - "9093:9093"
+    #   - "5432:5432"
     environment:
-      - DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
-  node-exporter:
-    build: requirements/node-exporter
-    container_name: "monitoring_node-exporter"
-    restart: unless-stopped
-    volumes:
-      - /proc:/host/proc:ro
-      - /sys:/host/sys:ro
-      - /:/rootfs:ro
-      - /:/host:ro,rslave
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     networks:
-      - monitoring
-  cadvisor:
-    build: requirements/cadvisor
-    container_name: "monitoring_cadvisor"
-    restart: unless-stopped
-    privileged: true
-    command:
-      - '-housekeeping_interval=15s'
-      - '-docker_only=true'
-      - '-store_container_labels=false'
-    devices:
-      - /dev/kmsg
-    networks:
-      - monitoring
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-      - /etc/machine-id:/etc/machine-id:ro
+      - db_network
+  ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ##
+
+  ## MONITORING ## MONITORING ## MONITORING ## MONITORING ## MONITORING ##
+  # grafana:
+  #   build: requirements/grafana
+  #   container_name: "monitoring_grafana"
+  #   restart: unless-stopped
+  #   user: "1000"
+  #   networks:
+  #     - 42nice
+  #     - monitoring_network
+  #   # ports:
+  #   #   - "3000:3000"
+  #   # depends_on:
+  #   #   - prometheus
+  #   environment:
+  #     - GRAFANA_USER_NAME=${GRAFANA_USER_NAME}
+  #     - GRAFANA_USER_PASSWORD=${GRAFANA_USER_PASSWORD}
+  # prometheus:
+  #   build: requirements/prometheus
+  #   container_name: "monitoring_prometheus"
+  #   restart: unless-stopped
+  #   networks:
+  #     - monitoring_network
+  #   # ports:
+  #   #   - "9090:9090"
+  #   depends_on:
+  #     - alertmanager
+  #     - cadvisor
+  #     - node-exporter
+  # alertmanager:
+  #   build: requirements/alertmanager
+  #   container_name: "monitoring_alertmanager"
+  #   restart: unless-stopped
+  #   networks:
+  #     - monitoring_network
+  #   # ports:
+  #   # - "9093:9093"
+  #   environment:
+  #     - DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
+  # node-exporter:
+  #   build: requirements/node-exporter
+  #   container_name: "monitoring_node-exporter"
+  #   restart: unless-stopped
+  #   volumes:
+  #     - /proc:/host/proc:ro
+  #     - /sys:/host/sys:ro
+  #     - /:/rootfs:ro
+  #     - /:/host:ro,rslave
+  #   networks:
+  #     - monitoring_network
+  # cadvisor:
+  #   build: requirements/cadvisor
+  #   container_name: "monitoring_cadvisor"
+  #   restart: unless-stopped
+  #   privileged: true
+  #   command:
+  #     - '-housekeeping_interval=15s'
+  #     - '-docker_only=true'
+  #     - '-store_container_labels=false'
+  #   devices:
+  #     - /dev/kmsg
+  #   networks:
+  #     - monitoring_network
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:rw
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker/:/var/lib/docker:ro
+  #     - /dev/disk/:/dev/disk:ro
+  #     - /etc/machine-id:/etc/machine-id:ro

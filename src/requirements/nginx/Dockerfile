@@ -16,8 +16,6 @@ COPY conf/nginx.conf /etc/nginx/nginx.conf
 
 WORKDIR /app
 
-COPY test.html/ /app/index.html
-
 EXPOSE 443
 
 CMD [ "nginx", "-g", "daemon off;" ]

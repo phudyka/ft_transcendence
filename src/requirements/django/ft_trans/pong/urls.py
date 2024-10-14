@@ -1,0 +1,29 @@
+from django.urls import path, include
+from . import views
+from rest_framework.routers import DefaultRouter
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+
+urlpatterns = [
+	path('api/auth/42/', views.auth_42_redirect, name='auth_42_redirect'),
+	path('api/auth/42/callback/', views.auth_42_callback, name='auth_42_callback'),
+	path('api/content/', views.content, name='content'),
+	path('api/set-csrf-token/', views.set_csrf_token, name='set_csrf_token'),
+	path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+	path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+	path('api/create_user/', views.create_user, name='create_user'),
+	path('api/register/', views.register_view, name='register'),
+	path('api/login/', views.login_view, name='login'),
+	path('api/friend-requests', views.friend_requests, name='friend_requests'),
+	path('api/user/<str:display_name>/', views.get_user_by_display_name, name='get_user_by_display_name'),
+	path('api/user/stats/', views.get_user_stats, name='get_user_stats'),
+	path('api/friends/', views.friend_list, name='friend-list'),
+	path('api/send-friend-request/', views.send_friend_request, name='send_friend_request'),
+	path('api/accept-friend-request/', views.accept_friend_request, name='accept_friend_request'),
+	path('api/reject-friend-request/', views.reject_friend_request, name='reject_friend_request'),
+	path('api/get-friend-requests/', views.get_friend_requests, name='get_friend_requests'),
+	path('api/update-user-settings/', views.update_user_settings, name='update_user_settings'),
+	path('api/profile/<str:username>/', views.user_profile, name='user_profile'),
+	path('<path:path>', views.index, name='catch_all'),
+	path('', views.index, name='index'),
+]

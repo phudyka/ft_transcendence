@@ -8,12 +8,14 @@ IMAGES =	src-grafana\
 			src-node-exporter\
 			src-cadvisor\
 			src-nginx\
+			src-postgresql\
 			src-django\
-			src-postresql\
-			src-api_user\
-			src-api_auth
+			src-game_server\
+			src-chat\
+			
 
-VOLUMES =	static_admin
+VOLUMES =	src_static_admin\
+			src_postgres_data
 
 all: $(NAME)
 

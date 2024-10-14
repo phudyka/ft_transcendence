@@ -2,7 +2,7 @@ FROM alpine:3.18
 
 WORKDIR /app
 
-COPY conf/requirement.txt /app
+COPY conf/requirements.txt /app
 
 RUN apk update &&\
     apk add python3 openssl &&\
@@ -17,11 +17,11 @@ RUN apk update &&\
     python3 -m venv /app/.env &&\
     source /app/.env/bin/activate &&\
     pip install --upgrade pip &&\
-    pip install -r requirement.txt
+    pip install -r requirements.txt
 
 COPY ft_transcendence/ /app
 
-EXPOSE 8000
+EXPOSE 443
 
 COPY conf/entrypoint.sh /
 
