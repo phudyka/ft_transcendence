@@ -1,7 +1,7 @@
 import { getCookie } from '../views/settingsv.js';
 
 export async function fetchWithToken(url, options = {}) {
-    const token = localStorage.getItem('accessToken');
+    const token = sessionStorage.getItem('accessToken');
     const csrfToken = getCookie('csrftoken');
     const headers = {
         ...options.headers,

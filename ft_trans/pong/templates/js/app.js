@@ -1,6 +1,6 @@
-import { login } from './views/login.js';
+import { login, removeLoginEventListeners } from './views/login.js';
 import { register } from './views/register.js';
-import { dashboard } from './views/dashboard.js';
+import { dashboard, removeDashboardEventListeners } from './views/dashboard.js';
 import { profile } from './views/profile.js';
 import { settings } from './views/settingsv.js';
 import { generateRandomUsername } from './views/dashboard.js';
@@ -72,7 +72,7 @@ function initRouter() {
     router();
 
     function handleSocketConnection() {
-        const username = localStorage.getItem('username');
+        const username = sessionStorage.getItem('username');
         if (username) {
             const socket = initializeSocket(username);
             if (socket) {
@@ -110,7 +110,7 @@ export function navigateTo(pathname) {
 document.addEventListener('DOMContentLoaded', initRouter);
 
 function isUserLoggedIn() {
-    return localStorage.getItem('username') !== null;
+    return sessionStorage.getItem('username') !== null;
 }
 
 // Exportez également initRouter si vous en avez besoin ailleurs

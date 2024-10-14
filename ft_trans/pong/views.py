@@ -289,14 +289,6 @@ def user_profile(request, username):
     except User.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Utilisateur non trouvé'}, status=404)
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def friend_list(request):
-    friendships = Friendship.objects.filter(user=request.user)
-    friends = [friendship.friend for friendship in friendships]
-    serializer = FriendshipSerializer(friends, many=True)
-    return Response(serializer.data)
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def send_friend_request(request):
@@ -450,3 +442,32 @@ def auth_42_login_callback(request):
         'display_name': user.display_name,
         'avatar_url': user.avatar_url,
     })
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def verify_token(request):
+    return JsonResponse({'success': True, 'message': 'Token valide'})
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_friend_list(request):
+    friendships = Friendship.objects.filter(user=request.user)
+    friends_data = []
+    for friendship in friendships:
+        friend = friendship.friend
+        friends_data.append({
+            'username': friend.username,
+            'display_name': friend.display_name,
+            'is_online': friend.is_online,
+            'avatar_url': friend.avatar_url
+        })
+    return JsonResponse({'friends': friends_data})
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def update_online_status(request):
+    user = request.user
+    is_online = request.data.get('is_online', False)
+    user.is_online = is_online
+    user.save()
+    return Response({'status': 'success'})

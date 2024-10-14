@@ -53,53 +53,57 @@ export function login() {
         <p>© 2024 42Company, Inc</p>
     </footer>
     `;
-    attachEventLoginPage(navigateTo);
+    attachEventLoginPage();
     checkRegistrationSuccess();
 }
 
-function attachEventLoginPage(navigateTo) {
-    document.getElementById('loginForm').addEventListener('submit', handleLogin);
-    document.getElementById('create_account').addEventListener('click', function(event) {
-        event.preventDefault();
-        navigateTo('/register');
-    });
+function attachEventLoginPage() {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
+    }
 
     const createButton = document.getElementById('create_account');
     if (createButton) {
-        createButton.addEventListener('click', function(event) {
+        createButton.addEventListener('click', function (event) {
             event.preventDefault();
-            console.log('click to create account button');
             navigateTo('/register');
         });
     }
+
+    document.addEventListener('click', handleUnmaskPassword);
+    document.addEventListener("keydown", handleEnterKeyPress);
 
     document.getElementById('login_with_42').addEventListener('click', function(event) {
         event.preventDefault();
         console.log('"Login with 42" button clicked');
         window.location.href = '/api/auth/42/login/';
     });
+}
 
-    document.addEventListener('click', function(event) {
-        if (event.target.classList.contains('unmask') || event.target.closest('.unmask')) {
-            const button = event.target.closest('.unmask');
-            const input = button.previousElementSibling;
-            if (input.type === 'password') {
-                input.type = 'text';
-                button.querySelector('i').classList.remove('fa-lock');
-                button.querySelector('i').classList.add('fa-lock-open');
-            } else {
-                input.type = 'password';
-                button.querySelector('i').classList.remove('fa-lock-open');
-                button.querySelector('i').classList.add('fa-lock');
-            }
+function handleUnmaskPassword(event) {
+    if (event.target.classList.contains('unmask') || event.target.closest('.unmask')) {
+        const button = event.target.closest('.unmask');
+        const input = button.previousElementSibling;
+        if (input.type === 'password') {
+            input.type = 'text';
+            button.querySelector('i').classList.remove('fa-lock');
+            button.querySelector('i').classList.add('fa-lock-open');
+        } else {
+            input.type = 'password';
+            button.querySelector('i').classList.remove('fa-lock-open');
+            button.querySelector('i').classList.add('fa-lock');
         }
-    });
+    }
+}
 
-    document.addEventListener("keydown", function(event) {
-        if (event.key === "Enter") {
-            document.getElementById('loginForm').dispatchEvent(new Event('submit'));
+function handleEnterKeyPress(event) {
+    if (event.key === "Enter") {
+        const loginForm = document.getElementById('loginForm');
+        if (loginForm) {
+            loginForm.dispatchEvent(new Event('submit'));
         }
-    });
+    }
 }
 
 async function handleLogin(event) {
@@ -121,12 +125,20 @@ async function handleLogin(event) {
         const data = await response.json();
         if (data.success) {
             console.log('Connexion réussie');
-            localStorage.setItem('accessToken', data.access);
-            localStorage.setItem('refreshToken', data.refresh);
-            localStorage.setItem('username', data.username);
-            localStorage.setItem('display_name', data.display_name);
-            localStorage.setItem('avatar_url', data.avatar_url);
+            sessionStorage.setItem('accessToken', data.access);
+            sessionStorage.setItem('refreshToken', data.refresh);
+            sessionStorage.setItem('username', data.username);
+            sessionStorage.setItem('display_name', data.display_name);
+            sessionStorage.setItem('avatar_url', data.avatar_url);
             navigateTo('/dashboard');
+            await fetch('/api/update-online-status/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${data.access}`,
+                },
+                body: JSON.stringify({ is_online: true }),
+            });
         } else {
             console.error('Échec de la connexion :', data.message);
             showLoginToastErr(data.message);
@@ -147,11 +159,11 @@ async function handle42Login() {
             const response = await fetch('/api/auth/42/login/callback/' + window.location.search);
             const data = await response.json();
             if (data.success) {
-                localStorage.setItem('accessToken', data.access);
-                localStorage.setItem('refreshToken', data.refresh);
-                localStorage.setItem('username', data.username);
-                localStorage.setItem('display_name', data.display_name);
-                localStorage.setItem('avatar_url', data.avatar_url);
+                sessionStorage.setItem('accessToken', data.access);
+                sessionStorage.setItem('refreshToken', data.refresh);
+                sessionStorage.setItem('username', data.username);
+                sessionStorage.setItem('display_name', data.display_name);
+                sessionStorage.setItem('avatar_url', data.avatar_url);
                 navigateTo('/dashboard');
             } else {
                 showLoginToastErr(data.error || 'Échec de la connexion');
@@ -174,13 +186,13 @@ function showLoginToastErr(message) {
 }
 
 function checkRegistrationSuccess() {
-    const successMessage = localStorage.getItem('registrationSuccess');
+    const successMessage = sessionStorage.getItem('registrationSuccess');
     const urlParams = new URLSearchParams(window.location.search);
     const authSuccess = urlParams.get('auth_success');
 
     if (successMessage) {
         showSuccessToast(successMessage);
-        localStorage.removeItem('registrationSuccess');
+        sessionStorage.removeItem('registrationSuccess');
     } else if (authSuccess === 'true') {
         showSuccessToast('42 registration successful. You can now log in.');
         history.replaceState(null, '', window.location.pathname);
@@ -201,4 +213,19 @@ function showLoginToast(message) {
     toastBody.textContent = message;
     const toast = new bootstrap.Toast(toastEl);
     toast.show();
+}
+
+export function removeLoginEventListeners() {
+    const loginForm = document.getElementById('loginForm');
+    if (loginForm) {
+        loginForm.removeEventListener('submit', handleLogin);
+    }
+
+    const createButton = document.getElementById('create_account');
+    if (createButton) {
+        createButton.removeEventListener('click', navigateTo);
+    }
+
+    document.removeEventListener('click', handleUnmaskPassword);
+    document.removeEventListener("keydown", handleEnterKeyPress);
 }

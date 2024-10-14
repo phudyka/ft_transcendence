@@ -73,7 +73,7 @@ export async function profile(username) {
             </div>
             <div class="status-indicator text-center mt-2">
                 <span class="status-dot ${userProfile.is_online ? 'online' : 'offline'}"></span>
-                <span class="status-text">${userProfile.is_online ? 'En ligne' : 'Hors ligne'}</span>
+                <span class="status-text">${userProfile.is_online ? 'Online' : 'Offline'}</span>
             </div>
             <button type="button" id="friendButton" class="btn-dark">Ajouter comme ami</button>
 

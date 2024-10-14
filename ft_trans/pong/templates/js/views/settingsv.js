@@ -1,10 +1,10 @@
 import { navigateTo } from '../app.js';
 
-const player_name = localStorage.getItem('player_name');
+const player_name = sessionStorage.getItem('player_name');
 
 export function settings() {
-    const username = localStorage.getItem('username');
-    let avatarUrl = localStorage.getItem('avatar_url');
+    const username = sessionStorage.getItem('username');
+    let avatarUrl = sessionStorage.getItem('avatar_url');
     if (avatarUrl) {
         avatarUrl = avatarUrl.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
     }
@@ -115,7 +115,7 @@ function attachEventSettingsPage(navigateTo, player_name) {
                 method: 'POST',
                 body: formData,
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+                    'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
                     'X-CSRFToken': csrftoken,
                 },
             });
@@ -130,21 +130,6 @@ function attachEventSettingsPage(navigateTo, player_name) {
             console.error('Erreur lors de la mise à jour des paramètres :', error);
             alert('Une erreur est survenue lors de la mise à jour des paramètres.');
         }
-    });
-
-    changePasswordForm.addEventListener('submit', (event) => {
-        event.preventDefault();
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPasswordsetttings').value;
-
-        if (newPassword !== confirmPassword) {
-            alert('Passwords do not match');
-            return;
-        }
-
-        // Here you would typically send the new password to your backend
-        console.log('Password changed');
-        showsavePasswordToast();
     });
 
     avatarInput.addEventListener('change', (event) => {

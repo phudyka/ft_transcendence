@@ -41,12 +41,10 @@ io.on('connection', (socket) => {
     console.log('Un utilisateur s\'est connecté:', socket.id);
 
     socket.on('register', (username) => {
-        if (username && !users.has(username)) {
+        if (username) {
             socket.username = username;
             users.set(username, socket.id);
             console.log('Utilisateur enregistré:', username);
-        } else if (users.has(username)) {
-            console.log('Utilisateur déjà enregistré:', username);
         } else {
             console.error('Tentative d\'enregistrement avec un nom d\'utilisateur invalide');
         }
@@ -54,15 +52,21 @@ io.on('connection', (socket) => {
 
     socket.on('chat message', (msg) => {
         console.log(`${formatDate(new Date())} Message reçu de ${msg.name}: ${msg.message}`);
-        io.emit('chat message', msg); // Émet à tous les clients, y compris l'expéditeur
+        io.emit('chat message', msg);
     });
 
     socket.on('private message', ({ to, message }) => {
         const recipientSocket = users.get(to);
         if (recipientSocket) {
-            console.log(`${formatDate(new Date())} Message privé de ${socket.id} à ${to}: ${message}`);
+            console.log(`${formatDate(new Date())} Message privé de ${socket.username} à ${to}: ${message}`);
             io.to(recipientSocket).emit('private message', {
-                from: socket.id,
+                from: socket.username,
+                message: message
+            });
+            // Envoyer également le message à l'expéditeur
+            socket.emit('private message', {
+                from: socket.username,
+                to: to,
                 message: message
             });
         }
@@ -70,16 +74,9 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log(`${formatDate(new Date())} Un utilisateur s'est déconnecté: ${socket.id}`);
-        users.forEach((value, key) => {
-            if (value === socket.id) {
-                users.delete(key);
-            }
-        });
-        userConnections.forEach((value, key) => {
-            if (value.socketId === socket.id) {
-                userConnections.delete(key);
-            }
-        });
+        if (socket.username) {
+            users.delete(socket.username);
+        }
     });
 });
 

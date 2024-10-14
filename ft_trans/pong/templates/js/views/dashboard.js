@@ -1,13 +1,14 @@
 import { navigateTo } from '../app.js';
 import { logout, setGlobalSocket } from '../utils/token.js';
-import { getSocket } from '../utils/socketManager.js';
-import { initializeSocket } from '../utils/socketManager.js';
+import { getSocket, initializeSocket } from '../utils/socketManager.js';
 import { fetchFriendList, sendFriendRequest, fetchFriendRequests, acceptFriendRequest, rejectFriendRequest } from '../utils/friendManager.js';
 import { getCookie } from './settingsv.js';
+import { removeLoginEventListeners } from './login.js';
+import { checkAuthentication } from '../utils/auth.js';
 
 let socket;
 const privateChatLogs = new Map();
-const username = localStorage.getItem('username');
+const username = sessionStorage.getItem('username');
 
 export function generateRandomUsername() {
     const adjectives = ['Happy', 'Clever', 'Brave', 'Calm', 'Eager', 'Jolly', 'Kind', 'Lively', 'Proud', 'Wise'];
@@ -20,17 +21,25 @@ export function generateRandomUsername() {
     return `${randomAdjective}${randomNoun}${randomNumber}`;
 }
 
-export function dashboard(player_name) {
-    const username = localStorage.getItem('username');
-    const displayName = localStorage.getItem('display_name');
-    let avatarUrl = localStorage.getItem('avatar_url');
+export async function dashboard(player_name) {
+    const isAuthenticated = await checkAuthentication();
+    if (!isAuthenticated) {
+        navigateTo('/login');
+        return;
+    }
+
+    removeLoginEventListeners();
+
+    const username = sessionStorage.getItem('username');
+    const displayName = sessionStorage.getItem('display_name');
+    let avatarUrl = sessionStorage.getItem('avatar_url');
+    const socket = initializeSocket(username);
+    setupChatListeners(socket);
 
     if (!username) {
         navigateTo('/login');
         return;
     }
-
-    initializeSocket(username);
 
     if (avatarUrl) {
         avatarUrl = avatarUrl.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
@@ -50,17 +59,8 @@ export function dashboard(player_name) {
 
         <div class="content">
             <div class="sidebar">
-                <h2 class="title-friends">Amis</h2>
+                <h2 class="title-friends">Friends</h2>
                 <ul id="friends" class="list-group">
-                    <li class="list-group-item" data-friend="momo">
-                        <span class="status-dot online"></span>momo
-                    </li>
-                    <li class="list-group-item" data-friend="Friend2">
-                        <span class="status-dot offline"></span>Friend2
-                    </li>
-                    <li class="list-group-item" data-friend="Friend3">
-                        <span class="status-dot online"></span>Friend3
-                    </li>
                 </ul>
                 <div id="friendDropdown" class="dropdown-menu" style="display: none;">
                     <a class="dropdown-item" href="#" id="sendMessage">Send Private Message</a>
@@ -102,18 +102,6 @@ export function dashboard(player_name) {
         </div>
 
         <div class="toast-container position-fixed bottom-0 end-0 p-3">
-            <div id="addFriendToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-                <div class="toast-header">
-                    <strong class="me-auto">Friend Request</strong>
-                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                </div>
-                <div class="toast-body">
-                    Friend request sent successfully!
-                </div>
-            </div>
-        </div>
-
-        <div class="toast-container position-fixed bottom-0 end-0 p-3">
             <div id="blockUserToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
                 <div class="toast-header">
                     <strong class="me-auto">Block User</strong>
@@ -130,33 +118,39 @@ export function dashboard(player_name) {
 
     const iframe = document.getElementById('pong');
     iframe.onload = function () {
-    const username = localStorage.getItem('username');
-    const token = localStorage.getItem('accessToken');
+    const username = sessionStorage.getItem('username');
+    const token = sessionStorage.getItem('accessToken');
     const csrfToken = getCookie('csrftoken');
-    console.log(localStorage);
-    const avatar = localStorage.getItem('avatar_url');
+    console.log(sessionStorage);
+    const avatar = sessionStorage.getItem('avatar_url');
     iframe.contentWindow.postMessage({ username: username, token: token, csrfToken: csrfToken, avatar: avatar }, 'http://localhost:4000');
     };
 
 	setupDashboardEvents(navigateTo, username);
-	setupChatListeners();
-	// checkForFriendRequests();
-    // fetchAndDisplayFriends();
+	// setupChatListeners();
+	checkForFriendRequests();
+    fetchAndDisplayFriends();
 }
 
-function setupChatListeners() {
-    const socket = getSocket();
+function setupChatListeners(socket) {
     if (socket) {
         socket.off('chat message');
         socket.off('private message');
+        socket.off('force_disconnect');
 
         socket.on('chat message', (msg) => {
             console.log('Message reçu du serveur:', msg);
             receiveMessage(msg);
         });
 
-        document.addEventListener('privateMessage', (event) => {
-            receivePrivateMessage(event.detail);
+        socket.on('private message', (msg) => {
+            console.log('Message privé reçu:', msg);
+            receivePrivateMessage(msg);
+        });
+
+        socket.on('force_disconnect', () => {
+            console.log('Déconnexion forcée par le serveur');
+            navigateTo('/login');
         });
     }
 }
@@ -261,13 +255,6 @@ function setupDashboardEvents(navigateTo, username) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-// toast when add friend
-	document.getElementById('friendDropdown_chat').querySelector('#addToFriend').addEventListener('click', function (event) {
-		event.preventDefault();
-		var toast = new bootstrap.Toast(document.getElementById('addFriendToast'));
-		toast.show();
-	});
-
 	// toast when block user
 	document.getElementById('friendDropdown_chat').querySelector('#blockUser').addEventListener('click', function (event) {
 		event.preventDefault();
@@ -276,6 +263,8 @@ function setupDashboardEvents(navigateTo, username) {
 	});
 
 	// setInterval(fetchAndDisplayFriends, 60000);
+    setInterval(fetchAndDisplayFriends, 20000);
+    setInterval(checkForFriendRequests, 20000);
 }
 
 function scrollToBottom2(friendName) {
@@ -404,24 +393,15 @@ function goTosettings(event) {
 
 function sendMessage(event) {
     event.preventDefault();
-    const username = localStorage.getItem('username');
+    const username = sessionStorage.getItem('username');
+    const displayName = sessionStorage.getItem('display_name');
     const messageInput = document.getElementById('message-input');
     const message = messageInput.value.trim();
-    const socket = getSocket();
+    const socket = getSocket(username);
 
-    if (message !== '') {
-        if (socket && socket.connected) {
-            const messageData = {
-                name: username,
-                message: message
-            };
-            socket.emit('chat message', messageData);
-            console.log('Message envoyé:', messageData);
-            messageInput.value = '';
-        } else {
-            console.error('La connexion au serveur de chat n\'est pas établie');
-            initializeSocket(username);
-        }
+    if (message !== '' && socket && socket.connected) {
+        socket.emit('chat message', { name: displayName || username, message: message });
+        messageInput.value = '';
     }
 }
 
@@ -442,7 +422,7 @@ function receiveMessage(msg) {
     usernameElement.addEventListener('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
-        const currentUsername = localStorage.getItem('username');
+        const currentUsername = sessionStorage.getItem('username');
         const isOwnUsername = msg.name === currentUsername;
         const dropdown = isOwnUsername ? document.getElementById('profileDropdown') : document.getElementById('friendDropdown_chat');
         const friendName = this.dataset.friend;
@@ -495,11 +475,10 @@ function sendPrivateMessage(friendName) {
     const input = document.getElementById(`message-input-${friendName}`);
     if (input) {
         const message = input.value.trim();
+        const socket = getSocket();
         if (message && socket && socket.connected) {
-            socket.emit('private message', {
-                content: message,
-                to: friendName
-            });
+            socket.emit('private message', { to: friendName, message: message });
+            // Afficher le message envoyé dans le chat local
             const chatLog = document.getElementById(`chat-log-${friendName}`);
             if (chatLog) {
                 const messageElement = document.createElement('div');
@@ -509,8 +488,6 @@ function sendPrivateMessage(friendName) {
             }
             input.value = '';
         }
-    } else {
-        console.error(`Input element for ${friendName} not found`);
     }
 }
 
@@ -524,10 +501,51 @@ function handleEnterKey(event) {
 }
 
 function addFriend(event) {
-	event.preventDefault();
-	const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
-	console.log(`Add ${friendName} to friends`);
-	sendFriendRequest(friendName);
+    event.preventDefault();
+    const dropdown = event.target.closest('.dropdown-menu, .dropdown-menu_chat');
+    const friendName = dropdown ? dropdown.getAttribute('data-friend') : null;
+    if (!friendName) {
+        console.error("Impossible de déterminer le nom de l'ami");
+        return;
+    }
+    console.log(`Add ${friendName} to friends`);
+    sendFriendRequest(friendName)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Demande d\'ami envoyée avec succès', data);
+            showFriendRequestSentToast(friendName);
+        })
+        .catch(error => {
+            console.error('Erreur lors de l\'envoi de la demande d\'ami:', error);
+        });
+}
+
+function showFriendRequestSentToast(friendName) {
+    const toastHtml = `
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">Friend Request Sent</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                Friend request sent to ${friendName} successfully!
+            </div>
+        </div>
+    `;
+
+    const toastContainer = document.createElement('div');
+    toastContainer.className = 'toast-container position-fixed top-0 start-50 translate-middle-x p-3';
+    toastContainer.innerHTML = toastHtml;
+    document.body.appendChild(toastContainer);
+
+    const toastElement = toastContainer.querySelector('.toast');
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
 }
 
 function blockUser(event) {
@@ -544,14 +562,14 @@ function viewProfile(event) {
 }
 
 function saveMessage(friendName, message) {
-	let messages = JSON.parse(localStorage.getItem(`chat_${friendName}`)) || [];
+	let messages = JSON.parse(sessionStorage.getItem(`chat_${friendName}`)) || [];
 	messages.push({ sender: 'Player', message: message });
-	localStorage.setItem(`chat_${friendName}`, JSON.stringify(messages));
+	sessionStorage.setItem(`chat_${friendName}`, JSON.stringify(messages));
 }
 
 function loadMessages(friendName) {
 	const chatLog = document.getElementById(`chat-log-${friendName}`);
-	const messages = JSON.parse(localStorage.getItem(`chat_${friendName}`)) || [];
+	const messages = JSON.parse(sessionStorage.getItem(`chat_${friendName}`)) || [];
 
 	chatLog.innerHTML = ''; // Effacer les messages précédents
 
@@ -567,6 +585,7 @@ function loadMessages(friendName) {
 function checkForFriendRequests() {
     fetchFriendRequests()
         .then(friendRequests => {
+            console.log('Données des demandes d\'ami:', friendRequests);
             friendRequests.forEach(request => {
                 showFriendRequestToast(request.from_username, request.id);
             });
@@ -578,14 +597,14 @@ function showFriendRequestToast(fromUsername, requestId) {
     const toastHtml = `
         <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
-                <strong class="me-auto">Demande d'ami</strong>
+                <strong class="me-auto">Friend Request</strong>
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
             <div class="toast-body">
-                ${fromUsername} souhaite vous ajouter comme ami.
+                ${fromUsername} wants to add you as a friend.
                 <div class="mt-2 pt-2 border-top">
-                    <button type="button" class="btn btn-primary btn-sm" onclick="acceptFriendRequest(${requestId})">Accepter</button>
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="rejectFriendRequest(${requestId})">Refuser</button>
+                    <button type="button" class="btn btn-primary btn-sm accept-friend-request" data-request-id="${requestId}">Accepter</button>
+                    <button type="button" class="btn btn-secondary btn-sm reject-friend-request" data-request-id="${requestId}">Refuser</button>
                 </div>
             </div>
         </div>
@@ -598,37 +617,101 @@ function showFriendRequestToast(fromUsername, requestId) {
 
     const toastElement = toastContainer.querySelector('.toast');
     const toast = new bootstrap.Toast(toastElement);
+
+    // Ajoutez les écouteurs d'événements pour les boutons
+    toastElement.querySelector('.accept-friend-request').addEventListener('click', function() {
+        acceptFriendRequest(this.dataset.requestId)
+            .then(() => {
+                toast.hide();
+                fetchAndDisplayFriends();
+            })
+            .catch(error => console.error('Erreur lors de l\'acceptation de la demande d\'ami:', error));
+    });
+
+    toastElement.querySelector('.reject-friend-request').addEventListener('click', function() {
+        rejectFriendRequest(this.dataset.requestId)
+            .then(() => {
+                toast.hide();
+            })
+            .catch(error => console.error('Erreur lors du rejet de la demande d\'ami:', error));
+    });
     toast.show();
 }
 
+
+
 function fetchAndDisplayFriends() {
-    fetchFriendList()
-        .then(data => {
-            const friendsList = document.getElementById('friends');
-            friendsList.innerHTML = '';
+    fetch('/api/friends/', {
+        method: 'GET',
+        headers: {
+            'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        console.log('Données reçues par fetchAndDisplayFriends:', data); // Ajout du console.log ici
+        const friendsList = document.getElementById('friends');
+        friendsList.innerHTML = '';
 
-            data.forEach(friend => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center';
-                li.setAttribute('data-friend', friend.username);
+        data.friends.forEach(friend => {
+            const li = document.createElement('li');
+            li.className = 'list-group-item d-flex justify-content-between align-items-center';
+            li.setAttribute('data-friend', friend.username);
 
-                const statusDot = document.createElement('span');
-                statusDot.className = `status-dot ${friend.is_online ? 'online' : 'offline'}`;
+            const statusDot = document.createElement('span');
+            statusDot.className = `status-dot ${friend.is_online ? 'online' : 'offline'}`;
 
-                const usernameSpan = document.createElement('span');
-                usernameSpan.textContent = friend.display_name || friend.username;
+            const usernameSpan = document.createElement('span');
+            usernameSpan.textContent = friend.display_name || friend.username;
 
-                li.appendChild(statusDot);
-                li.appendChild(usernameSpan);
-                li.addEventListener('click', handleFriendClick);
-                friendsList.appendChild(li);
-            });
-        })
-        .catch(error => {
-            console.error('Erreur lors de la récupération des amis:', error);
+            li.appendChild(statusDot);
+            li.appendChild(usernameSpan);
+            li.addEventListener('click', handleFriendClick);
+            friendsList.appendChild(li);
         });
+    })
+    .catch(error => {
+        console.error('Erreur lors de la récupération des amis:', error);
+    });
 }
 
 // Décommentez ces lignes pour activer la mise à jour automatique
-// setInterval(fetchAndDisplayFriends, 600000);
-// setInterval(checkForFriendRequests, 600000);
+// setInterval(fetchAndDisplayFriends, 20000);
+// setInterval(checkForFriendRequests, 20000);
+
+export function removeDashboardEventListeners() {
+    // Supprimez ici tous les écouteurs d'événements spécifiques au tableau de bord
+    document.removeEventListener("keydown", handleEnterKeyForChat);
+    // ... autres suppressions d'écouteurs ...
+}
+
+function handleEnterKeyForChat(event) {
+    if (event.key === "Enter") {
+        const messageInput = document.getElementById('message-input');
+        if (messageInput && document.activeElement === messageInput) {
+            sendMessage(event);
+        }
+    }
+}
+
+// Ajoutez cette fonction pour réinitialiser la socket si nécessaire
+function reinitializeSocket() {
+    const username = sessionStorage.getItem('username');
+    if (username && !socket) {
+        socket = initializeSocket(username);
+        setupChatListeners(socket);
+    }
+}
+
+// Appelez reinitializeSocket au chargement de la page
+window.addEventListener('load', reinitializeSocket);
+
+function showFriendDropdown(event, friendName) {
+    const dropdown = document.getElementById('friendDropdown');
+    dropdown.setAttribute('data-friend', friendName);
+    dropdown.style.display = 'block';
+    // Positionner le dropdown près du curseur
+    dropdown.style.left = `${event.clientX}px`;
+    dropdown.style.top = `${event.clientY}px`;
+}

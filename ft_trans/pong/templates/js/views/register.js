@@ -156,9 +156,9 @@ function setupRegisterEvents(navigateTo) {
             if (contentType && contentType.indexOf("application/json") !== -1) {
                 const data = await response.json();
                 if (data.success) {
-                    localStorage.setItem('accessToken', data.access);
-                    localStorage.setItem('refreshToken', data.refresh);
-                    localStorage.setItem('registrationSuccess', 'Account created successfully. Please log in.');
+                    sessionStorage.setItem('accessToken', data.access);
+                    sessionStorage.setItem('refreshToken', data.refresh);
+                    sessionStorage.setItem('registrationSuccess', 'Account created successfully. Please log in.');
                     navigateTo('/login');
                 } else {
                     alert('Error during registration: ' + data.error);
