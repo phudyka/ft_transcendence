@@ -127,7 +127,7 @@ function setupRegisterEvents(navigateTo) {
         const confirmPassword = document.getElementById('confirmPassword').value;
 
         if (password !== confirmPassword) {
-            alert('Passwords do not match. Please try again.');
+            showToast('Passwords do not match. Please try again.', 'error');
             return;
         }
 
@@ -152,24 +152,18 @@ function setupRegisterEvents(navigateTo) {
                 credentials: 'include',
             });
 
-            const contentType = response.headers.get("content-type");
-            if (contentType && contentType.indexOf("application/json") !== -1) {
-                const data = await response.json();
-                if (data.success) {
-                    sessionStorage.setItem('accessToken', data.access);
-                    sessionStorage.setItem('refreshToken', data.refresh);
-                    sessionStorage.setItem('registrationSuccess', 'Account created successfully. Please log in.');
-                    navigateTo('/login');
-                } else {
-                    alert('Error during registration: ' + data.error);
-                }
+            const data = await response.json();
+            if (data.success) {
+                sessionStorage.setItem('accessToken', data.access);
+                sessionStorage.setItem('refreshToken', data.refresh);
+                showToast('Account created successfully. Please log in.', 'success');
+                navigateTo('/login');
             } else {
-                console.error("Received non-JSON response:", await response.text());
-                alert('Received an unexpected response from the server. Please try again.');
+                showToast(data.error, 'error');
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('An error occurred during registration: ' + error.message);
+            showToast('An error occurred during registration: ' + error.message, 'error');
         }
     });
 
@@ -240,4 +234,28 @@ function setupRegisterEvents(navigateTo) {
         event.preventDefault();
         window.location.href = '/api/auth/42/';
     });
+
+    // Fonction pour afficher un toast
+    function showToast(message, type = 'info') {
+        const toastHtml = `
+            <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header">
+                    <strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    ${message}
+                </div>
+            </div>
+        `;
+
+        const toastContainer = document.createElement('div');
+        toastContainer.className = 'toast-container position-fixed top-0 start-50 translate-middle-x p-3';
+        toastContainer.innerHTML = toastHtml;
+        document.body.appendChild(toastContainer);
+
+        const toastElement = toastContainer.querySelector('.toast');
+        const toast = new bootstrap.Toast(toastElement);
+        toast.show();
+    }
 }

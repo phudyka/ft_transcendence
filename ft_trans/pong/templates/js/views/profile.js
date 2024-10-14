@@ -24,7 +24,7 @@ async function checkFriendshipStatus(username) {
 
 export async function profile(username) {
     try {
-        console.log(`Tentative de récupération du profil de ${username}`);
+        console.log(`Attempting to retrieve profile for ${username}`);
         const response = await fetchWithToken(`/api/profile/${username}/`, { method: 'GET' });
         console.log('Statut de la réponse:', response.status);
         console.log('Type de contenu:', response.headers.get('Content-Type'));
@@ -51,11 +51,11 @@ export async function profile(username) {
         }
         const totalGames = userProfile.wins + userProfile.losses;
 
-        // Ajout de l'historique des matchs (simulé pour l'instant)
+        // Change match history to English
         const matchHistory = [
-            { result: 'Victoire', date: '2024-03-15' },
-            { result: 'Défaite', date: '2024-03-14' },
-            { result: 'Victoire', date: '2024-03-13' }
+            { result: 'Win', date: '2024-03-15' },
+            { result: 'Loss', date: '2024-03-14' },
+            { result: 'Win', date: '2024-03-13' }
         ];
 
         document.getElementById('ft_transcendence').innerHTML = `
@@ -67,26 +67,26 @@ export async function profile(username) {
             </ul>
 
             <h3 id="header-dashboard" class="text-center">
-                Profil de ${userProfile.display_name}
+                ${userProfile.display_name}'s Profile
             </h3>
             <div class="text-center" id="profile-picture">
-                <img src="${userProfile.avatar_url}" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Photo de profil">
+                <img src="${userProfile.avatar_url}" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Profile picture">
             </div>
             <div class="status-indicator text-center mt-2">
                 <span class="status-dot ${userProfile.is_online ? 'online' : 'offline'}"></span>
                 <span class="status-text">${userProfile.is_online ? 'Online' : 'Offline'}</span>
             </div>
-            <button type="button" id="friendButton" class="btn-dark">Ajouter comme ami</button>
+            <button type="button" id="friendButton" class="btn-dark">Add as friend</button>
 
             <div class="row mt-4">
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Statistiques du joueur</h5>
+                            <h5 class="card-title">Player Statistics</h5>
                             <p class="card-text">
-                                <strong>Victoires:</strong> ${userProfile.wins}<br>
-                                <strong>Défaites:</strong> ${userProfile.losses}<br>
-                                <strong>Total des parties:</strong> ${totalGames}<br>
+                                <strong>Wins:</strong> ${userProfile.wins}<br>
+                                <strong>Losses:</strong> ${userProfile.losses}<br>
+                                <strong>Total games:</strong> ${totalGames}<br>
                             </p>
                         </div>
                     </div>
@@ -94,7 +94,7 @@ export async function profile(username) {
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Ratio Victoires/Défaites</h5>
+                            <h5 class="card-title">Win/Loss Ratio</h5>
                             <div id="chartContainer" style="height: 200px; width: 100%;">
                                 <canvas id="winLossChart"></canvas>
                             </div>
@@ -104,7 +104,7 @@ export async function profile(username) {
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-body">
-                            <h5 class="card-title">Historique des matchs récents</h5>
+                            <h5 class="card-title">Recent Match History</h5>
                             <ul class="list-group list-group-flush">
                                 ${matchHistory.map(match => `
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -139,11 +139,11 @@ export async function profile(username) {
         });
 
     } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Error:', error);
         document.getElementById('ft_transcendence').innerHTML = `
             <div class="d-flex flex-column align-items-center justify-content-center vh-100">
                 <div class="alert alert-danger text-center" role="alert">
-                    Erreur lors du chargement du profil. Veuillez réessayer plus tard.
+                    Error loading profile. Please try again later.
                 </div>
                 <div class="mt-3">
                     <button id="backToDashboard" style="width: 200px;" class="btn btn-primary">Back to Dashboard</button>
@@ -206,7 +206,7 @@ function createWinLossChart(wins, losses) {
     window.winLossChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
-            labels: ['Victoires', 'Défaites'],
+            labels: ['Wins', 'Losses'],
             datasets: [{
                 data: noGamesPlayed ? [1, 1] : [wins, losses],
                 backgroundColor: ['#4CAF50', '#F44336'],
@@ -232,14 +232,14 @@ function createWinLossChart(wins, losses) {
                     callbacks: {
                         label: function(context) {
                             if (noGamesPlayed) {
-                                return 'Aucune partie jouée';
+                                return 'No games played';
                             }
                             let label = context.label || '';
                             if (label) {
                                 label += ': ';
                             }
                             if (context.parsed !== null) {
-                                label += context.parsed + ' parties';
+                                label += context.parsed + ' games';
                             }
                             return label;
                         }

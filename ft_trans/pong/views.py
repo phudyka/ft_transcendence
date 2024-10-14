@@ -109,10 +109,11 @@ def register_view(request):
             password = data.get('password')
             avatar_url = data.get('avatar_url')
 
+
             if User.objects.filter(username=username).exists():
-                return JsonResponse({'success': False, 'error': 'Ce nom d\'utilisateur est déjà pris.'}, status=400)
+                return JsonResponse({'success': False, 'error': 'This username is already taken.'}, status=400)
             if User.objects.filter(email=email).exists():
-                return JsonResponse({'success': False, 'error': 'Cet email est déjà utilisé.'}, status=400)
+                return JsonResponse({'success': False, 'error': 'This email is already in use.'}, status=400)
 
             user = User.objects.create_user(
                 username=username,
@@ -120,6 +121,9 @@ def register_view(request):
                 password=password,
                 avatar_url=avatar_url,
                 display_name=username,
+                wins=0,
+                losses=0,
+                is_online=False,
             )
 
             refresh = RefreshToken.for_user(user)
@@ -131,15 +135,18 @@ def register_view(request):
                 'refresh': str(refresh),
             }, status=201)
 
-        except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'error': 'Données JSON invalides.'}, status=400)
         except IntegrityError as e:
-            logger.error(f"Erreur lors de l'inscription : {str(e)}")
-            return JsonResponse({'success': False, 'error': 'Erreur lors de l\'inscription.'}, status=500)
+            error_message = str(e)
+            if 'users_display_name_key' in error_message:
+                return JsonResponse({'success': False, 'error': 'This display name is already in use.'}, status=400)
+            elif 'users_email_key' in error_message:
+                return JsonResponse({'success': False, 'error': 'This email is already in use.'}, status=400)
+            else:
+                return JsonResponse({'success': False, 'error': 'An error occurred during registration.'}, status=500)
         except Exception as e:
-            logger.error(f"Erreur lors de l'inscription : {str(e)}")
-            return JsonResponse({'success': False, 'error': 'Une erreur est survenue.'}, status=500)
-    return JsonResponse({'success': False, 'error': 'Méthode non autorisée.'}, status=405)
+            logger.error(f"Error during registration: {str(e)}")
+            return JsonResponse({'success': False, 'error': 'An error occurred.'}, status=500)
+    return JsonResponse({'success': False, 'error': 'Method not allowed.'}, status=405)
 
 @ensure_csrf_cookie
 def set_csrf_token(request):
@@ -349,34 +356,34 @@ def update_user_settings(request):
 
     if display_name:
         if CustomUser.objects.filter(display_name=display_name).exclude(id=user.id).exists():
-            return JsonResponse({'success': False, 'message': 'Ce nom d\'affichage est déjà utilisé.'}, status=400)
+            return JsonResponse({'success': False, 'message': 'This display name is already in use.'}, status=400)
         user.display_name = display_name
 
     if email:
         try:
             validate_email(email)
             if CustomUser.objects.filter(email=email).exclude(id=user.id).exists():
-                return JsonResponse({'success': False, 'message': 'Cet email est déjà utilisé.'}, status=400)
+                return JsonResponse({'success': False, 'message': 'This email is already in use.'}, status=400)
             user.email = email
         except ValidationError:
-            return JsonResponse({'success': False, 'message': 'Email invalide.'}, status=400)
+            return JsonResponse({'success': False, 'message': 'Invalid email.'}, status=400)
 
     if avatar:
         if avatar.size > 5 * 1024 * 1024:  # 5 MB
-            return JsonResponse({'success': False, 'message': 'Le fichier est trop volumineux. La taille maximale est de 5 MB.'}, status=400)
+            return JsonResponse({'success': False, 'message': 'The file is too large. Maximum size is 5 MB.'}, status=400)
 
         try:
             img = Image.open(avatar)
             width, height = img.size
             if width < 100 or height < 100 or width > 1000 or height > 1000:
-                return JsonResponse({'success': False, 'message': 'Les dimensions de l\'image doivent être comprises entre 100x100 et 1000x1000 pixels.'}, status=400)
+                return JsonResponse({'success': False, 'message': 'Image dimensions must be between 100x100 and 1000x1000 pixels.'}, status=400)
         except:
-            return JsonResponse({'success': False, 'message': 'Fichier image invalide.'}, status=400)
+            return JsonResponse({'success': False, 'message': 'Invalid image file.'}, status=400)
 
         user.avatar_url = avatar
 
     user.save()
-    return JsonResponse({'success': True, 'message': 'Paramètres mis à jour avec succès.'})
+    return JsonResponse({'success': True, 'message': 'Settings updated successfully.'})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
