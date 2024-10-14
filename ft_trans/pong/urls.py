@@ -27,7 +27,9 @@ urlpatterns = [
 	path('api/reject-friend-request/', views.reject_friend_request, name='reject_friend_request'),
 	path('api/get-friend-requests/', views.get_friend_requests, name='get_friend_requests'),
 	path('api/update-user-settings/', views.update_user_settings, name='update_user_settings'),
+    path('api/check-friend-request/<str:username>/', views.check_friend_request, name='check_friend_request'),
 	path('api/profile/<str:username>/', views.user_profile, name='user_profile'),
+	path('api/user-ping/', views.user_ping, name='user_ping'),
 	path('<path:path>', views.index, name='catch_all'),
 	path('', views.index, name='index'),
 ]

@@ -1,16 +1,17 @@
 import { navigateTo } from '../app.js';
 import { logout } from '../utils/token.js';
 import { fetchWithToken } from '../utils/api.js';
-import { sendFriendRequest } from '../utils/friendManager.js';
+import { sendFriendRequest, fetchFriendList } from '../utils/friendManager.js';
 import { getCookie } from './settingsv.js';
 
 async function checkFriendshipStatus(username) {
     try {
-        const response = await fetchWithToken(`/api/check-friendship-status/${username}/`, { method: 'GET' });
+        const response = await fetchWithToken(`/api/check-friend-request/${username}/`);
         if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
+        console.log('Résultat de checkFriendshipStatus:', data);
         return {
             isFriend: data.is_friend,
             requestSent: data.request_sent
@@ -157,7 +158,6 @@ export async function profile(username) {
 }
 
 function attachEventHandlers2(navigateTo, friendName, isFriend, requestSent) {
-
     document.getElementById('pongonlineLink').addEventListener('click', function(event) {
         event.preventDefault();
         navigateTo('/dashboard');

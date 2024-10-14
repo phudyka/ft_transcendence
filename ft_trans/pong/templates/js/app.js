@@ -5,6 +5,7 @@ import { profile } from './views/profile.js';
 import { settings } from './views/settingsv.js';
 import { generateRandomUsername } from './views/dashboard.js';
 import { initializeSocket, disconnectSocket } from './utils/socketManager.js';
+import { getCookie } from './views/settingsv.js';
 
 // Déclaration de router comme une variable globale au module
 let router;
@@ -115,3 +116,27 @@ function isUserLoggedIn() {
 
 // Exportez également initRouter si vous en avez besoin ailleurs
 export { initRouter };
+
+function startPingInterval() {
+    setInterval(() => {
+        if (isUserLoggedIn()) {
+            fetch('/api/user-ping/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Authorization': `Bearer ${sessionStorage.getItem('access_token')}`
+                },
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status !== 'success') {
+                    console.error('Ping failed');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    }, 60000);
+}
+
+startPingInterval();

@@ -465,9 +465,32 @@ def get_friend_list(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def update_online_status(request):
+def user_ping(request):
     user = request.user
-    is_online = request.data.get('is_online', False)
-    user.is_online = is_online
+    user.last_activity = timezone.now()
     user.save()
-    return Response({'status': 'success'})
+    return JsonResponse({'status': 'success'})
+
+# Ajoutez cette fonction pour mettre à jour le statut en ligne des utilisateurs
+def update_online_status():
+    five_minutes_ago = timezone.now() - timedelta(minutes=5)
+    CustomUser.objects.filter(last_activity__lt=five_minutes_ago, is_online=True).update(is_online=False)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def check_friend_request(request, username):
+    try:
+        target_user = CustomUser.objects.get(username=username)
+        is_friend = Friendship.objects.filter(user=request.user, friend=target_user).exists()
+        request_sent = FriendRequest.objects.filter(
+            from_user=request.user,
+            to_user=target_user,
+            status='pending'
+        ).exists()
+
+        return JsonResponse({
+            'is_friend': is_friend,
+            'request_sent': request_sent
+        })
+    except CustomUser.DoesNotExist:
+        return JsonResponse({'error': 'Utilisateur non trouvé'}, status=404)
