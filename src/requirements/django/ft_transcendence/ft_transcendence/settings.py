@@ -32,13 +32,13 @@ ALLOWED_HOSTS = [ 'django' ]
 # Application definition
 
 INSTALLED_APPS = [
-    'pong',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'pong',
 ]
 
 MIDDLEWARE = [
@@ -78,11 +78,11 @@ WSGI_APPLICATION = 'ft_transcendence.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME' : 'django',
+        'NAME' : getenv("DJANGO_DB_NAME"),
         'USER' : getenv("POSTGRES_USER"),
         'PASSWORD' : getenv("POSTGRES_PASSWORD"),
-        'HOST' : 'postgresql',
-        'PORT' : '5432',
+        'HOST' : getenv("POSTGRES_HOST"),
+        'PORT' : getenv("POSTGRES_PORT"),
     }
 }
 

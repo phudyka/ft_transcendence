@@ -52,6 +52,9 @@ services:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - DJANGO_DB_NAME=${DJANGO_DB_NAME}
+      - POSTGRES_HOST=${POSTGRES_HOST}
+      - POSTGRES_PORT=${POSTGRES_PORT}
     networks:
       - 42nice
       - db_network
