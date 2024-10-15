@@ -78,7 +78,7 @@ WSGI_APPLICATION = 'ft_transcendence.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME' : getenv("POSTGRES_DB"),
+        'NAME' : 'django',
         'USER' : getenv("POSTGRES_USER"),
         'PASSWORD' : getenv("POSTGRES_PASSWORD"),
         'HOST' : 'postgresql',

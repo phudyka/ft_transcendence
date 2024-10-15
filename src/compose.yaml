@@ -19,8 +19,6 @@ services:
       - db_network
     ports:
       - "5454:8080"
-    depends_on:
-      - postgresql
 ## FRONTEND ## FRONTEND ## FRONTEND ## FRONTEND ## FRONTEND ## FRONTEND ##
   nginx:
     build: requirements/nginx
@@ -44,15 +42,16 @@ services:
     # ports:
     #   - "8000:443"
     depends_on:
-      - postgresql
-      - chat
-      - game_server
+      postgresql:
+        condition: service_healthy
+      chat:
+        condition: service_started
+      game_server:
+        condition: service_started
     environment:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - DATABASE_URL=postgres://42:nice@postgresql/db
     networks:
       - 42nice
       - db_network
@@ -64,6 +63,9 @@ services:
     #   - "3000:3000"
     networks:
       - 42nice
+    depends_on:
+      postgresql:
+       condition: service_healthy
   game_server:
     build: requirements/game_server
     container_name: "game_server"
@@ -72,6 +74,9 @@ services:
     #   - "4000:4000"
     networks:
       - 42nice
+    depends_on:
+      postgresql:
+       condition: service_healthy
   postgresql:
     build: requirements/postgresql
     restart: unless-stopped
@@ -81,11 +86,15 @@ services:
     # ports:
     #   - "5432:5432"
     environment:
-      - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     networks:
       - db_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ##
 
   ## MONITORING ## MONITORING ## MONITORING ## MONITORING ## MONITORING ##

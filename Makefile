@@ -37,6 +37,8 @@ fclean: clean
 	@docker volume rm -f $(VOLUMES) > /dev/null
 	@echo "Volumes removed."
 
-re: fclean all
+re: clean all
 
-.PHONY: all up start down stop clean fclean re
+refclean: fclean all
+
+.PHONY: all up start down stop clean fclean re refclean
