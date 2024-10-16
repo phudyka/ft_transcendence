@@ -1,5 +1,7 @@
 FROM node:18
 
+RUN apt update && apt install curl -y
+
 WORKDIR /app
 
 COPY /config /app

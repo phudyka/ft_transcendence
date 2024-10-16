@@ -19,7 +19,7 @@ services:
   #     - db_network
   #   ports:
   #     - "4444:8080"
-## FRONTEND ## FRONTEND ## FRONTEND ## FRONTEND ## FRONTEND ## FRONTEND ##
+## INTERFACE ## INTERFACE ## INTERFACE ## INTERFACE ## INTERFACE ## INTERFACE ##
   nginx:
     build: requirements/nginx
     container_name: "nginx"
@@ -32,8 +32,13 @@ services:
     ports:
       - "8080:443"
     depends_on:
-      # - grafana
-      - django
+      django:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k https://localhost:443"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   ## BACKEND ## BACKEND ## BACKEND ## BACKEND ## BACKEND ## BACKEND ##
   django:
     build: requirements/django
@@ -47,9 +52,9 @@ services:
       postgresql:
         condition: service_healthy
       chat:
-        condition: service_started
+        condition: service_healthy
       game_server:
-        condition: service_started
+        condition: service_healthy
     environment:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -60,36 +65,17 @@ services:
     networks:
       - 42nice
       - db_network
-  chat:
-    build: requirements/chat
-    container_name: "chat"
-    restart: unless-stopped
-    # ports:
-    #   - "3000:3000"
-    networks:
-      - 42nice
-    depends_on:
-      postgresql:
-       condition: service_healthy
-  game_server:
-    build: requirements/game_server
-    container_name: "game_server"
-    restart: unless-stopped
-    # ports:
-    #   - "4000:4000"
-    networks:
-      - 42nice
-    depends_on:
-      postgresql:
-       condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k https://localhost:443"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   postgresql:
     build: requirements/postgresql
     restart: unless-stopped
     container_name: "postgresql"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    # ports:
-    #   - "5432:5432"
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -101,7 +87,38 @@ services:
       timeout: 5s
       retries: 5
   ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ##
-
+  chat:
+    build: requirements/chat
+    container_name: "chat"
+    restart: unless-stopped
+    # ports:
+    #   - "3000:3000"
+    networks:
+      - 42nice
+    depends_on:
+      postgresql:
+       condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k http://localhost:3000"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  game_server:
+    build: requirements/game_server
+    container_name: "game_server"
+    restart: unless-stopped
+    # ports:
+    #   - "4000:4000"
+    networks:
+      - 42nice
+    depends_on:
+      postgresql:
+       condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k http://localhost:4000"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
   ## MONITORING ## MONITORING ## MONITORING ## MONITORING ## MONITORING ##
   # grafana:
   #   build: requirements/grafana
