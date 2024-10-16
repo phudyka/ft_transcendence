@@ -30,6 +30,9 @@ urlpatterns = [
     path('api/check-friend-request/<str:username>/', views.check_friend_request, name='check_friend_request'),
 	path('api/profile/<str:username>/', views.user_profile, name='user_profile'),
 	path('api/user-ping/', views.user_ping, name='user_ping'),
+	path('api/users/display_name/<str:display_name>/update_stats/', views.update_user_stats, name='update_user_stats'),
+	path('api/save-match-result/', views.save_match_result, name='save_match_result'),
+	path('api/get-recent-matches/<str:display_name>/', views.get_recent_matches, name='get_recent_matches'),
 	path('<path:path>', views.index, name='catch_all'),
 	path('', views.index, name='index'),
 ]

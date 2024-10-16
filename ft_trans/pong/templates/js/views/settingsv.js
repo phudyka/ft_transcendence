@@ -122,13 +122,16 @@ function attachEventSettingsPage(navigateTo, player_name) {
 
             if (response.ok) {
                 showUpdateProfileToast();
+                sessionStorage.setItem('player_name', document.getElementById('displayName').value);
+                sessionStorage.setItem('email', document.getElementById('email').value);
+                sessionStorage.setItem('avatar_url', document.getElementById('avatar').value);
             } else {
                 const errorData = await response.json();
-                alert(`Erreur : ${errorData.message}`);
+                showToast(`Erreur : ${errorData.message}`, 'error');
             }
         } catch (error) {
             console.error('Erreur lors de la mise à jour des paramètres :', error);
-            alert('Une erreur est survenue lors de la mise à jour des paramètres.');
+            showToast('Une erreur est survenue lors de la mise à jour des paramètres.', 'error');
         }
     });
 
@@ -137,7 +140,7 @@ function attachEventSettingsPage(navigateTo, player_name) {
         if (file) {
             // Vérification de la taille du fichier
             if (file.size > 5 * 1024 * 1024) {
-                alert('Le fichier est trop volumineux. La taille maximale est de 5 MB.');
+                showToast('File is too large. Maximum size is 5 MB.', 'error');
                 avatarInput.value = '';
                 return;
             }
@@ -145,7 +148,7 @@ function attachEventSettingsPage(navigateTo, player_name) {
             // Vérification du type de fichier
             const acceptedTypes = ['image/jpeg', 'image/png', 'image/gif'];
             if (!acceptedTypes.includes(file.type)) {
-                alert('Type de fichier non accepté. Veuillez choisir une image JPG, PNG ou GIF.');
+                showToast('File type not accepted. Please choose a JPG, PNG or GIF image.', 'error');
                 avatarInput.value = '';
                 return;
             }
@@ -155,7 +158,7 @@ function attachEventSettingsPage(navigateTo, player_name) {
                 const img = new Image();
                 img.onload = () => {
                     if (img.width < 100 || img.height < 100 || img.width > 1000 || img.height > 1000) {
-                        alert('Les dimensions de l\'image doivent être comprises entre 100x100 et 1000x1000 pixels.');
+                        showToast('Image dimensions must be between 100x100 and 1000x1000 pixels.', 'error');
                         avatarInput.value = '';
                     } else {
                         document.getElementById('currentAvatar').src = e.target.result;
@@ -197,4 +200,27 @@ export function getCookie(name) {
         }
     }
     return cookieValue;
+}
+
+function showToast(message, type = 'info') {
+    const toastHtml = `
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <strong class="me-auto">${type.charAt(0).toUpperCase() + type.slice(1)}</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                ${message}
+            </div>
+        </div>
+    `;
+
+    const toastContainer = document.createElement('div');
+    toastContainer.className = 'toast-container position-fixed top-0 start-50 translate-middle-x p-3';
+    toastContainer.innerHTML = toastHtml;
+    document.body.appendChild(toastContainer);
+
+    const toastElement = toastContainer.querySelector('.toast');
+    const toast = new bootstrap.Toast(toastElement);
+    toast.show();
 }

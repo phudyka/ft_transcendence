@@ -1,4 +1,3 @@
-
 async function getUserByDisplayName(displayName, token) {
   const response = await fetch(`http://localhost:8000/api/user/${displayName}/`, {
     method: 'GET',
@@ -35,14 +34,15 @@ export async function updateUserStats(displayName, token, hasWon) {
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
-      },
+        'X-CSRFToken': csrfToken,
+
       body: JSON.stringify({
         wins: currentWins,
         losses: currentLosses,
         is_online: true
       })
     });
-    
+
 
     // Vérifie si la requête a réussi
     if (response.ok) {
@@ -52,7 +52,34 @@ export async function updateUserStats(displayName, token, hasWon) {
       console.error('Erreur lors de la mise à jour des statistiques :', response.statusText);
     }
 
+    await saveMatchResult(token, hasWon);
+
   } catch (error) {
-    console.error('Erreur :', error.message);
+    console.error('Erreur lors de la mise à jour des statistiques :', error.message);
+    throw error;
+  }
+}
+
+export async function saveMatchResult(token, result) {
+  try {
+    const response = await fetch('http://localhost:8000/api/save-match-result/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ result: result ? 'win' : 'loss' })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Match result saved:', data);
+    return data;
+  } catch (error) {
+    console.error('Error saving match result:', error);
+    throw error;
   }
 }

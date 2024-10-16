@@ -22,6 +22,20 @@ async function checkFriendshipStatus(username) {
     }
 }
 
+async function getRecentMatches(username, token) {
+  try {
+    const response = await fetchWithToken(`/api/get-recent-matches/${username}/`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.matches;
+  } catch (error) {
+    console.error('Error fetching recent matches:', error);
+    return [];
+  }
+}
+
 export async function profile(username) {
     try {
         console.log(`Attempting to retrieve profile for ${username}`);
@@ -51,12 +65,12 @@ export async function profile(username) {
         }
         const totalGames = userProfile.wins + userProfile.losses;
 
-        // Change match history to English
-        const matchHistory = [
-            { result: 'Win', date: '2024-03-15' },
-            { result: 'Loss', date: '2024-03-14' },
-            { result: 'Win', date: '2024-03-13' }
-        ];
+        const recentMatches = await getRecentMatches(userProfile.display_name, sessionStorage.getItem('accessToken'));
+
+        const matchHistory = recentMatches.map(match => ({
+            result: match.result.charAt(0).toUpperCase() + match.result.slice(1),
+            date: match.date
+        }));
 
         document.getElementById('ft_transcendence').innerHTML = `
         <div class="dashboard-container">
@@ -164,9 +178,13 @@ function attachEventHandlers2(navigateTo, friendName, isFriend, requestSent) {
     });
 
     const friendButton = document.getElementById('friendButton');
+    const currentUser = sessionStorage.getItem('username');
 
     function updateFriendButton() {
-        if (isFriend) {
+        if (friendName === currentUser) {
+            friendButton.innerText = "It's me";
+            friendButton.classList.add('btn-dark', 'disabled');
+        } else if (isFriend) {
             friendButton.innerText = 'Already Friends';
             friendButton.classList.add('btn-dark', 'disabled');
         } else if (requestSent) {
@@ -179,7 +197,7 @@ function attachEventHandlers2(navigateTo, friendName, isFriend, requestSent) {
     }
 
     friendButton.addEventListener('click', () => {
-        if (!isFriend && !requestSent) {
+        if (friendName !== currentUser && !isFriend && !requestSent) {
             sendFriendRequest(friendName)
                 .then(() => {
                     requestSent = true;

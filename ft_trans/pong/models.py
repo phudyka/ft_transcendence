@@ -83,3 +83,14 @@ class FriendRequest(models.Model):
 
     def __str__(self):
         return f"{self.from_user.username} -> {self.to_user.username} ({self.status})"
+
+class MatchHistory(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='match_history')
+    result = models.CharField(max_length=4, choices=[('win', 'Win'), ('loss', 'Loss')])
+    date = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-date']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.result} - {self.date}"

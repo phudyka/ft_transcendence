@@ -17,7 +17,7 @@ from .serializers import CustomUserSerializer
 logger = logging.getLogger(__name__)
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from .models import CustomUser, Friendship, FriendRequest
+from .models import CustomUser, Friendship, FriendRequest, MatchHistory
 from django.contrib.auth.hashers import check_password, make_password
 from django.views.decorators.http import require_GET
 from django.conf import settings
@@ -501,3 +501,58 @@ def check_friend_request(request, username):
         })
     except CustomUser.DoesNotExist:
         return JsonResponse({'error': 'Utilisateur non trouvé'}, status=404)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_user_stats(request, display_name):
+    try:
+        user = CustomUser.objects.get(display_name=display_name)
+        data = request.data
+
+        user.wins = data.get('wins', user.wins)
+        user.losses = data.get('losses', user.losses)
+        user.is_online = data.get('is_online', user.is_online)
+        user.save()
+
+        return Response({
+            'success': True,
+            'message': 'Statistiques mises à jour avec succès',
+            'user': {
+                'username': user.username,
+                'display_name': user.display_name,
+                'wins': user.wins,
+                'losses': user.losses,
+                'is_online': user.is_online
+            }
+        }, status=status.HTTP_200_OK)
+    except CustomUser.DoesNotExist:
+        return Response({
+            'success': False,
+            'message': 'Utilisateur non trouvé'
+        }, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({
+            'success': False,
+            'message': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def save_match_result(request):
+    result = request.data.get('result')
+    if result not in ['win', 'loss']:
+        return Response({'error': 'Invalid result'}, status=status.HTTP_400_BAD_REQUEST)
+
+    MatchHistory.objects.create(user=request.user, result=result)
+    return Response({'success': True}, status=status.HTTP_201_CREATED)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_recent_matches(request, username):
+    try:
+        user = CustomUser.objects.get(username=username)
+        recent_matches = MatchHistory.objects.filter(user=user).order_by('-date')[:3]
+        matches_data = [{'result': match.result, 'date': match.date.strftime('%Y-%m-%d')} for match in recent_matches]
+        return Response({'matches': matches_data})
+    except CustomUser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)

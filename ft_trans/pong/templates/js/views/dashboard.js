@@ -10,17 +10,6 @@ let socket;
 const privateChatLogs = new Map();
 const username = sessionStorage.getItem('username');
 
-export function generateRandomUsername() {
-    const adjectives = ['Happy', 'Clever', 'Brave', 'Calm', 'Eager', 'Jolly', 'Kind', 'Lively', 'Proud', 'Wise'];
-    const nouns = ['Lion', 'Eagle', 'Dolphin', 'Tiger', 'Panda', 'Fox', 'Wolf', 'Bear', 'Owl', 'Hawk'];
-
-    const randomAdjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-    const randomNoun = nouns[Math.floor(Math.random() * nouns.length)];
-    const randomNumber = Math.floor(Math.random() * 100);
-
-    return `${randomAdjective}${randomNoun}${randomNumber}`;
-}
-
 export async function dashboard(player_name) {
     const isAuthenticated = await checkAuthentication();
     if (!isAuthenticated) {
@@ -51,9 +40,11 @@ export async function dashboard(player_name) {
             <a class="navbar-brand" href="#">
                 <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" class="logo">
             </a>
-            <span class="nav-item" style="font-size: 2.5em; font-weight: bold;">${username}</span>
+            <span class="nav-item" style="font-size: 2.5em; font-weight: bold; color: #ff7043;">${displayName}</span>
             <div class="profile-container">
-                <img src="${avatarUrl}" class="profile-icon" alt="Profile Picture" id="img_profile_pic">
+                <img src="${avatarUrl}" class="profile-icon" alt="Profile Picture" id="img_profile_pic" style="
+    cursor: pointer;
+">
             </div>
         </div>
 
@@ -68,7 +59,6 @@ export async function dashboard(player_name) {
                     <a class="dropdown-item" href="#" id="viewProfile">View Profile</a>
                 </div>
                 <div id="friendDropdown_chat" class="dropdown-menu_chat" style="display: none;">
-                    <a class="dropdown-item" href="#" id="sendMessage">Send Private Message</a>
                     <a class="dropdown-item" href="#" id="addToFriend">Add To Friend</a>
                     <a class="dropdown-item" href="#" id="blockUser">Block User</a>
                     <a class="dropdown-item" href="#" id="viewProfile">View Profile</a>
@@ -115,18 +105,17 @@ export async function dashboard(player_name) {
 
         <footer id="footer-dashboard">© 2024 42Company, Inc</footer>
     </div>`;
-
     const iframe = document.getElementById('pong');
     iframe.onload = function () {
-    const username = sessionStorage.getItem('username');
-    const token = sessionStorage.getItem('accessToken');
-    const csrfToken = getCookie('csrftoken');
-    console.log(sessionStorage);
-    const avatar = sessionStorage.getItem('avatar_url');
-    iframe.contentWindow.postMessage({ username: username, token: token, csrfToken: csrfToken, avatar: avatar }, 'http://localhost:4000');
+        const displayName = sessionStorage.getItem('display_name');
+        const token = sessionStorage.getItem('accessToken');
+        const csrfToken = getCookie('csrftoken');
+        console.log(sessionStorage);
+        const avatar = sessionStorage.getItem('avatar_url');
+        iframe.contentWindow.postMessage({ username: displayName, token: token, csrfToken: csrfToken, avatar: avatar }, 'http://localhost:4000');
     };
 
-	setupDashboardEvents(navigateTo, username);
+	setupDashboardEvents(navigateTo, displayName);
 	// setupChatListeners();
 	checkForFriendRequests();
     fetchAndDisplayFriends();
@@ -225,7 +214,6 @@ function setupDashboardEvents(navigateTo, username) {
 
 	// Dropdown actions
 	document.getElementById('sendMessage').addEventListener('click', showChatbox);
-	document.getElementById('friendDropdown_chat').querySelector('#sendMessage').addEventListener('click', showChatbox);
 	// document.getElementById('startGame').addEventListener('click', startGame);
 	document.getElementById('settings').addEventListener('click', goTosettings);
 
@@ -289,32 +277,37 @@ function handleProfilePictureClick(event) {
     event.stopPropagation();
     const dropdown = document.getElementById('profileDropdown');
 
+    // Masquer tous les dropdowns visibles
     const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
     visibleDropdowns.forEach(dropdown => {
         dropdown.style.display = 'none';
     });
 
-
-    // verifier si le dropdown depasse la fenetre
-    const rect = dropdown.getBoundingClientRect();
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-
-    if (rect.bottom > windowHeight) {
-        dropdown.style.top = `${event.clientY}px`;
-        dropdown.style.left = `${event.clientX}px - ${rect.width}px`;
-        dropdown.style.display = 'block';
-    } else {
-        dropdown.style.top = `${event.clientY}px`;
-        dropdown.style.left = `${event.clientX}px`;
-        dropdown.style.display = 'block';
-    }
-
-
-    // dropdown.style.top = `${event.clientY}px`;
-    // dropdown.style.left = `${event.clientX}px`;
+    // Afficher le dropdown pour le calculer ses dimensions
     dropdown.style.display = 'block';
 
+    // Obtenir les dimensions de la fenêtre et du dropdown
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const dropdownRect = dropdown.getBoundingClientRect();
+
+    // Calculer la position optimale
+    let top = event.clientY;
+    let left = event.clientX;
+
+    // Ajuster la position verticale si nécessaire
+    if (top + dropdownRect.height > windowHeight) {
+        top = windowHeight - dropdownRect.height;
+    }
+
+    // Ajuster la position horizontale si nécessaire
+    if (left + dropdownRect.width > windowWidth) {
+        left = windowWidth - dropdownRect.width;
+    }
+
+    // Appliquer la nouvelle position
+    dropdown.style.top = `${top}px`;
+    dropdown.style.left = `${left}px`;
 }
 
 function handleFriendClick(event) {
@@ -418,6 +411,7 @@ function receiveMessage(msg) {
     usernameElement.classList.add('username-link');
     usernameElement.dataset.friend = msg.name;
     usernameElement.innerText = `[${msg.name}]`;
+    usernameElement.style = "cursor: pointer;";
 
     usernameElement.addEventListener('click', function (event) {
         event.preventDefault();

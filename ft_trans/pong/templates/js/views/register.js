@@ -77,10 +77,10 @@ export function register() {
 
             <div class="form-actions">
                 <button id="registerbutton" type="submit" class="btn-primary">Register</button>
-                <button id="registerbutton42" type="button" class="btn-secondary">Register with 42</button>
+                <button id="registerbutton42" type="button" class="btn-secondary " style="background-color: #FF8C00;">Register with 42</button>
             </div>
         </form>
-        <button id="arrowbackregister" class="btn-back" style="width: 450px; margin: 40px auto 0; display: block;">Back</button>
+        <button id="arrowbackregister" class="btn-back" style="width: 450px; margin: 10px auto 0; display: block;">Back</button>
     </div>
     <footer class="footer">
         <p>© 2024 42Company, Inc</p>
