@@ -85,7 +85,6 @@ export async function logout() {
     } catch (error) {
         console.error('Erreur lors de la mise à jour du statut en ligne:', error);
     }
-
     sessionStorage.removeItem('accessToken');
     sessionStorage.removeItem('refreshToken');
     sessionStorage.removeItem('username');

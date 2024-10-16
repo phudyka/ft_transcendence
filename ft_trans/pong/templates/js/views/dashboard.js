@@ -5,6 +5,7 @@ import { fetchFriendList, sendFriendRequest, fetchFriendRequests, acceptFriendRe
 import { getCookie } from './settingsv.js';
 import { removeLoginEventListeners } from './login.js';
 import { checkAuthentication } from '../utils/auth.js';
+import { showToast } from '../utils/unmask.js';
 
 let socket;
 const privateChatLogs = new Map();
@@ -54,7 +55,7 @@ export async function dashboard(player_name) {
                 <ul id="friends" class="list-group">
                 </ul>
                 <div id="friendDropdown" class="dropdown-menu" style="display: none;">
-                    <a class="dropdown-item" href="#" id="sendMessage">Send Private Message</a>
+                    <a class="dropdown-item" href="#" id="sendMessagePrivate">Send Private Message</a>
                     <a class="dropdown-item" href="#" id="startGame">Start a Game</a>
                     <a class="dropdown-item" href="#" id="viewProfile">View Profile</a>
                 </div>
@@ -73,7 +74,7 @@ export async function dashboard(player_name) {
                 <h2 class="title-chat">Chat</h2>
                 <div class="chat-log" id="chat-log"></div>
                 <div class="input-container">
-                    <input id="message-input" placeholder="Tapez votre message..." rows="1"></input>
+                    <input id="message-input" placeholder="Type your message..." rows="1"></input>
                     <button id="send-button">►</button>
                 </div>
             </div>
@@ -129,6 +130,12 @@ function setupChatListeners(socket) {
 
         socket.on('chat message', (msg) => {
             console.log('Message reçu du serveur:', msg);
+            //if receive message from same user at very little delay, don't display it
+            const currentUsername = sessionStorage.getItem('username');
+            if (msg.name === currentUsername && msg.time - Date.now() < 5000) {
+                console.log('Message duplicate');
+                return;
+            }
             receiveMessage(msg);
         });
 
@@ -213,8 +220,8 @@ function setupDashboardEvents(navigateTo, username) {
 	document.getElementById('profileDropdown').addEventListener('click', (event) => event.stopPropagation());
 
 	// Dropdown actions
-	document.getElementById('sendMessage').addEventListener('click', showChatbox);
-	// document.getElementById('startGame').addEventListener('click', startGame);
+	document.getElementById('sendMessagePrivate').addEventListener('click', showChatbox);
+	document.getElementById('startGame').addEventListener('click', startGame);
 	document.getElementById('settings').addEventListener('click', goTosettings);
 
 	// Chat functionnalitis
@@ -370,13 +377,48 @@ function setupPrivateChat(friendName) {
     `;
     loadMessages(friendName);
     document.getElementById(`send-button-${friendName}`).onclick = () => sendPrivateMessage(friendName);
+
+    // Créer une connexion privée pour ce chat
+    createPrivateConnection(friendName);
 }
 
-// function startGame(event) {
-// 	event.preventDefault();
-// 	const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
-// 	console.log(`Start a game with ${friendName}`);
-// }
+function createPrivateConnection(friendName) {
+    const socket = getSocket();
+    if (socket) {
+        socket.emit('create private room', { friend: friendName });
+    }
+}
+
+function sendPrivateMessage(friendName) {
+    const input = document.getElementById(`message-input-${friendName}`);
+    if (input) {
+        const message = input.value.trim();
+        const socket = getSocket();
+        if (message && socket && socket.connected) {
+            socket.emit('private message', { to: friendName, message: message });
+            displayPrivateMessage(friendName, 'Vous', message);
+            input.value = '';
+        }
+    }
+}
+
+function displayPrivateMessage(friendName, sender, message) {
+    const chatLog = document.getElementById(`chat-log-${friendName}`);
+    if (chatLog) {
+        const messageElement = document.createElement('div');
+        messageElement.innerHTML = `<strong>${sender}:</strong> ${message}`;
+        chatLog.appendChild(messageElement);
+        chatLog.scrollTop = chatLog.scrollHeight;
+    }
+}
+
+function startGame(event) {
+	event.preventDefault();
+    // need api for check if friend is already in game or in tournament or in queue
+    // create a toast to display the error if friend is already in game or in tournament or in queue with showToast function
+    const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
+    showToast(`${friendName} is already in game or in tournament or in queue`, 'error');
+}
 
 function goTosettings(event) {
 	event.preventDefault();
@@ -465,26 +507,6 @@ function receiveMessage(msg) {
     chatLog.scrollTop = chatLog.scrollHeight;
 }
 
-function sendPrivateMessage(friendName) {
-    const input = document.getElementById(`message-input-${friendName}`);
-    if (input) {
-        const message = input.value.trim();
-        const socket = getSocket();
-        if (message && socket && socket.connected) {
-            socket.emit('private message', { to: friendName, message: message });
-            // Afficher le message envoyé dans le chat local
-            const chatLog = document.getElementById(`chat-log-${friendName}`);
-            if (chatLog) {
-                const messageElement = document.createElement('div');
-                messageElement.innerHTML = `<strong>You:</strong> ${message}`;
-                chatLog.appendChild(messageElement);
-                chatLog.scrollTop = chatLog.scrollHeight;
-            }
-            input.value = '';
-        }
-    }
-}
-
 function handleEnterKey(event) {
 	if (event.key === "Enter") {
 		const messageInput = document.getElementById('message-input');
@@ -506,16 +528,19 @@ function addFriend(event) {
     sendFriendRequest(friendName)
         .then(response => {
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json().then(data => {
+                    throw new Error(data.message || `HTTP error! status: ${response.status}`);
+                });
             }
             return response.json();
         })
         .then(data => {
             console.log('Demande d\'ami envoyée avec succès', data);
-            showFriendRequestSentToast(friendName);
+            showToast(data.message, 'success');
         })
         .catch(error => {
             console.error('Erreur lors de l\'envoi de la demande d\'ami:', error);
+            showToast(error.message, 'error');
         });
 }
 
@@ -698,8 +723,8 @@ function reinitializeSocket() {
     }
 }
 
-// Appelez reinitializeSocket au chargement de la page
-window.addEventListener('load', reinitializeSocket);
+// // Appelez reinitializeSocket au chargement de la page
+// window.addEventListener('load', reinitializeSocket);
 
 function showFriendDropdown(event, friendName) {
     const dropdown = document.getElementById('friendDropdown');

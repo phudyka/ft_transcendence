@@ -79,7 +79,7 @@ def login_view(request):
 
 				return JsonResponse({
 					'success': True,
-					'message': 'Connexion réussie',
+					'message': 'Connection successful',
 					'access': str(refresh.access_token),
 					'refresh': str(refresh),
 					'username': user.username,
@@ -87,14 +87,14 @@ def login_view(request):
 					'avatar_url': user.avatar_url,
 				}, status=200)
 			else:
-				return JsonResponse({'success': False, 'message': 'Identifiants invalides'}, status=401)
+				return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=401)
 		except json.JSONDecodeError:
-			return JsonResponse({'success': False, 'message': 'Données JSON invalides'}, status=400)
+			return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)
 		except Exception as e:
-			logger.error(f"Erreur lors de la connexion : {str(e)}")
-			return JsonResponse({'success': False, 'message': 'Une erreur est survenue'}, status=500)
+			logger.error(f"Error during connection: {str(e)}")
+			return JsonResponse({'success': False, 'message': 'An error occurred'}, status=500)
 
-	return JsonResponse({'success': False, 'message': 'Méthode non autorisée'}, status=405)
+	return JsonResponse({'success': False, 'message': 'Method not allowed'}, status=405)
 
 def content(request):
 	return JsonResponse({'message': 'content page'}, status=200)
@@ -302,10 +302,19 @@ def send_friend_request(request):
     to_username = request.data.get('to_username')
     try:
         to_user = CustomUser.objects.get(username=to_username)
+
+        # Vérifier si les utilisateurs sont déjà amis
+        if Friendship.objects.filter(user=request.user, friend=to_user).exists():
+            return JsonResponse({'success': False, 'message': 'You are already friends with this user.'}, status=400)
+
+        # Vérifier si une demande d'ami est déjà en attente
+        if FriendRequest.objects.filter(from_user=request.user, to_user=to_user, status='pending').exists():
+            return JsonResponse({'success': False, 'message': 'A friend request is already pending for this user.'}, status=400)
+
         FriendRequest.objects.create(from_user=request.user, to_user=to_user)
-        return JsonResponse({'success': True, 'message': 'Demande d\'ami envoyée'})
+        return JsonResponse({'success': True, 'message': 'Friend request sent'})
     except CustomUser.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Utilisateur non trouvé'}, status=404)
+        return JsonResponse({'success': False, 'message': 'User not found'}, status=404)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -317,9 +326,9 @@ def accept_friend_request(request):
         friend_request.save()
         Friendship.objects.create(user=request.user, friend=friend_request.from_user)
         Friendship.objects.create(user=friend_request.from_user, friend=request.user)
-        return JsonResponse({'success': True, 'message': 'Demande d\'ami acceptée'})
+        return JsonResponse({'success': True, 'message': 'Friend request accepted'})
     except FriendRequest.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Demande d\'ami non trouvée'}, status=404)
+        return JsonResponse({'success': False, 'message': 'Friend request not found'}, status=404)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -329,9 +338,9 @@ def reject_friend_request(request):
         friend_request = FriendRequest.objects.get(id=request_id, to_user=request.user, status='pending')
         friend_request.status = 'rejected'
         friend_request.save()
-        return JsonResponse({'success': True, 'message': 'Demande d\'ami rejetée'})
+        return JsonResponse({'success': True, 'message': 'Friend request rejected'})
     except FriendRequest.DoesNotExist:
-        return JsonResponse({'success': False, 'message': 'Demande d\'ami non trouvée'}, status=404)
+        return JsonResponse({'success': False, 'message': 'Friend request not found'}, status=404)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -478,9 +487,18 @@ def user_ping(request):
     user.save()
     return JsonResponse({'status': 'success'})
 
-# Ajoutez cette fonction pour mettre à jour le statut en ligne des utilisateurs
-def update_online_status():
-    five_minutes_ago = timezone.now() - timedelta(minutes=5)
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def update_online_status(request):
+    user = request.user
+    user.is_online = True
+    user.last_activity = timezone.now()
+    user.save()
+    return Response({'status': 'success'})
+
+# Gardez la fonction utilitaire séparée si nécessaire
+def update_offline_status():
+    five_minutes_ago = timezone.now() - timezone.timedelta(minutes=5)
     CustomUser.objects.filter(last_activity__lt=five_minutes_ago, is_online=True).update(is_online=False)
 
 @api_view(['GET'])
@@ -516,7 +534,7 @@ def update_user_stats(request, display_name):
 
         return Response({
             'success': True,
-            'message': 'Statistiques mises à jour avec succès',
+            'message': 'User stats updated successfully',
             'user': {
                 'username': user.username,
                 'display_name': user.display_name,
@@ -528,7 +546,7 @@ def update_user_stats(request, display_name):
     except CustomUser.DoesNotExist:
         return Response({
             'success': False,
-            'message': 'Utilisateur non trouvé'
+            'message': 'User not found'
         }, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({

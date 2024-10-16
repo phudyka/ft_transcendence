@@ -74,11 +74,6 @@ export async function profile(username) {
 
         document.getElementById('ft_transcendence').innerHTML = `
         <div class="dashboard-container">
-            <ul class="nav justify-content-between align-items-center">
-                <a class="navbar-brand" href="#">
-                    <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="30" height="30">
-                </a>
-            </ul>
 
             <h3 id="header-dashboard" class="text-center">
                 ${userProfile.display_name}'s Profile

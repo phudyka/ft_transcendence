@@ -131,13 +131,13 @@ async function handleLogin(event) {
             sessionStorage.setItem('display_name', data.display_name);
             sessionStorage.setItem('avatar_url', data.avatar_url);
             navigateTo('/dashboard');
+            // Mettez à jour le statut en ligne
             await fetch('/api/update-online-status/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${data.access}`,
                 },
-                body: JSON.stringify({ is_online: true }),
             });
         } else {
             console.error('Échec de la connexion :', data.message);

@@ -42,11 +42,20 @@ io.on('connection', (socket) => {
 
     socket.on('register', (username) => {
         if (username) {
-            socket.username = username;
-            users.set(username, socket.id);
-            console.log('Utilisateur enregistré:', username);
+            if (!users.has(username)) {
+                socket.username = username;
+                users.set(username, socket.id);
+                console.log(`${formatDate(new Date())} Utilisateur enregistré: ${username}`);
+            } else {
+                console.log(`${formatDate(new Date())} L'utilisateur ${username} est déjà connecté`);
+                // disconnect l'avant dernier socker
+                const lastSocket = Array.from(userConnections.values()).pop();
+                if (lastSocket) {
+                    lastSocket.disconnect();
+                }
+            }
         } else {
-            console.error('Tentative d\'enregistrement avec un nom d\'utilisateur invalide');
+            console.error(`${formatDate(new Date())} Tentative d'enregistrement avec un nom d'utilisateur invalide`);
         }
     });
 
@@ -55,18 +64,24 @@ io.on('connection', (socket) => {
         io.emit('chat message', msg);
     });
 
+    socket.on('create private room', (data) => {
+        const roomName = [socket.username, data.friend].sort().join('-');
+        socket.join(roomName);
+        const friendSocket = users.get(data.friend);
+        if (friendSocket) {
+            io.to(friendSocket).emit('private room created', { friend: socket.username });
+        }
+        socket.emit('private room created', { friend: data.friend });
+        console.log(`${formatDate(new Date())} Salle privée créée : ${roomName}`);
+    });
+
     socket.on('private message', ({ to, message }) => {
         const recipientSocket = users.get(to);
         if (recipientSocket) {
-            console.log(`${formatDate(new Date())} Message privé de ${socket.username} à ${to}: ${message}`);
-            io.to(recipientSocket).emit('private message', {
+            const roomName = [socket.username, to].sort().join('-');
+            console.log(`${formatDate(new Date())} Message privé de ${socket.username} à ${to} dans la salle ${roomName}: ${message}`);
+            io.to(roomName).emit('private message', {
                 from: socket.username,
-                message: message
-            });
-            // Envoyer également le message à l'expéditeur
-            socket.emit('private message', {
-                from: socket.username,
-                to: to,
                 message: message
             });
         }

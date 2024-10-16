@@ -32,6 +32,15 @@ export function initializeSocket(username) {
         console.error(`Erreur de connexion pour ${username}:`, error);
     });
 
+    socket.on('private message', (data) => {
+        console.log('Message privé reçu:', data);
+        displayPrivateMessage(data.from, data.from, data.message);
+    });
+
+    socket.on('private room created', (data) => {
+        console.log(`Salle privée créée avec ${data.friend}`);
+    });
+
     sockets.set(username, socket);
     return socket;
 }

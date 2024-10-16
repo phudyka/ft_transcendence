@@ -3,6 +3,7 @@ import { register } from './views/register.js';
 import { dashboard, removeDashboardEventListeners } from './views/dashboard.js';
 import { profile } from './views/profile.js';
 import { settings } from './views/settingsv.js';
+import { notFound } from './views/notfound.js';
 import { initializeSocket, disconnectSocket } from './utils/socketManager.js';
 import { getCookie } from './views/settingsv.js';
 
@@ -24,7 +25,7 @@ function initRouter() {
             return;
         }
 
-        if (path.startsWith('/profile/')) {
+        if (path.startsWith('/profile/') && isUserLoggedIn()) {
             const friendName = decodeURIComponent(path.split('/').pop());
             profile(friendName);
         } else {
@@ -53,6 +54,7 @@ function initRouter() {
                     settings();
                     break;
                 default:
+                    notFound();
                     console.log('404: Page not found');
             }
         }
@@ -95,7 +97,7 @@ function initRouter() {
 }
 
 export function navigateTo(pathname) {
-    const protectedRoutes = ['/dashboard', '/settings'];
+    const protectedRoutes = ['/dashboard', '/settings', '/profile/*'];
 
     if (protectedRoutes.includes(pathname) && !isUserLoggedIn()) {
         console.log('Accès non autorisé. Redirection vers la page de connexion.');
