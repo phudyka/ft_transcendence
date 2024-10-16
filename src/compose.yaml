@@ -18,7 +18,7 @@ services:
     networks:
       - db_network
     ports:
-      - "5454:8080"
+      - "4444:8080"
 ## FRONTEND ## FRONTEND ## FRONTEND ## FRONTEND ## FRONTEND ## FRONTEND ##
   nginx:
     build: requirements/nginx
@@ -39,8 +39,8 @@ services:
     build: requirements/django
     container_name: "django"
     restart: unless-stopped
-    # ports:
-    #   - "8000:443"
+    ports:
+      - "8000:8000"
     depends_on:
       postgresql:
         condition: service_healthy
