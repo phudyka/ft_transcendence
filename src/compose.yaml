@@ -12,13 +12,13 @@ volumes:
 
 services:
 ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ##
-  adminer:
-    image: adminer:latest
-    container_name: "adminer"
-    networks:
-      - db_network
-    ports:
-      - "4444:8080"
+  # adminer:
+  #   image: adminer:latest
+  #   container_name: "adminer"
+  #   networks:
+  #     - db_network
+  #   ports:
+  #     - "4444:8080"
 ## FRONTEND ## FRONTEND ## FRONTEND ## FRONTEND ## FRONTEND ## FRONTEND ##
   nginx:
     build: requirements/nginx
@@ -39,8 +39,10 @@ services:
     build: requirements/django
     container_name: "django"
     restart: unless-stopped
-    ports:
-      - "8000:8000"
+    volumes:
+      - static_admin:/app/.env/lib/python3.11/site-packages/django/contrib/admin/static
+    # ports:
+    #   - "8000:8000"
     depends_on:
       postgresql:
         condition: service_healthy
