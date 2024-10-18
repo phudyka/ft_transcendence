@@ -4,11 +4,11 @@ import { fetchWithToken } from '../utils/api.js';
 import { sendFriendRequest, fetchFriendList } from '../utils/friendManager.js';
 import { getCookie } from './settingsv.js';
 
-async function checkFriendshipStatus(username) {
+export async function checkFriendshipStatus(username) {
     try {
         const response = await fetchWithToken(`/api/check-friend-request/${username}/`);
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`Erreur HTTP! statut: ${response.status}`);
         }
         const data = await response.json();
         console.log('Résultat de checkFriendshipStatus:', data);
@@ -26,7 +26,8 @@ async function getRecentMatches(username, token) {
   try {
     const response = await fetchWithToken(`/api/get-recent-matches/${username}/`);
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      const errorText = await response.text();
+      console.error('Réponse d\'erreur:', errorText);
     }
     const data = await response.json();
     return data.matches;
@@ -67,15 +68,15 @@ export async function profile(username) {
 
         const recentMatches = await getRecentMatches(userProfile.display_name, sessionStorage.getItem('accessToken'));
 
-        const matchHistory = recentMatches.map(match => ({
+        const matchHistory = recentMatches.length > 0 ? recentMatches.map(match => ({
             result: match.result.charAt(0).toUpperCase() + match.result.slice(1),
             date: match.date
-        }));
+        })) : [];
 
         document.getElementById('ft_transcendence').innerHTML = `
         <div class="dashboard-container">
 
-            <h3 id="header-dashboard" class="text-center">
+            <h3 id="header-dashboard" style="margin-top: 10px;" class="text-center">
                 ${userProfile.display_name}'s Profile
             </h3>
             <div class="text-center" id="profile-picture">
@@ -167,11 +168,6 @@ export async function profile(username) {
 }
 
 function attachEventHandlers2(navigateTo, friendName, isFriend, requestSent) {
-    document.getElementById('pongonlineLink').addEventListener('click', function(event) {
-        event.preventDefault();
-        navigateTo('/dashboard');
-    });
-
     const friendButton = document.getElementById('friendButton');
     const currentUser = sessionStorage.getItem('username');
 
@@ -235,7 +231,7 @@ function createWinLossChart(wins, losses) {
                     display: true,
                     position: 'bottom',
                     labels: {
-                        color: '#222222CC',
+                        color: '#ff5722',
                         font: {
                             size: 14
                         }

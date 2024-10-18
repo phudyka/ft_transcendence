@@ -303,11 +303,9 @@ def send_friend_request(request):
     try:
         to_user = CustomUser.objects.get(username=to_username)
 
-        # Vérifier si les utilisateurs sont déjà amis
         if Friendship.objects.filter(user=request.user, friend=to_user).exists():
             return JsonResponse({'success': False, 'message': 'You are already friends with this user.'}, status=400)
 
-        # Vérifier si une demande d'ami est déjà en attente
         if FriendRequest.objects.filter(from_user=request.user, to_user=to_user, status='pending').exists():
             return JsonResponse({'success': False, 'message': 'A friend request is already pending for this user.'}, status=400)
 
@@ -574,3 +572,6 @@ def get_recent_matches(request, username):
         return Response({'matches': matches_data})
     except CustomUser.DoesNotExist:
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        logger.error(f"Error in get_recent_matches: {str(e)}")
+        return Response({'error': 'An unexpected error occurred'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

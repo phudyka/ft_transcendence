@@ -1,4 +1,4 @@
-export function showToast(message, type = 'info') {
+export function showToast(message, type = 'success') {
     const toastHtml = `
         <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
