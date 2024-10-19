@@ -11,7 +11,10 @@ IMAGES =	src-grafana\
 			src-postgresql\
 			src-django\
 			src-game_server\
-			src-chat\
+			src-user_api\
+			src-chat_api\
+			adminer\
+			kasmweb/postman:1.16.0
 			
 
 VOLUMES =	src_static_admin\

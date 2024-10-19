@@ -5,7 +5,7 @@ WORKDIR /app
 COPY conf/requirements.txt /app
 
 RUN apk update &&\
-    apk add python3 openssl curl &&\
+    apk add --no-cache python3 openssl curl &&\
     mkdir -p /app/ssl_certificates &&\
     openssl \
     req \

@@ -11,17 +11,24 @@
 /* ************************************************************************** */
 
 import express from 'express';
-import { createServer } from 'http';
+import { createServer } from 'https';
 import { Server } from 'socket.io';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import routes from './routes.mjs';
 import setupSockets from './sockets.mjs';
+import fs from 'fs';
 
+// const fs = require('fs');
+const options = {
+    key: fs.readFileSync('/app/ssl_certificates/game_server.key'),
+    cert: fs.readFileSync('/app/ssl_certificates/game_server.crt')
+};
 const app = express();
-const server = createServer(app);
+const server = createServer(options, app);
 const io = new Server(server);
-const port = 4000;
+const port = 443;
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

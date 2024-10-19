@@ -1,13 +1,18 @@
 const express = require('express');
-const http = require('http');
+const https = require('https');
 const socketIo = require('socket.io');
+const fs = require('fs');
 const cors = require('cors');
 
+const options = {
+    key: fs.readFileSync('/app/ssl_certificates/chat_api.key'),
+    cert: fs.readFileSync('/app/ssl_certificates/chat_api.crt')
+};
 
 const userConnections = new Map();
 
 const app = express();
-const server = http.createServer(app);
+const server = https.createServer(options, app);
 const io = socketIo(server, {
     cors: {
         origin: "*",
@@ -83,6 +88,6 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => {
-    console.log(`${formatDate(new Date())} Serveur en écoute sur le port 3000`);
+server.listen(443, () => {
+    console.log(`${formatDate(new Date())} Serveur en écoute sur le port 443`);
 });
