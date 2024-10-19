@@ -28,12 +28,13 @@ services:
       - static_admin:/static
     networks:
       - 42nice
-      - monitoring_network
     ports:
       - "8080:443"
     depends_on:
       django:
         condition: service_healthy
+      # grafana:
+      #   condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -k https://localhost:443"]
       interval: 5s
@@ -128,13 +129,17 @@ services:
   #   networks:
   #     - 42nice
   #     - monitoring_network
-  #   # ports:
-  #   #   - "3000:3000"
-  #   # depends_on:
-  #   #   - prometheus
+  #   depends_on:
+  #     prometheus:
+  #       condition: service_healthy
   #   environment:
   #     - GRAFANA_USER_NAME=${GRAFANA_USER_NAME}
   #     - GRAFANA_USER_PASSWORD=${GRAFANA_USER_PASSWORD}
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl http://localhost:3000"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
   # prometheus:
   #   build: requirements/prometheus
   #   container_name: "monitoring_prometheus"
@@ -144,9 +149,17 @@ services:
   #   # ports:
   #   #   - "9090:9090"
   #   depends_on:
-  #     - alertmanager
-  #     - cadvisor
-  #     - node-exporter
+  #     alertmanager:
+  #       condition: service_healthy
+  #     cadvisor:
+  #       condition: service_healthy
+  #     node-exporter:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl http://localhost:9090"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
   # alertmanager:
   #   build: requirements/alertmanager
   #   container_name: "monitoring_alertmanager"
@@ -157,9 +170,16 @@ services:
   #   # - "9093:9093"
   #   environment:
   #     - DISCORD_WEBHOOK_URL="${DISCORD_WEBHOOK_URL}"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl http://localhost:9093"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
   # node-exporter:
   #   build: requirements/node-exporter
   #   container_name: "monitoring_node-exporter"
+  #   # ports:
+  #   #   - "9100:9100"
   #   restart: unless-stopped
   #   volumes:
   #     - /proc:/host/proc:ro
@@ -168,6 +188,11 @@ services:
   #     - /:/host:ro,rslave
   #   networks:
   #     - monitoring_network
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl http://localhost:9100"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
   # cadvisor:
   #   build: requirements/cadvisor
   #   container_name: "monitoring_cadvisor"
@@ -181,6 +206,8 @@ services:
   #     - /dev/kmsg
   #   networks:
   #     - monitoring_network
+  #   # ports:
+  #   #   - "9200:8080"
   #   volumes:
   #     - /:/rootfs:ro
   #     - /var/run:/var/run:rw

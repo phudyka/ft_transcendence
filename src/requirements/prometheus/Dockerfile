@@ -2,7 +2,7 @@ FROM alpine:3.18
 
 WORKDIR /prometheus
 
-RUN apk update && apk add --no-cache wget=1.21.4-r0 &&\
+RUN apk update && apk add --no-cache wget curl &&\
     wget https://github.com/prometheus/prometheus/releases/download/v2.53.0/prometheus-2.53.0.linux-amd64.tar.gz &&\
     tar -xf prometheus-2.53.0.linux-amd64.tar.gz &&\
     mv prometheus-2.53.0.linux-amd64/* ./ &&\

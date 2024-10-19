@@ -2,7 +2,7 @@ FROM alpine:3.18
 
 WORKDIR /node-exporter
 
-RUN apk update && apk add --no-cache wget=1.21.4-r0 &&\
+RUN apk update && apk add --no-cache wget curl &&\
     wget https://github.com/prometheus/node_exporter/releases/download/v1.8.1/node_exporter-1.8.1.linux-amd64.tar.gz &&\
     tar -xf node_exporter-1.8.1.linux-amd64.tar.gz &&\
     mv node_exporter-1.8.1.linux-amd64/* ./ &&\

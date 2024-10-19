@@ -26,8 +26,7 @@ SECRET_KEY = getenv("DJANGO_SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [ 'localhost' ]
-
+ALLOWED_HOSTS = [ 'localhost', 'django', '127.0.0.1' ]
 
 # Application definition
 
@@ -122,6 +121,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'pong/templates/',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
