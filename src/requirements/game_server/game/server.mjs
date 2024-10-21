@@ -19,7 +19,6 @@ import routes from './routes.mjs';
 import setupSockets from './sockets.mjs';
 import fs from 'fs';
 
-// const fs = require('fs');
 const options = {
     key: fs.readFileSync('/app/ssl_certificates/game_server.key'),
     cert: fs.readFileSync('/app/ssl_certificates/game_server.crt')

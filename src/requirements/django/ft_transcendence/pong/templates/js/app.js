@@ -1,10 +1,11 @@
-import { login } from './views/login.js';
+import { login, removeLoginEventListeners } from './views/login.js';
 import { register } from './views/register.js';
 import { dashboard } from './views/dashboard.js';
 import { profile } from './views/profile.js';
-import { settings } from './views/settings.js';
-import { generateRandomUsername } from './views/dashboard.js';
+import { settings } from './views/settingsv.js';
+import { notFound } from './views/notfound.js';
 import { initializeSocket, disconnectSocket } from './utils/socketManager.js';
+import { getCookie } from './views/settingsv.js';
 
 // Déclaration de router comme une variable globale au module
 let router;
@@ -24,7 +25,7 @@ function initRouter() {
             return;
         }
 
-        if (path.startsWith('/profile/')) {
+        if (path.startsWith('/profile/') && isUserLoggedIn()) {
             const friendName = decodeURIComponent(path.split('/').pop());
             profile(friendName);
         } else {
@@ -53,6 +54,7 @@ function initRouter() {
                     settings();
                     break;
                 default:
+                    notFound();
                     console.log('404: Page not found');
             }
         }
@@ -72,7 +74,7 @@ function initRouter() {
     router();
 
     function handleSocketConnection() {
-        const username = localStorage.getItem('username');
+        const username = sessionStorage.getItem('username');
         if (username) {
             const socket = initializeSocket(username);
             if (socket) {
@@ -95,7 +97,7 @@ function initRouter() {
 }
 
 export function navigateTo(pathname) {
-    const protectedRoutes = ['/dashboard', '/settings'];
+    const protectedRoutes = ['/dashboard', '/settings', '/profile/*'];
 
     if (protectedRoutes.includes(pathname) && !isUserLoggedIn()) {
         console.log('Accès non autorisé. Redirection vers la page de connexion.');
@@ -110,7 +112,7 @@ export function navigateTo(pathname) {
 document.addEventListener('DOMContentLoaded', initRouter);
 
 function isUserLoggedIn() {
-    return localStorage.getItem('username') !== null;
+    return sessionStorage.getItem('username') !== null;
 }
 
 // Exportez également initRouter si vous en avez besoin ailleurs

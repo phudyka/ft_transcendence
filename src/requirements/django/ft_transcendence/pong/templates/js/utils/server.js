@@ -2,7 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const cors = require('cors');
-
+const fetch = require('node-fetch');
 
 const userConnections = new Map();
 
@@ -41,47 +41,117 @@ io.on('connection', (socket) => {
     console.log('Un utilisateur s\'est connecté:', socket.id);
 
     socket.on('register', (username) => {
-        if (username && !users.has(username)) {
-            socket.username = username;
-            users.set(username, socket.id);
-            console.log('Utilisateur enregistré:', username);
-        } else if (users.has(username)) {
-            console.log('Utilisateur déjà enregistré:', username);
+        if (username) {
+            userConnections.set(username, { socketId: socket.id, lastActivity: Date.now() });
+            if (!users.has(username)) {
+                socket.username = username;
+                users.set(username, socket.id);
+                console.log(`${formatDate(new Date())} Utilisateur enregistré: ${username}`);
+            } else {
+                console.log(`${formatDate(new Date())} L'utilisateur ${username} est déjà connecté`);
+                // Déconnecter l'ancien socket si nécessaire
+                const existingSocketId = users.get(username);
+                const existingSocket = io.sockets.sockets.get(existingSocketId);
+                if (existingSocket) {
+                    existingSocket.disconnect();
+                }
+                socket.username = username;
+                users.set(username, socket.id);
+                console.log(`${formatDate(new Date())} Utilisateur ${username} reconnecté avec le nouveau socket ${socket.id}`);
+            }
         } else {
-            console.error('Tentative d\'enregistrement avec un nom d\'utilisateur invalide');
+            console.error(`${formatDate(new Date())} Tentative d'enregistrement avec un nom d'utilisateur invalide`);
         }
     });
 
     socket.on('chat message', (msg) => {
         console.log(`${formatDate(new Date())} Message reçu de ${msg.name}: ${msg.message}`);
-        io.emit('chat message', msg); // Émet à tous les clients, y compris l'expéditeur
+        io.emit('chat message', msg);
+        updateLastActivity(msg.name);
+    });
+
+    socket.on('create private room', (data) => {
+        console.log(`Création de la salle privée pour ${socket.username} et ${data.friend}`);
+        const roomName = [socket.username, data.friend].sort().join('-');
+        socket.join(roomName);
+        const friendSocket = users.get(data.friend);
+        if (friendSocket) {
+            io.to(friendSocket).emit('private room created', { friend: socket.username });
+        }
+        socket.emit('private room created', { friend: data.friend });
+        console.log(`Salle privée créée : ${roomName}`);
     });
 
     socket.on('private message', ({ to, message }) => {
-        const recipientSocket = users.get(to);
-        if (recipientSocket) {
-            console.log(`${formatDate(new Date())} Message privé de ${socket.id} à ${to}: ${message}`);
-            io.to(recipientSocket).emit('private message', {
-                from: socket.id,
+        console.log(`${formatDate(new Date())} Message privé de ${socket.username} à ${to}: ${message}`);
+        const recipientSocketId = users.get(to);
+        if (recipientSocketId) {
+            const roomName = [socket.username, to].sort().join('-');
+            console.log(`${formatDate(new Date())} Message privé de ${socket.username} à ${to} dans la salle ${roomName}: ${message}`);
+            io.to(roomName).emit('private message', {
+                from: socket.username,
                 message: message
             });
+        } else {
+            socket.emit('error', { message: `${to} n'est pas en ligne.` });
         }
     });
 
-    socket.on('disconnect', () => {
+    // Gestion des erreurs globales
+    socket.on('error', (data) => {
+        console.error('Erreur serveur:', data.message);
+    });
+
+    socket.on('disconnect', async () => {
         console.log(`${formatDate(new Date())} Un utilisateur s'est déconnecté: ${socket.id}`);
-        users.forEach((value, key) => {
-            if (value === socket.id) {
-                users.delete(key);
+        const username = [...userConnections.entries()].find(([_, value]) => value.socketId === socket.id)?.[0];
+        if (username) {
+            userConnections.delete(username);
+            users.delete(username);
+            io.emit('user_disconnected', username);
+
+            try {
+                const response = await fetch('http://localhost:8000/api/update-online-status/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${process.env.SERVER_TOKEN}`
+                    },
+                    body: JSON.stringify({ is_online: false })
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                console.log(`${formatDate(new Date())} Statut mis à jour pour ${username}: offline`);
+            } catch (error) {
+                console.error(`${formatDate(new Date())} Erreur lors de la mise à jour du statut pour ${username}:`, error.message);
             }
-        });
-        userConnections.forEach((value, key) => {
-            if (value.socketId === socket.id) {
-                userConnections.delete(key);
-            }
-        });
+        }
     });
 });
+
+function updateLastActivity(username) {
+    if (userConnections.has(username)) {
+        userConnections.get(username).lastActivity = Date.now();
+    }
+}
+
+// Vérifier l'inactivité toutes les minutes
+setInterval(() => {
+    console.log('Vérification de l\'inactivité');
+    const now = Date.now();
+    userConnections.forEach((value, username) => {
+        if (now - value.lastActivity > 120000) { // 2 minutes
+            const socket = io.sockets.sockets.get(value.socketId);
+            if (socket) {
+                socket.disconnect(true);
+            }
+            console.log(`${formatDate(new Date())} Déconnexion de l'utilisateur ${username} pour inactivité`);
+            userConnections.delete(username);
+            io.emit('user_disconnected', username);
+        }
+    });
+}, 60000); // Vérifier chaque minute
 
 server.listen(3000, () => {
     console.log(`${formatDate(new Date())} Serveur en écoute sur le port 3000`);

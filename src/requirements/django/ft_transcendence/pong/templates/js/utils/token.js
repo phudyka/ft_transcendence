@@ -1,5 +1,5 @@
 import { navigateTo } from '../app.js';
-
+import { getCookie } from '../views/settingsv.js';
 // Déclarez une variable globale pour stocker la référence au socket
 let globalSocket;
 
@@ -15,13 +15,13 @@ function refreshToken() {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-            refresh: localStorage.getItem('refreshToken')
+            refresh: sessionStorage.getItem('refreshToken')
         }),
     })
     .then(response => response.json())
     .then(data => {
         if (data.access) {
-            localStorage.setItem('accessToken', data.access);
+            sessionStorage.setItem('accessToken', data.access);
             return true;
         } else {
             return false;
@@ -56,8 +56,8 @@ export function generateToken() {
     .then(response => response.json())
     .then(data => {
         if (data.access && data.refresh) {
-            localStorage.setItem('accessToken', data.access);
-            localStorage.setItem('refreshToken', data.refresh);
+            sessionStorage.setItem('accessToken', data.access);
+            sessionStorage.setItem('refreshToken', data.refresh);
             return true;
         } else {
             return false;
@@ -66,26 +66,36 @@ export function generateToken() {
     .catch(() => false);
 }
 
-export function logout() {
+export async function logout() {
     // Déconnexion du socket si il existe
     if (globalSocket && globalSocket.connected) {
         globalSocket.disconnect();
         console.log('Utilisateur déconnecté du socket');
     }
 
-    // Suppression des données locales
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('username');
-    localStorage.removeItem('display_name');
-    localStorage.removeItem('avatar_url');
-
-    // Redirection vers la page de connexion
+    try {
+        await fetch('/api/update-online-status/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
+            },
+            body: JSON.stringify({ is_online: false }),
+        });
+    } catch (error) {
+        console.error('Erreur lors de la mise à jour du statut en ligne:', error);
+    }
+    sessionStorage.removeItem('accessToken');
+    sessionStorage.removeItem('refreshToken');
+    sessionStorage.removeItem('username');
+    sessionStorage.removeItem('display_name');
+    sessionStorage.removeItem('avatar_url');
+    sessionStorage.removeItem('csrfToken');
     navigateTo('/login');
 }
 
 export async function refreshAccessToken() {
-    const refreshToken = localStorage.getItem('refreshToken');
+    const refreshToken = sessionStorage.getItem('refreshToken');
     if (!refreshToken) {
         console.log('Aucun refresh token disponible.');
         logout();
@@ -103,7 +113,7 @@ export async function refreshAccessToken() {
 
         const data = await response.json();
         if (data.access) {
-            localStorage.setItem('accessToken', data.access);
+            sessionStorage.setItem('accessToken', data.access);
             return true;
         } else {
             logout();
@@ -116,21 +126,4 @@ export async function refreshAccessToken() {
     }
 }
 
-// Appeler régulièrement pour rafraîchir le token (par exemple, toutes les 50 minutes)
 setInterval(refreshAccessToken, 50 * 60 * 1000);
-
-
-function getCookie(name) {
-    let cookieValue = null;
-    if (document.cookie && document.cookie !== '') {
-        const cookies = document.cookie.split(';');
-        for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                break;
-            }
-        }
-    }
-    return cookieValue;
-}

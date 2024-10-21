@@ -13,8 +13,6 @@ IMAGES =	src-grafana\
 			src-game_server\
 			src-user_api\
 			src-chat_api\
-			adminer\
-			kasmweb/postman:1.16.0
 			
 
 VOLUMES =	src_static_admin\
