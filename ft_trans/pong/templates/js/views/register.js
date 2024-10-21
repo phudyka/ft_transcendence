@@ -25,7 +25,7 @@ export function register() {
             <div class="form-group password-group" style="width: 450px; margin: 0 auto; display: block;">
                 <div class="password-wrapper">
                     <input type="password" id="password" placeholder="Enter your password" required class="form-input">
-                    <button type="button" class="unmask" title="Mask/Unmask password to check content">
+                    <button class="unmask" type="button" title="Mask/Unmask password to check content">
                         <i class="fas fa-lock"></i>
                     </button>
                 </div>
@@ -36,7 +36,7 @@ export function register() {
             <div class="form-group password-group" style="width: 450px; margin: 0 auto; display: block;">
                 <div class="password-wrapper">
                     <input type="password" id="confirmPassword" placeholder="Confirm your password" required class="form-input">
-                    <button type="button" class="unmask" title="Mask/Unmask password to check content">
+                    <button class="unmask" type="button" title="Mask/Unmask password to check content">
                         <i class="fas fa-lock"></i>
                     </button>
                 </div>
@@ -91,35 +91,6 @@ export function register() {
 }
 
 function setupRegisterEvents(navigateTo) {
-    document.addEventListener('click', function (event) {
-        if (event.target.classList.contains('toggle-password') || event.target.closest('.toggle-password')) {
-            const button = event.target.closest('.toggle-password');
-            const input = button.previousElementSibling;
-            if (input.type === 'password') {
-                input.type = 'text';
-                button.querySelector('i').classList.remove('fa-eye');
-                button.querySelector('i').classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                button.querySelector('i').classList.remove('fa-eye-slash');
-                button.querySelector('i').classList.add('fa-eye');
-            }
-        }
-        if (event.target.classList.contains('unmask') || event.target.closest('.unmask')) {
-            const button = event.target.closest('.unmask');
-            const input = button.previousElementSibling;
-            if (input.type === 'password') {
-                input.type = 'text';
-                button.querySelector('i').classList.remove('fa-eye');
-                button.querySelector('i').classList.add('fa-eye-slash');
-            } else {
-                input.type = 'password';
-                button.querySelector('i').classList.remove('fa-eye-slash');
-                button.querySelector('i').classList.add('fa-eye');
-            }
-        }
-    });
-
     document.getElementById('registerForm').addEventListener('submit', async function(event) {
         event.preventDefault();
         const username = document.getElementById('username').value;
@@ -235,5 +206,23 @@ function setupRegisterEvents(navigateTo) {
         event.preventDefault();
         window.location.href = '/api/auth/42/';
     });
+
+    document.addEventListener('click', handleUnmaskPassword);
 }
 
+function handleUnmaskPassword(event) {
+    console.log('Unmasking password');
+    if (event.target.classList.contains('unmask') || event.target.closest('.unmask')) {
+        const button = event.target.closest('.unmask');
+        const input = button.previousElementSibling;
+        if (input.type === 'password') {
+            input.type = 'text';
+            button.querySelector('i').classList.remove('fa-lock');
+            button.querySelector('i').classList.add('fa-lock-open');
+        } else {
+            input.type = 'password';
+            button.querySelector('i').classList.remove('fa-lock-open');
+            button.querySelector('i').classList.add('fa-lock');
+        }
+    }
+}
