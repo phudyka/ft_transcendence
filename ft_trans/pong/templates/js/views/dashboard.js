@@ -81,6 +81,7 @@ export async function dashboard(player_name) {
             </div>
         </div>
         <div id="profileDropdown" class="dropdown-menu" style="display: none;">
+            <a class="dropdown-item" href="#" id="viewmyProfile">My Profile</a>
             <a class="dropdown-item" href="#" id="settings">Settings</a>
             <a class="dropdown-item" href="#" id="logoutLink">Logout</a>
         </div>
@@ -121,6 +122,7 @@ export async function dashboard(player_name) {
 	// setupChatListeners();
 	checkForFriendRequests();
     fetchAndDisplayFriends();
+    // loadGeneralChatMessages();
 }
 
 function setupChatListeners(socket) {
@@ -228,6 +230,7 @@ function setupDashboardEvents(navigateTo, username) {
 	document.getElementById('friendDropdown').addEventListener('click', (event) => event.stopPropagation());
 	document.getElementById('friendDropdown_chat').addEventListener('click', (event) => event.stopPropagation());
 	document.getElementById('profileDropdown').addEventListener('click', (event) => event.stopPropagation());
+    document.getElementById('viewmyProfile').addEventListener('click', (event) => { event.preventDefault(); navigateTo(`/profile/${username}`); });
 
 	// Dropdown actions
 	document.getElementById('sendMessagePrivate').addEventListener('click', showChatbox);
@@ -378,7 +381,7 @@ function setupPrivateChat(friendName) {
             <button id="send-button-${friendName}">►</button>
         </div>
     `;
-    loadMessages(friendName);
+    // loadMessages(friendName);
 
     const sendButton = document.getElementById(`send-button-${friendName}`);
     sendButton.addEventListener('click', () => {
@@ -459,15 +462,15 @@ function sendMessage(event) {
     // console.log(`Socket: ${socket.socket}`);
 
     if (message !== '' && socket && socket.connected) {
-        socket.emit('chat message', { name: displayName || username, message: message });
+        socket.emit('chat message', { name: displayName, message: message });
+        // saveMessage(displayName, message);
         messageInput.value = '';
-        // Réinitialiser le timer d'activité
-        getSocket(username);
+        getSocket(displayName);
     }
 }
 
 function receiveMessage(msg) {
-    console.log('Fonction receiveMessage appelée avec:', msg);
+    console.log('Fonction receive Message appelée avec:', msg);
     const chatLog = document.getElementById('chat-log');
     if (!chatLog) {
         console.error("L'élément chat-log n'existe pas dans le DOM");
@@ -479,7 +482,9 @@ function receiveMessage(msg) {
     usernameElement.classList.add('username-link');
     usernameElement.dataset.friend = msg.name;
     usernameElement.innerText = `[${msg.name}]`;
-    usernameElement.style = "cursor: pointer;";
+    usernameElement.style = "cursor: pointer;"; 
+
+    // saveMessage(msg.name, msg.message);
 
     usernameElement.addEventListener('click', function (event) {
         event.preventDefault();
@@ -640,25 +645,93 @@ function viewProfile(event) {
 }
 
 function saveMessage(friendName, message) {
-	let messages = JSON.parse(sessionStorage.getItem(`chat_${friendName}`)) || [];
-	messages.push({ sender: 'Player', message: message });
-	sessionStorage.setItem(`chat_${friendName}`, JSON.stringify(messages));
+    let messages = JSON.parse(sessionStorage.getItem('general_chat_messages')) || [];
+    
+    messages.push({ friendName, message, timestamp: new Date().toISOString() });
+    
+    if (messages.length > 15) {
+        messages = messages.slice(-15);
+    }
+    
+    sessionStorage.setItem('general_chat_messages', JSON.stringify(messages));
 }
 
-function loadMessages(friendName) {
-	const chatLog = document.getElementById(`chat-log-${friendName}`);
-	const messages = JSON.parse(sessionStorage.getItem(`chat_${friendName}`)) || [];
+function loadGeneralChatMessages() {
+    const chatLog = document.getElementById('chat-log');
+    if (!chatLog) {
+        console.error("L'élément chat-log n'existe pas dans le DOM");
+        return;
+    }
 
-	chatLog.innerHTML = ''; // Effacer les messages précédents
+    const messages = JSON.parse(sessionStorage.getItem('general_chat_messages')) || [];
 
-	messages.forEach(msg => {
-		const messageElement = document.createElement('div');
-		messageElement.innerHTML = `<span class="username-link bold-username">[${msg.sender}]:</span> ${msg.message}`;
-		chatLog.appendChild(messageElement);
-	});
+    chatLog.innerHTML = ''; // Effacer les messages précédents
 
-	chatLog.scrollTop = chatLog.scrollHeight;
+    messages.forEach(msg => {
+        const messageElement = document.createElement('div');
+
+        const usernameElement = document.createElement('span');
+        usernameElement.classList.add('username-link');
+        usernameElement.dataset.friend = msg.name;
+        usernameElement.innerText = `[${msg.name}]`;
+        usernameElement.style.cursor = "pointer";
+        usernameElement.classList.add('bold-username');
+
+        // Ajouter l'écouteur d'événements pour le clic sur le nom d'utilisateur
+        usernameElement.addEventListener('click', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            handleUsernameClick(event, msg.name);
+        });
+
+        const messageTextElement = document.createElement('span');
+        messageTextElement.innerText = ` : ${msg.message}`;
+
+        messageElement.appendChild(usernameElement);
+        messageElement.appendChild(messageTextElement);
+
+        chatLog.appendChild(messageElement);
+    });
+
+    chatLog.scrollTop = chatLog.scrollHeight;
 }
+
+function handleUsernameClick(event, username) {
+    const currentUsername = sessionStorage.getItem('username');
+    const isOwnUsername = username === currentUsername;
+    const dropdown = isOwnUsername ? document.getElementById('profileDropdown') : document.getElementById('friendDropdown_chat');
+
+    // Masquer tous les menus déroulants visibles
+    const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
+    visibleDropdowns.forEach(dropdown => {
+        dropdown.style.display = 'none';
+    });
+
+    if (dropdown) {
+        dropdown.style.position = 'fixed';
+        dropdown.style.display = 'block';
+
+        // Vérifier si le dropdown dépasse la fenêtre
+        const rect = dropdown.getBoundingClientRect();
+        const windowWidth = window.innerWidth;
+        const windowHeight = window.innerHeight;
+
+        if (event.clientY + rect.height > windowHeight) {
+            dropdown.style.top = `${event.clientY - rect.height}px`;
+        } else {
+            dropdown.style.top = `${event.clientY}px`;
+        }
+
+        if (event.clientX + rect.width > windowWidth) {
+            dropdown.style.left = `${event.clientX - rect.width}px`;
+        } else {
+            dropdown.style.left = `${event.clientX}px`;
+        }
+
+        dropdown.dataset.friend = username;
+    }
+}
+
 
 function checkForFriendRequests() {
     fetchFriendRequests()
