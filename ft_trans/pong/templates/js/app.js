@@ -73,27 +73,27 @@ function initRouter() {
     // Initial route call
     router();
 
-    function handleSocketConnection() {
-        const username = sessionStorage.getItem('username');
-        if (username) {
-            const socket = initializeSocket(username);
-            if (socket) {
-                console.log('Socket initialisé avec succès');
-            } else {
-                console.error('Échec de l\'initialisation du socket');
-            }
-        } else {
-            disconnectSocket();
-        }
-    }
+    // function handleSocketConnection() {
+    //     const username = sessionStorage.getItem('username');
+    //     if (username) {
+    //         const socket = initializeSocket(username);
+    //         if (socket) {
+    //             console.log('Socket initialisé avec succès');
+    //         } else {
+    //             console.error('Échec de l\'initialisation du socket');
+    //         }
+    //     } else {
+    //         disconnectSocket();
+    //     }
+    // }
 
-    handleSocketConnection();
+    // handleSocketConnection();
 
-    window.addEventListener('storage', (event) => {
-        if (event.key === 'username') {
-            handleSocketConnection();
-        }
-    });
+    // window.addEventListener('storage', (event) => {
+    //     if (event.key === 'username') {
+    //         handleSocketConnection();
+    //     }
+    // });
 }
 
 export function navigateTo(pathname) {
@@ -107,6 +107,7 @@ export function navigateTo(pathname) {
     const fullPath = window.location.origin + pathname;
     window.history.pushState({}, pathname, fullPath);
     router();
+    document.dispatchEvent(new CustomEvent('viewChanged'));
 }
 
 document.addEventListener('DOMContentLoaded', initRouter);

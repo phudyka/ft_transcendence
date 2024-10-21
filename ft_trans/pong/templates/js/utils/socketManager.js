@@ -49,6 +49,7 @@ export function initializeSocket(username) {
     });
 
     sockets.set(username, socket);
+    console.log(`Socket: ${socket} linked to ${username}`);
     resetActivityTimer(username);
     return socket;
 }

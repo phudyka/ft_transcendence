@@ -53,8 +53,12 @@ export function login() {
         <p>© 2024 42Company, Inc</p>
     </footer>
     `;
-    attachEventLoginPage();
-    checkRegistrationSuccess();
+
+    // Utiliser setTimeout pour s'assurer que le DOM est complètement mis à jour
+    setTimeout(() => {
+        attachEventLoginPage();
+        checkRegistrationSuccess();
+    }, 0);
 }
 
 function attachEventLoginPage() {
@@ -71,7 +75,12 @@ function attachEventLoginPage() {
         });
     }
 
-    document.addEventListener('click', handleUnmaskPassword);
+    // Remplacer l'ancien gestionnaire d'événements pour unmask
+    const unmaskButtons = document.querySelectorAll('.unmask');
+    unmaskButtons.forEach(button => {
+        button.addEventListener('click', handleUnmaskPassword);
+    });
+
     document.addEventListener("keydown", handleEnterKeyPress);
 
     document.getElementById('login_with_42').addEventListener('click', function(event) {
@@ -82,18 +91,16 @@ function attachEventLoginPage() {
 }
 
 function handleUnmaskPassword(event) {
-    if (event.target.classList.contains('unmask') || event.target.closest('.unmask')) {
-        const button = event.target.closest('.unmask');
-        const input = button.previousElementSibling;
-        if (input.type === 'password') {
-            input.type = 'text';
-            button.querySelector('i').classList.remove('fa-lock');
-            button.querySelector('i').classList.add('fa-lock-open');
-        } else {
-            input.type = 'password';
-            button.querySelector('i').classList.remove('fa-lock-open');
-            button.querySelector('i').classList.add('fa-lock');
-        }
+    const button = event.currentTarget;
+    const input = button.previousElementSibling;
+    if (input.type === 'password') {
+        input.type = 'text';
+        button.querySelector('i').classList.remove('fa-lock');
+        button.querySelector('i').classList.add('fa-lock-open');
+    } else {
+        input.type = 'password';
+        button.querySelector('i').classList.remove('fa-lock-open');
+        button.querySelector('i').classList.add('fa-lock');
     }
 }
 

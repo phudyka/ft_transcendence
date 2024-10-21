@@ -87,7 +87,11 @@ export function register() {
         <p>© 2024 42Company, Inc</p>
     </footer>
     `;
-    setupRegisterEvents(navigateTo);
+
+    // Utiliser setTimeout pour s'assurer que le DOM est complètement mis à jour
+    setTimeout(() => {
+        setupRegisterEvents(navigateTo);
+    }, 0);
 }
 
 function setupRegisterEvents(navigateTo) {
@@ -207,22 +211,22 @@ function setupRegisterEvents(navigateTo) {
         window.location.href = '/api/auth/42/';
     });
 
-    document.addEventListener('click', handleUnmaskPassword);
+    const unmaskButtons = document.querySelectorAll('.unmask');
+    unmaskButtons.forEach(button => {
+        button.addEventListener('click', handleUnmaskPassword);
+    });
 }
 
 function handleUnmaskPassword(event) {
-    console.log('Unmasking password');
-    if (event.target.classList.contains('unmask') || event.target.closest('.unmask')) {
-        const button = event.target.closest('.unmask');
-        const input = button.previousElementSibling;
-        if (input.type === 'password') {
-            input.type = 'text';
-            button.querySelector('i').classList.remove('fa-lock');
-            button.querySelector('i').classList.add('fa-lock-open');
-        } else {
-            input.type = 'password';
-            button.querySelector('i').classList.remove('fa-lock-open');
-            button.querySelector('i').classList.add('fa-lock');
-        }
+    const button = event.currentTarget;
+    const input = button.previousElementSibling;
+    if (input.type === 'password') {
+        input.type = 'text';
+        button.querySelector('i').classList.remove('fa-lock');
+        button.querySelector('i').classList.add('fa-lock-open');
+    } else {
+        input.type = 'password';
+        button.querySelector('i').classList.remove('fa-lock-open');
+        button.querySelector('i').classList.add('fa-lock');
     }
 }

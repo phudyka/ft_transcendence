@@ -25,6 +25,7 @@ export async function dashboard(player_name) {
     const displayName = sessionStorage.getItem('display_name');
     let avatarUrl = sessionStorage.getItem('avatar_url');
     socket = initializeSocket(username);
+    console.log(`Socket: ${socket.socket}`);
     setupChatListeners(socket);
 
     if (!username) {
@@ -459,14 +460,14 @@ function sendMessage(event) {
     const displayName = sessionStorage.getItem('display_name');
     const messageInput = document.getElementById('message-input');
     const message = messageInput.value.trim();
-    const socket = getSocket(displayName);
-    // console.log(`Socket: ${socket.socket}`);
+    const socket = getSocket(username);
+    console.log(`Socket: ${socket.socket}`);
 
     if (message !== '' && socket && socket.connected) {
-        socket.emit('chat message', { name: displayName, message: message });
-        // saveMessage(displayName, message);
+        socket.emit('chat message', { name: username, message: message });
+        saveMessage(username, message);
         messageInput.value = '';
-        getSocket(displayName);
+        getSocket(username);
     }
 }
 
@@ -483,7 +484,7 @@ function receiveMessage(msg) {
     usernameElement.classList.add('username-link');
     usernameElement.dataset.friend = msg.name;
     usernameElement.innerText = `[${msg.name}]`;
-    usernameElement.style = "cursor: pointer;"; 
+    usernameElement.style = "cursor: pointer;";
 
     // saveMessage(msg.name, msg.message);
 
@@ -647,13 +648,13 @@ function viewProfile(event) {
 
 function saveMessage(friendName, message) {
     let messages = JSON.parse(sessionStorage.getItem('general_chat_messages')) || [];
-    
+
     messages.push({ friendName, message, timestamp: new Date().toISOString() });
-    
+
     if (messages.length > 15) {
         messages = messages.slice(-15);
     }
-    
+
     sessionStorage.setItem('general_chat_messages', JSON.stringify(messages));
 }
 
