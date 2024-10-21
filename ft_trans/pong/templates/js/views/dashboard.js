@@ -262,9 +262,10 @@ function setupDashboardEvents(navigateTo, username) {
 		toast.show();
 	});
 
-	// setInterval(fetchAndDisplayFriends, 60000);
-    setInterval(fetchAndDisplayFriends, 20000);
-    setInterval(checkForFriendRequests, 20000);
+    if (window.location.pathname === '/dashboard') {
+        setInterval(fetchAndDisplayFriends, 20000);
+        setInterval(checkForFriendRequests, 20000);
+    };
 }
 
 function scrollToBottom2(friendName) {
