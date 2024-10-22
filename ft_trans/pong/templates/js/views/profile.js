@@ -22,7 +22,7 @@ export async function checkFriendshipStatus(username) {
     }
 }
 
-async function getRecentMatches(username, token) {
+async function getRecentMatches(username) {
   try {
     const response = await fetchWithToken(`/api/get-recent-matches/${username}/`);
     if (!response.ok) {
@@ -66,7 +66,9 @@ export async function profile(username) {
         }
         const totalGames = userProfile.wins + userProfile.losses;
 
-        const recentMatches = await getRecentMatches(userProfile.display_name, sessionStorage.getItem('accessToken'));
+        console.log(`Getting recent matches for ${userProfile.username}`);
+        const recentMatches = await getRecentMatches(userProfile.username);
+        console.log('Recent matches:', recentMatches);
 
         const matchHistory = recentMatches.length > 0 ? recentMatches.map(match => ({
             result: match.result.charAt(0).toUpperCase() + match.result.slice(1),

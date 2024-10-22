@@ -12,12 +12,12 @@ VOLUMES =	ft_trans_static_volume\
 all: $(NAME)
 
 $(NAME):
-	@docker-compose up -d
+	@docker compose up -d
 
 start: all
 
 down:
-	@docker-compose down -t 0
+	@docker compose down -t 0
 
 stop: down
 

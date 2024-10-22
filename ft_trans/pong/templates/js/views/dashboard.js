@@ -749,15 +749,15 @@ function checkForFriendRequests() {
 function showFriendRequestToast(fromUsername, requestId) {
     const toastHtml = `
         <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
+            <div class="toast-header" style="background-color: #FF8C00;">
                 <strong class="me-auto" style="color: #ff5722; background-color: white;">Friend Request</strong>
                 <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
             </div>
             <div class="toast-body" style="color: black; background-color: white;">
                 ${fromUsername} wants to add you as a friend.
                 <div class="mt-2 pt-2 border-top">
-                    <button type="button" class="btn btn-primary btn-sm accept-friend-request" data-request-id="${requestId}">Accept</button>
-                    <button type="button" class="btn btn-primary btn-sm reject-friend-request" data-request-id="${requestId}">Reject</button>
+                    <button type="button" class="btn btn-primary btn-sm accept-friend-request" data-request-id="${requestId}" style="background-color: #FF8C00;">Accept</button>
+                    <button type="button" class="btn btn-primary btn-sm reject-friend-request" data-request-id="${requestId}" style="background-color: #FF8C00;">Reject</button>
                 </div>
             </div>
         </div>
