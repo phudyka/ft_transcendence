@@ -2,7 +2,7 @@ FROM alpine:3.18
 
 WORKDIR /app
 
-COPY package.json /app
+COPY conf/* /app
 
 RUN apk update &&\
     apk add --no-cache npm openssl curl &&\
@@ -16,7 +16,7 @@ RUN apk update &&\
     -subj "/C=FR/ST=PACA/L=Nice/O=42/OU=42Nice/CN=ft_transcendence.42nice.fr/UID=efirmino" &&\
     npm install
 
-COPY index.js /app
+COPY src/* /app
 
 EXPOSE 443
 

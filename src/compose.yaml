@@ -1,36 +1,37 @@
 networks:
   42nice:
     driver: bridge
-  monitoring_network:
-    driver: bridge
   db_network:
+    driver: bridge
+  api_network:
+    driver: bridge
+  monitoring_network:
     driver: bridge
   
 volumes:
   static_files:
   postgres_data:
+  prometheus_data:
 
 services:
 ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ##
-  # adminer:
-  #   image: adminer:latest
-  #   container_name: "adminer"
-  #   networks:
-  #     - db_network
-  #   ports:
-  #     - "8032:8080"
-  # postman:
-  #   container_name: "postman"
-  #   networks:
-  #     - 42nice
-  #     - db_network
-  #     - monitoring_network
-  #   shm_size: 512m
-  #   ports:
-  #     - 6901:6901
-  #   environment:
-  #     - VNC_PW=password
-  #   image: kasmweb/postman:1.16.0
+  adminer:
+    image: adminer:latest
+    container_name: "adminer"
+    networks:
+      - db_network
+    ports:
+      - "8081:8080"
+  postman:
+    container_name: "postman"
+    networks:
+      - 42nice
+    shm_size: 512m
+    ports:
+      - 8082:6901
+    environment:
+      - VNC_PW=password
+    image: kasmweb/postman:1.16.0
 
 
 ## INTERFACE ## INTERFACE ## INTERFACE ## INTERFACE ## INTERFACE ## INTERFACE ##
@@ -68,10 +69,8 @@ services:
     depends_on:
       postgresql:
         condition: service_healthy
-      # chat_api:
-      #   condition: service_healthy
-      # user_api:
-      #   condition: service_healthy
+      chat:
+        condition: service_healthy
       game_server:
         condition: service_healthy
     restart: unless-stopped
@@ -84,11 +83,15 @@ services:
       - POSTGRES_PORT=${POSTGRES_PORT}
       - FT_TRANSCENDENCE_HOST=${FT_TRANSCENDENCE_HOST}
       - GAME_SERVER_HOST=${GAME_SERVER_HOST}
+      - CHAT_SERVER_HOST=${CHAT_SERVER_HOST}
+      - DJANGO_FT_CLIENT_ID=${DJANGO_FT_CLIENT_ID}
+      - DJANGO_FT_CLIENT_SECRET=${DJANGO_FT_CLIENT_SECRET}
     volumes:
       - static_files:/static
     networks:
       - 42nice
       - db_network
+      - api_network
     # ports:
     #   - "8000:8000"
     #   - "8080:443"
@@ -108,8 +111,6 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - db_network
-    # ports:
-    #   - "8054:5432"
   game_server:
     build: requirements/game_server
     container_name: "game_server"
@@ -128,40 +129,21 @@ services:
     #   - "8030:3000"
 
 
-  ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ## APIs ##
-  # user_api:
-  #   build: requirements/user_api
-  #   container_name: "user_api"
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "curl -k https://localhost"]
-  #     interval: 5s
-  #     timeout: 5s
-  #     retries: 5
-  #   depends_on:
-  #     postgresql:
-  #      condition: service_healthy
-  #   restart: unless-stopped
-  #   networks:
-  #     - db_network
-    # ports:
-    #   - "3001:443"
-  # chat_api:
-  #   build: requirements/chat_api
-  #   container_name: "chat_api"
-  #   healthcheck:
-  #     test: ["CMD-SHELL", "curl -k https://localhost"]
-  #     interval: 5s
-  #     timeout: 5s
-  #     retries: 5
-  #   depends_on:
-  #     postgresql:
-  #      condition: service_healthy
-  #   restart: unless-stopped
-  #   networks:
-  #     - db_network
-  #   # ports:
-  #   #   - "3000:443"
-
+  ## MicroServices ## MicroServices ## MicroServices ## MicroServices ##
+  chat:
+    build: requirements/chat
+    container_name: "chat"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -k https://localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      postgresql:
+       condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - api_network
 
   ## MONITORING ## MONITORING ## MONITORING ## MONITORING ## MONITORING ##
   # grafana:

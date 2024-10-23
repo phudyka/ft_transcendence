@@ -11,11 +11,10 @@ IMAGES =	src-grafana\
 			src-postgresql\
 			src-django\
 			src-game_server\
-			src-user_api\
-			src-chat_api\
+			src-chat\
 			
 
-VOLUMES =	src_static_admin\
+VOLUMES =	src_static_files\
 			src_postgres_data
 
 all: $(NAME)

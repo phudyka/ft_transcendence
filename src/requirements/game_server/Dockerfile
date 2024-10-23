@@ -2,7 +2,7 @@ FROM alpine:3.18
 
 WORKDIR /app
 
-COPY package.json /app
+COPY conf/* /app
 
 RUN apk update &&\
     apk add --no-cache npm openssl curl &&\
