@@ -25,7 +25,6 @@ export async function dashboard(player_name) {
     const displayName = sessionStorage.getItem('display_name');
     let avatarUrl = sessionStorage.getItem('avatar_url');
     socket = initializeSocket(username);
-    console.log(`Socket: ${socket.socket}`);
     setupChatListeners(socket);
 
     if (!username) {
@@ -131,6 +130,15 @@ function setupChatListeners(socket) {
         socket.off('chat message');
         socket.off('private message');
         socket.off('force_disconnect');
+        socket.off('user_disconnected');
+        socket.off('connect'); // Assurez-vous de ne pas dupliquer les écouteurs
+
+        // Ajoutez l'écouteur pour l'événement 'connect'
+        socket.on('connect', () => {
+            console.log(`Socket ID: ${socket.id}`);
+            console.log(`Socket Connected: ${socket.connected}`);
+            console.log(`Socket username: ${socket.username}`);
+        });
 
         socket.on('chat message', (msg) => {
             console.log('Message reçu du serveur:', msg);
@@ -162,6 +170,7 @@ function setupChatListeners(socket) {
 
 function receivePrivateMessage(msg) {
     //check if Private chat already exist if not create it
+    console.log('receivePrivateMessage function called');
     if (!privateChatLogs.has(msg.from)) {
         setupPrivateChat(msg.from);
     }
@@ -207,14 +216,7 @@ function openPrivateChat(friendName) {
 
 function setupDashboardEvents(navigateTo, username) {
 	//Logout
-	document.getElementById('logoutLink').addEventListener('click', function (event) {
-		event.preventDefault();
-		// const socket = getSocket();
-		if (socket) {
-			socket.disconnect();
-		}
-		logout();
-	});
+	document.getElementById('logoutLink').addEventListener('click', handleLogout);
 
 	// Friend menu
 	document.querySelectorAll('#friends .list-group-item').forEach(item => {
@@ -231,7 +233,8 @@ function setupDashboardEvents(navigateTo, username) {
 	document.getElementById('friendDropdown').addEventListener('click', (event) => event.stopPropagation());
 	document.getElementById('friendDropdown_chat').addEventListener('click', (event) => event.stopPropagation());
 	document.getElementById('profileDropdown').addEventListener('click', (event) => event.stopPropagation());
-    document.getElementById('viewmyProfile').addEventListener('click', (event) => { event.preventDefault(); navigateTo(`/profile/${username}`); });
+    const displayName = sessionStorage.getItem('display_name');
+    document.getElementById('viewmyProfile').addEventListener('click', (event) => { event.preventDefault(); navigateTo(`/profile/${displayName}`); });
 
 	// Dropdown actions
 	document.getElementById('sendMessagePrivate').addEventListener('click', showChatbox);
@@ -368,7 +371,7 @@ function showChatbox(event) {
 }
 
 function setupPrivateChat(friendName) {
-    if (privateChatLogs.has(friendName)) {
+    if (privateChatLogs.has(friendName)) {f
         console.log(`Chat privé déjà configuré pour ${friendName}`);
         return;
     }
@@ -397,7 +400,8 @@ function setupPrivateChat(friendName) {
 }
 
 function createPrivateConnection(friendName) {
-    const socket = getSocket();
+    const username = sessionStorage.getItem('username');
+    const socket = getSocket(username); // Utilisez getSocket avec le username correct
     console.log(`Socket: ${socket}`);
     console.log(`Friend name: ${friendName}`);
     if (socket) {
@@ -409,14 +413,16 @@ function sendPrivateMessage(friendName) {
     console.log(`Send private message to ${friendName}`);
     const input = document.getElementById(`message-input-${friendName}`);
     console.log(`Input: ${input.value}`);
+    const username = sessionStorage.getItem('username');
     if (input) {
         const message = input.value.trim();
-        const socket = getSocket();
+        const socket = getSocket(username); // Utilisez getSocket avec le username correct
         if (message && socket && socket.connected) {
             // Échapper les caractères pour éviter les injections HTML
             const sanitizedMessage = sanitizeHTML(message);
 
             socket.emit('private message', { to: friendName, message: sanitizedMessage });
+            console.log(`Private message sent to ${friendName} message: ${sanitizedMessage} function sendPrivateMessage`);
             displayPrivateMessage(friendName, 'Vous', sanitizedMessage);
             input.value = '';
         }
@@ -434,7 +440,20 @@ function displayPrivateMessage(friendName, sender, message) {
     const chatLog = document.getElementById(`chat-log-${friendName}`);
     if (chatLog) {
         const messageElement = document.createElement('div');
-        messageElement.innerHTML = `<strong>${sanitizeHTML(sender)}:</strong> ${sanitizeHTML(message)}`;
+        messageElement.classList.add('message-container');
+
+        const usernameElement = document.createElement('span');
+        usernameElement.classList.add('username-link');
+        usernameElement.textContent = sender === 'Vous' ? `[Me] ` : `[${sanitizeHTML(friendName)}]`;
+
+        const messageTextElement = document.createElement('span');
+        messageTextElement.classList.add('message-text');
+        messageTextElement.textContent = sanitizeHTML(message);
+
+        messageElement.appendChild(usernameElement);
+        messageElement.appendChild(document.createTextNode(': '));
+        messageElement.appendChild(messageTextElement);
+
         chatLog.appendChild(messageElement);
         chatLog.scrollTop = chatLog.scrollHeight;
     }
@@ -461,7 +480,11 @@ function sendMessage(event) {
     const messageInput = document.getElementById('message-input');
     const message = messageInput.value.trim();
     const socket = getSocket(username);
-    console.log(`Socket: ${socket.socket}`);
+    console.log(`sendMessage function called`);
+    console.log(`Socket username: ${socket.username}`);
+    console.log(`Socket connected: ${socket.connected}`);
+    console.log(`Socket id: ${socket.id}`);
+    console.log(`End of sendMessage function`);
 
     if (message !== '' && socket && socket.connected) {
         socket.emit('chat message', { name: username, message: message });
@@ -640,10 +663,15 @@ function blockUser(event) {
 }
 
 function viewProfile(event) {
-	event.preventDefault();
-	const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
-	console.log(`View profile of ${friendName}`);
-	navigateTo(`/profile/${friendName}`);
+    event.preventDefault();
+    const dropdown = event.target.closest('.dropdown-menu, .dropdown-menu_chat');
+    const friendName = dropdown ? dropdown.getAttribute('data-friend') : null;
+    if (friendName) {
+        console.log(`View profile of ${friendName}`);
+        navigateTo(`/profile/${encodeURIComponent(friendName)}`);
+    } else {
+        console.error("Unable to determine friend's name");
+    }
 }
 
 function saveMessage(friendName, message) {
@@ -734,7 +762,6 @@ function handleUsernameClick(event, username) {
     }
 }
 
-
 function checkForFriendRequests() {
     fetchFriendRequests()
         .then(friendRequests => {
@@ -791,8 +818,11 @@ function showFriendRequestToast(fromUsername, requestId) {
 }
 
 async function fetchAndDisplayFriends() {
-    try {
-        const response = await fetch('/api/friends/', {
+    // if list group friends exist try else return
+    const friendsList = document.getElementById('friends');
+    if (friendsList) {
+        try {
+            const response = await fetch('/api/friends/', {
             method: 'GET',
             headers: {
                 'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
@@ -822,11 +852,12 @@ async function fetchAndDisplayFriends() {
             friendsList.appendChild(li);
 
             if (friend.is_online) {
-                setupPrivateChat(friend.username);
+                setupPrivateChat(friend.display_name);
             }
         });
     } catch (error) {
-        console.error('Erreur lors de la récupération des amis:', error);
+            console.error('Erreur lors de la récupération des amis:', error);
+        }
     }
 }
 
@@ -868,3 +899,57 @@ function resetActivityTimer() {
         getSocket(username); // Cela réinitialisera le timer dans socketManager.js
     }
 }
+
+//quand je deconnecte, je veux que les event listener soit supprimer
+// document.addEventListener('click', logout);
+
+export function removeDashboardEventListeners() {
+    // Remove logout listener
+    const logoutLink = document.getElementById('logoutLink');
+    if (logoutLink) {
+        logoutLink.removeEventListener('click', handleLogout);
+    }
+
+    // Remove friend item listeners
+    const friendItems = document.querySelectorAll('#friends .list-group-item');
+    friendItems.forEach(item => {
+        item.removeEventListener('click', handleFriendClick);
+    });
+
+    // Remove profile picture listener
+    const profilePic = document.getElementById('img_profile_pic');
+    if (profilePic) {
+        profilePic.removeEventListener('click', handleProfilePictureClick);
+    }
+
+    // Remove other listeners
+    document.removeEventListener('click', hideDropdowns);
+    document.removeEventListener('keydown', handleEnterKey);
+
+    // Clear intervals
+    clearInterval(window.fetchFriendsInterval);
+    clearInterval(window.checkFriendRequestsInterval);
+
+    // Remove socket listeners
+    const socket = getSocket(username);
+    if (socket) {
+        socket.off('chat message');
+        socket.off('private message');
+        socket.off('force_disconnect');
+        socket.off('user_disconnected');
+    }
+    console.log('removeDashboardEventListeners');
+}
+
+// Modify the existing logout function
+function handleLogout(event) {
+    event.preventDefault();
+    const username = sessionStorage.getItem('username');
+    const socket = getSocket(username);
+    if (socket) {
+        socket.disconnect();
+    }
+    removeDashboardEventListeners();
+    logout();
+}
+

@@ -8,10 +8,10 @@ export function register() {
         <h1 class="register-title" style="margin-top: 5%;">Create Your Account</h1>
         <form id="registerForm">
             <div style="display: flex; justify-content: center; align-items: center;">
-                <label for="username" class="form-label">Username</label>
+                <label for="username" class="form-label">Account name</label>
             </div>
             <div class="form-group">
-                <input type="text" id="username" placeholder="Enter your username" required class="form-input" style="width: 450px; margin: 0 auto; display: block;">
+                <input type="text" id="username" placeholder="Enter your account name" required class="form-input" style="width: 450px; margin: 0 auto; display: block;">
             </div>
             <div style="display: flex; justify-content: center; align-items: center;">
                 <label for="email" class="form-label">Email</label>

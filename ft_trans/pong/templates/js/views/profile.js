@@ -3,6 +3,7 @@ import { logout } from '../utils/token.js';
 import { fetchWithToken } from '../utils/api.js';
 import { sendFriendRequest, fetchFriendList } from '../utils/friendManager.js';
 import { getCookie } from './settingsv.js';
+import { removeDashboardEventListeners } from './dashboard.js';
 
 export async function checkFriendshipStatus(username) {
     try {
@@ -30,6 +31,7 @@ async function getRecentMatches(username) {
       console.error('Réponse d\'erreur:', errorText);
     }
     const data = await response.json();
+    console.log('Recent matches:', data);
     return data.matches;
   } catch (error) {
     console.error('Error fetching recent matches:', error);
@@ -37,125 +39,128 @@ async function getRecentMatches(username) {
   }
 }
 
-export async function profile(username) {
+export async function profile(displayName) {
+    console.log('fetch profile of ', displayName);
+    removeDashboardEventListeners();
     try {
-        console.log(`Attempting to retrieve profile for ${username}`);
-        const response = await fetchWithToken(`/api/profile/${username}/`, { method: 'GET' });
-        console.log('Statut de la réponse:', response.status);
-        console.log('Type de contenu:', response.headers.get('Content-Type'));
+        console.log(`Attempting to retrieve profile for ${displayName}`);
+        const response = await fetchWithToken(`/api/user/${displayName}/`);
+        
+        // Vérifier le type de contenu de la réponse
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.indexOf("application/json") !== -1) {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log('User profile:', data);
 
-        const responseText = await response.text();
-        console.log('Réponse brute:', responseText);
+            if (!data.success) {
+                throw new Error(data.error || 'Une erreur est survenue lors de la récupération du profil');
+            }
 
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
-        }
+            const userProfile = data.user;
+            if (userProfile.avatar_url) {
+                userProfile.avatar_url = userProfile.avatar_url.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
+            }
+            const totalGames = userProfile.wins + userProfile.losses;
 
-        let data;
-        try {
-            data = JSON.parse(responseText);
-        } catch (error) {
-            console.error('Erreur lors du parsing JSON:', error);
-            throw new Error('La réponse n\'est pas au format JSON valide');
-        }
+            console.log(`Getting recent matches for ${userProfile.username}`);
+            const recentMatches = await getRecentMatches(userProfile.username);
+            console.log('Recent matches:', recentMatches);
 
-        const userProfile = data.profile;
-        console.log('Profil utilisateur:', userProfile);
-        if (userProfile.avatar_url) {
-            userProfile.avatar_url = userProfile.avatar_url.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
-        }
-        const totalGames = userProfile.wins + userProfile.losses;
+            const matchHistory = recentMatches.length > 0 ? recentMatches.map(match => ({
+                result: match.result.charAt(0).toUpperCase() + match.result.slice(1),
+                date: match.date
+            })) : [];
 
-        console.log(`Getting recent matches for ${userProfile.username}`);
-        const recentMatches = await getRecentMatches(userProfile.username);
-        console.log('Recent matches:', recentMatches);
+            document.getElementById('ft_transcendence').innerHTML = `
+            <div class="dashboard-container">
 
-        const matchHistory = recentMatches.length > 0 ? recentMatches.map(match => ({
-            result: match.result.charAt(0).toUpperCase() + match.result.slice(1),
-            date: match.date
-        })) : [];
+                <h3 id="header-dashboard" style="margin-top: 10px;" class="text-center">
+                    ${userProfile.display_name}'s Profile
+                </h3>
+                <div class="text-center" id="profile-picture">
+                    <img src="${userProfile.avatar_url}" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Profile picture">
+                </div>
+                <div class="status-indicator text-center mt-2">
+                    <span class="status-dot ${userProfile.is_online ? 'online' : 'offline'}"></span>
+                    <span class="status-text">${userProfile.is_online ? 'Online' : 'Offline'}</span>
+                </div>
+                <button type="button" id="friendButton" class="btn-dark">Add as friend</button>
 
-        document.getElementById('ft_transcendence').innerHTML = `
-        <div class="dashboard-container">
-
-            <h3 id="header-dashboard" style="margin-top: 10px;" class="text-center">
-                ${userProfile.display_name}'s Profile
-            </h3>
-            <div class="text-center" id="profile-picture">
-                <img src="${userProfile.avatar_url}" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Profile picture">
-            </div>
-            <div class="status-indicator text-center mt-2">
-                <span class="status-dot ${userProfile.is_online ? 'online' : 'offline'}"></span>
-                <span class="status-text">${userProfile.is_online ? 'Online' : 'Offline'}</span>
-            </div>
-            <button type="button" id="friendButton" class="btn-dark">Add as friend</button>
-
-            <div class="row mt-4">
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Player Statistics</h5>
-                            <p class="card-text">
-                                <strong>Wins:</strong> ${userProfile.wins}<br>
-                                <strong>Losses:</strong> ${userProfile.losses}<br>
-                                <strong>Total games:</strong> ${totalGames}<br>
-                            </p>
+                <div class="row mt-4">
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-bod            console.log('User profile:', userProfile);y">
+                                <h5 class="card-title">Player Statistics</h5>
+                                <p class="card-text">
+                                    <strong>Wins:</strong> ${userProfile.wins}<br>
+                                    <strong>Losses:</strong> ${userProfile.losses}<br>
+                                    <strong>Total games:</strong> ${totalGames}<br>
+                                </p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Win/Loss Ratio</h5>
-                            <div id="chartContainer" style="height: 200px; width: 100%;">
-                                <canvas id="winLossChart"></canvas>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Win/Loss Ratio</h5>
+                                <div id="chartContainer" style="height: 200px; width: 100%;">
+                                    <canvas id="winLossChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card">
+                            <div class="card-body">
+                                <h5 class="card-title">Recent Match History</h5>
+                                <ul class="list-group list-group-flush">
+                                    ${matchHistory.map(match => `
+                                        <li class="list-group-item d-flex justify-content-between align-items-center ${match.result.toLowerCase() === 'win' ? 'win' : 'loss'}">
+                                            <span class="match-result ${match.result.toLowerCase()}">${match.result}</span>
+                                            <span class="badge rounded-pill">${match.date}</span>
+                                        </li>
+                                    `).join('')}
+                                </ul>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-body">
-                            <h5 class="card-title">Recent Match History</h5>
-                            <ul class="list-group list-group-flush">
-                                ${matchHistory.map(match => `
-                                    <li class="list-group-item d-flex justify-content-between align-items-center">
-                                        ${match.result}
-                                        <span class="badge bg-primary rounded-pill">${match.date}</span>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        </div>
-                    </div>
+
+                <div class="text-center mt-4">
+                    <button id="backToDashboard" style="width: 200px;" class="btn btn-primary">Back to Dashboard</button>
                 </div>
+
+                <footer class="py-3 my-4">
+                    <p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
+                </footer>
             </div>
+            `;
 
-            <div class="text-center mt-4">
-                <button id="backToDashboard" style="width: 200px;" class="btn btn-primary">Back to Dashboard</button>
-            </div>
+            const { isFriend, requestSent } = await checkFriendshipStatus(userProfile.username);
 
-            <footer class="py-3 my-4">
-                <p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
-            </footer>
-        </div>
-        `;
+            attachEventHandlers2(navigateTo, userProfile.username, isFriend, requestSent);
 
-        const { isFriend, requestSent } = await checkFriendshipStatus(username);
+            createWinLossChart(userProfile.wins, userProfile.losses);
 
-        attachEventHandlers2(navigateTo, username, isFriend, requestSent);
+            document.getElementById('backToDashboard').addEventListener('click', () => {
+                navigateTo('/dashboard');
+            });
 
-        createWinLossChart(userProfile.wins, userProfile.losses);
-
-        document.getElementById('backToDashboard').addEventListener('click', () => {
-            navigateTo('/dashboard');
-        });
+        } else {
+            const text = await response.text();
+            console.error('Received non-JSON response:', text);
+            throw new Error("Received non-JSON response");
+        }
 
     } catch (error) {
         console.error('Error:', error);
         document.getElementById('ft_transcendence').innerHTML = `
             <div class="d-flex flex-column align-items-center justify-content-center vh-100">
                 <div class="alert alert-danger text-center" role="alert">
-                    Error loading profile. Please try again later.
+                    Error loading profile. Please try again later. (${error.message})
                 </div>
                 <div class="mt-3">
                     <button id="backToDashboard" style="width: 200px;" class="btn btn-primary">Back to Dashboard</button>

@@ -39,15 +39,6 @@ export function initializeSocket(username) {
         console.error(`Connection error for ${username}:`, error);
     });
 
-    socket.on('private message', (data) => {
-        console.log('Private message received:', data);
-        displayPrivateMessage(data.from, data.from, data.message);
-    });
-
-    socket.on('private room created', (data) => {
-        console.log(`Private room created with ${data.friend}`);
-    });
-
     sockets.set(username, socket);
     console.log(`Socket: ${socket} linked to ${username}`);
     resetActivityTimer(username);

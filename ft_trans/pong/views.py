@@ -30,6 +30,7 @@ from django.core.files.images import get_image_dimensions
 from django.core.validators import validate_email
 from PIL import Image
 from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.decorators import login_required
 
 
 User = get_user_model()
@@ -160,7 +161,7 @@ def friend_requests(request):
     pass
 
 
-@api_view(['GET'])
+@require_GET
 @permission_classes([IsAuthenticated])
 def get_user_by_display_name(request, display_name):
     try:
@@ -176,7 +177,11 @@ def get_user_by_display_name(request, display_name):
         }
         return JsonResponse({'success': True, 'user': user_data})
     except User.DoesNotExist:
+        logger.error(f"User not found: {display_name}")
         return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
+    except Exception as e:
+        logger.error(f"Error fetching user by display name: {str(e)}")
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 @require_http_methods(["GET"])
 @permission_classes([IsAuthenticated])
@@ -278,13 +283,13 @@ def auth_42_callback(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def user_profile(request, username):
-    logger.info(f"Tentative d'accès au profil de {username}")
+def user_profile(request, display_name):
+    logger.info(f"Tentative d'accès au profil de {display_name}")
     logger.info(f"Utilisateur authentifié : {request.user}")
     try:
-        user = User.objects.get(username=username)
+        user = User.objects.get(display_name=display_name)
         profile_data = {
-            'username': user.username,
+            # 'username': user.username,
             'display_name': user.display_name,
             'avatar_url': user.avatar_url,
             'wins': user.wins,
@@ -574,4 +579,6 @@ def get_recent_matches(request, username):
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 

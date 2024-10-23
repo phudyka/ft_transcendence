@@ -91,6 +91,8 @@ export async function logout() {
     sessionStorage.removeItem('display_name');
     sessionStorage.removeItem('avatar_url');
     sessionStorage.removeItem('csrfToken');
+    document.cookie = '';
+    document.removeEventListener('c', logout);
     navigateTo('/login');
 }
 

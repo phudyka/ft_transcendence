@@ -6,6 +6,7 @@ import { settings } from './views/settingsv.js';
 import { notFound } from './views/notfound.js';
 import { initializeSocket, disconnectSocket } from './utils/socketManager.js';
 import { getCookie } from './views/settingsv.js';
+import { removeDashboardEventListeners } from './views/dashboard.js';
 
 // Déclaration de router comme une variable globale au module
 let router;
@@ -19,6 +20,7 @@ function initRouter() {
         const protectedRoutes = ['/dashboard', '/settings', '/profile/*'];
 
         // Vérifier si l'utilisateur tente d'accéder à une route protégée sans être connecté
+        console.log('isUserLoggedIn:', isUserLoggedIn());
         if (protectedRoutes.includes(path) && !isUserLoggedIn()) {
             console.log('Accès non autorisé. Redirection vers la page de connexion.');
             navigateTo('/login');
@@ -27,7 +29,13 @@ function initRouter() {
 
         if (path.startsWith('/profile/') && isUserLoggedIn()) {
             const friendName = decodeURIComponent(path.split('/').pop());
+            console.log('friend name:', friendName);
             profile(friendName);
+        } else if (path === '/profile') {
+            // Gérer le cas où l'URL est simplement /profile
+            console.log('Accès au profil de l\'utilisateur connecté');
+            const username = sessionStorage.getItem('username');
+            profile(username); // Afficher le profil de l'utilisateur connecté
         } else {
             switch (path) {
                 case '/':
@@ -72,28 +80,6 @@ function initRouter() {
 
     // Initial route call
     router();
-
-    // function handleSocketConnection() {
-    //     const username = sessionStorage.getItem('username');
-    //     if (username) {
-    //         const socket = initializeSocket(username);
-    //         if (socket) {
-    //             console.log('Socket initialisé avec succès');
-    //         } else {
-    //             console.error('Échec de l\'initialisation du socket');
-    //         }
-    //     } else {
-    //         disconnectSocket();
-    //     }
-    // }
-
-    // handleSocketConnection();
-
-    // window.addEventListener('storage', (event) => {
-    //     if (event.key === 'username') {
-    //         handleSocketConnection();
-    //     }
-    // });
 }
 
 export function navigateTo(pathname) {
@@ -101,6 +87,7 @@ export function navigateTo(pathname) {
 
     if (protectedRoutes.includes(pathname) && !isUserLoggedIn()) {
         console.log('Accès non autorisé. Redirection vers la page de connexion.');
+        removeDashboardEventListeners();
         pathname = '/login';
     }
 

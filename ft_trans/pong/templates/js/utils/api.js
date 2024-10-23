@@ -11,7 +11,9 @@ export async function fetchWithToken(url, options = {}) {
         'X-CSRFToken': csrfToken,
     };
 
-    console.log('En-têtes de la requête:', headers);
+    // console.log('En-têtes de la requête:', headers);
+    console.log('fetching: ', url);
+    console.log('method: ', options.method);
     const method = options.method || 'GET';
     const response = await fetch(url, { ...options, method, headers });
     return response;

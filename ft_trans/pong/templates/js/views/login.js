@@ -1,15 +1,17 @@
 import { navigateTo } from '../app.js';
 import { getCsrfToken } from '../utils/token.js';
+import { removeDashboardEventListeners } from './dashboard.js';
 
 export function login() {
+    removeDashboardEventListeners(); // Add this line
     console.log('login view');
     document.getElementById('ft_transcendence').innerHTML = `
     <div class="container login-container">
         <img src="${staticUrl}content/logo_400_400.png" id="logo_pong_login" alt="Logo" width="200" height="200">
         <form id="loginForm">
             <p>
-                <label for="username" style="color: #ff5722; margin-top:10px;">Username</label>
-                <input type="text" placeholder="Enter Username" id="username">
+                <label for="username" style="color: #ff5722; margin-top:10px;">Account name</label>
+                <input type="text" placeholder="Enter Account name" id="username">
             </p>
             <p>
                 <label for="password" style="color: #ff5722;">Password</label>

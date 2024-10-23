@@ -3,14 +3,14 @@ import { navigateTo } from '../app.js';
 const player_name = sessionStorage.getItem('player_name');
 
 export function settings() {
-    const username = sessionStorage.getItem('username');
+    const displayName = sessionStorage.getItem('displayName');
     let avatarUrl = sessionStorage.getItem('avatar_url');
     if (avatarUrl) {
         avatarUrl = avatarUrl.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
     }
 
 
-    if (!username) {
+    if (!displayName) {
         navigateTo('/login');
         return;
     }
@@ -23,7 +23,7 @@ export function settings() {
                 <img src="${staticUrl}content/logo2.png" id="pongonlineLink" alt="Logo" width="70" height="70">
             </a>
             <li class="nav-item">
-                <span class="nav-item" style="font-size: 2.5em; font-weight: bold;">${username}</span>
+                <span class="nav-item" style="font-size: 2.5em; font-weight: bold;">${displayName}</span>
             </li>
             <li class="nav-item">
                 <img src="${avatarUrl}" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Photo de profil" style="width: 50px; height: 50px;padding: 0px;">
@@ -122,9 +122,23 @@ function attachEventSettingsPage(navigateTo, player_name) {
 
             if (response.ok) {
                 showUpdateProfileToast();
-                sessionStorage.setItem('player_name', document.getElementById('displayName').value);
-                sessionStorage.setItem('email', document.getElementById('email').value);
-                sessionStorage.setItem('avatar_url', document.getElementById('avatar').value);
+                const displayName = document.getElementById('displayName').value;
+                const email = document.getElementById('email').value;
+                const avatarFile = document.getElementById('avatar').files[0];
+
+                if (displayName !== player_name) {
+                    sessionStorage.setItem('player_name', displayName);
+                }
+                if (email !== sessionStorage.getItem('email')) {
+                    sessionStorage.setItem('email', email);
+                }
+                if (avatarFile) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        sessionStorage.setItem('avatar_url', e.target.result);
+                    };
+                    reader.readAsDataURL(avatarFile);
+                }
             } else {
                 const errorData = await response.json();
                 showToast(`Erreur : ${errorData.message}`, 'error');
