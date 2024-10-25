@@ -19,7 +19,7 @@ RUN apk update &&\
     pip install --upgrade pip &&\
     pip install -r requirements.txt
 
-COPY ft_transcendence/ /app
+COPY src/ /app
 
 EXPOSE 443
 

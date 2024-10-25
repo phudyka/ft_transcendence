@@ -3,15 +3,12 @@ networks:
     driver: bridge
   db_network:
     driver: bridge
-  api_network:
-    driver: bridge
-  monitoring_network:
-    driver: bridge
+  # monitoring_network:
+  #   driver: bridge
   
 volumes:
-  static_files:
   postgres_data:
-  prometheus_data:
+  static_files:
 
 services:
 ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ##
@@ -22,16 +19,16 @@ services:
       - db_network
     ports:
       - "8081:8080"
-  postman:
-    container_name: "postman"
-    networks:
-      - 42nice
-    shm_size: 512m
-    ports:
-      - 8082:6901
-    environment:
-      - VNC_PW=password
-    image: kasmweb/postman:1.16.0
+  # postman:
+  #   container_name: "postman"
+  #   networks:
+  #     - 42nice
+  #   shm_size: 512m
+  #   ports:
+  #     - 8082:6901
+  #   environment:
+  #     - VNC_PW=password
+  #   image: kasmweb/postman:1.16.0
 
 
 ## INTERFACE ## INTERFACE ## INTERFACE ## INTERFACE ## INTERFACE ## INTERFACE ##
@@ -46,9 +43,7 @@ services:
     depends_on:
       django:
         condition: service_healthy
-      # grafana:
-      #   condition: service_healthy
-    restart: unless-stopped
+    restart: no
     volumes:
       - static_files:/static
     networks:
@@ -69,11 +64,9 @@ services:
     depends_on:
       postgresql:
         condition: service_healthy
-      chat:
+      user_api:
         condition: service_healthy
-      game_server:
-        condition: service_healthy
-    restart: unless-stopped
+    restart: no
     environment:
       - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
       - POSTGRES_USER=${POSTGRES_USER}
@@ -82,19 +75,15 @@ services:
       - POSTGRES_HOST=${POSTGRES_HOST}
       - POSTGRES_PORT=${POSTGRES_PORT}
       - FT_TRANSCENDENCE_HOST=${FT_TRANSCENDENCE_HOST}
-      - GAME_SERVER_HOST=${GAME_SERVER_HOST}
-      - CHAT_SERVER_HOST=${CHAT_SERVER_HOST}
-      - DJANGO_FT_CLIENT_ID=${DJANGO_FT_CLIENT_ID}
-      - DJANGO_FT_CLIENT_SECRET=${DJANGO_FT_CLIENT_SECRET}
+      # - GAME_SERVER_HOST=${GAME_SERVER_HOST}
+      # - CHAT_SERVER_HOST=${CHAT_SERVER_HOST}
+      # - DJANGO_FT_CLIENT_ID=${DJANGO_FT_CLIENT_ID}
+      # - DJANGO_FT_CLIENT_SECRET=${DJANGO_FT_CLIENT_SECRET}
     volumes:
       - static_files:/static
     networks:
       - 42nice
       - db_network
-      - api_network
-    # ports:
-    #   - "8000:8000"
-    #   - "8080:443"
   postgresql:
     build: requirements/postgresql
     container_name: "postgresql"
@@ -103,7 +92,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    restart: no
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
@@ -111,28 +100,26 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - db_network
-  game_server:
-    build: requirements/game_server
-    container_name: "game_server"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -k https://localhost"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    depends_on:
-      postgresql:
-       condition: service_healthy
-    restart: unless-stopped
-    networks:
-      - 42nice
-    # ports:
-    #   - "8030:3000"
+  # game_server:
+  #   build: requirements/game_server
+  #   container_name: "game_server"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -k https://localhost"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+  #   depends_on:
+  #     postgresql:
+  #      condition: service_healthy
+  #   restart: no
+  #   networks:
+  #     - 42nice
 
 
   ## MicroServices ## MicroServices ## MicroServices ## MicroServices ##
-  chat:
-    build: requirements/chat
-    container_name: "chat"
+  user_api:
+    build: requirements/user_api
+    container_name: "user_api"
     healthcheck:
       test: ["CMD-SHELL", "curl -k https://localhost"]
       interval: 5s
@@ -141,9 +128,24 @@ services:
     depends_on:
       postgresql:
        condition: service_healthy
-    restart: unless-stopped
+    restart: no
     networks:
-      - api_network
+      - db_network
+      - 42nice
+  # chat:
+  #   build: requirements/chat
+  #   container_name: "chat"
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -k https://localhost"]
+  #     interval: 5s
+  #     timeout: 5s
+  #     retries: 5
+  #   depends_on:
+  #     postgresql:
+  #      condition: service_healthy
+  #   restart: unless-stopped
+  #   networks:
+  #     - api_network
 
   ## MONITORING ## MONITORING ## MONITORING ## MONITORING ## MONITORING ##
   # grafana:

@@ -7,11 +7,13 @@ IMAGES =	src-grafana\
 			src-alertmanager\
 			src-node-exporter\
 			src-cadvisor\
+			\
 			src-nginx\
-			src-postgresql\
 			src-django\
+			src-postgresql\
 			src-game_server\
-			src-chat\
+			\
+			src-user_api
 			
 
 VOLUMES =	src_static_files\
