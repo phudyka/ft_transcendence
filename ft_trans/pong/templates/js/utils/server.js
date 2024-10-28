@@ -110,14 +110,17 @@ io.on('connection', (socket) => {
             users.delete(username);
             io.emit('user_disconnected', username);
 
+            console.log(`try to update online status to false of ${username}`);
             try {
-                const response = await fetch('http://localhost:8000/api/update-online-status/', {
+                const response = await fetch('http://web:8000/api/update-online-status/', {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${process.env.SERVER_TOKEN}`
+                        'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ is_online: false })
+                    body: JSON.stringify({ 
+                        is_online: false,
+                        display_name: username
+                    })
                 });
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
@@ -149,6 +152,8 @@ setInterval(() => {
             console.log(`${formatDate(new Date())} Déconnexion de l'utilisateur ${username} pour inactivité`);
             userConnections.delete(username);
             io.emit('user_disconnected', username);
+            console.log(`${formatDate(new Date())} Mise à jour du statut de ${username} à offline`);
+            updateOnlineStatus(username, false);
         }
     });
 }, 60000); // Vérifier chaque minute

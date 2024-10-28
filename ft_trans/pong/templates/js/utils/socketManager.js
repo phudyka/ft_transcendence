@@ -60,14 +60,17 @@ function clearActivityTimer(username) {
     }
 }
 
-async function updateOnlineStatus(username, isOnline) {
+export async function updateOnlineStatus(username, isOnline) {
     try {
         const response = await fetchWithToken('/api/update-online-status/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ is_online: isOnline }),
+            body: JSON.stringify({ 
+                is_online: isOnline,
+                display_name: username 
+            }),
         });
         if (!response.ok) {
             throw new Error('Error updating online status');

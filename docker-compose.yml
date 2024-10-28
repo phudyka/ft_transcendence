@@ -43,6 +43,8 @@ services:
       - "3000:3000"
     depends_on:
       - web
+    environment:
+      - API_URL=http://web:8000
 
   game:
     build:

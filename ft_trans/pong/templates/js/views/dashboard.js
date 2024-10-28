@@ -7,6 +7,7 @@ import { removeLoginEventListeners } from './login.js';
 import { checkAuthentication } from '../utils/auth.js';
 import { showToast } from '../utils/unmask.js';
 import { checkFriendshipStatus } from './profile.js';
+import { updateOnlineStatus } from '../utils/socketManager.js';
 
 let socket;
 const privateChatLogs = new Map();
@@ -120,7 +121,6 @@ export async function dashboard(player_name) {
     };
 
 	setupDashboardEvents(navigateTo, displayName);
-	// setupChatListeners();
 	checkForFriendRequests();
     fetchAndDisplayFriends();
     // loadGeneralChatMessages();
@@ -128,6 +128,8 @@ export async function dashboard(player_name) {
 
 function setupChatListeners(socket) {
     if (socket) {
+        const displayName = sessionStorage.getItem('display_name');
+        updateOnlineStatus(displayName, true);
         console.log('=== Setting up chat listeners ===');
         console.log('Socket state:', {
             id: socket.id,
@@ -137,18 +139,23 @@ function setupChatListeners(socket) {
 
         socket.off('private message');
 
+        socket.on('chat message', (msg) => {
+            console.log('Message reçu du serveur:', msg);
+            //if receive message from same user at very little delay, don't display it
+            const currentUsername = sessionStorage.getItem('username');
+            if (msg.name === currentUsername && msg.time - Date.now() < 5000) {
+                console.log('Message duplicate');
+                return;
+            }
+            receiveMessage(msg);
+        });
+
         socket.on('private message', (msg) => {
             console.log('=== Private message received ===');
             console.log('Message data:', msg);
             
             const currentUser = sessionStorage.getItem('display_name');
             console.log('Current user:', currentUser);
-
-            // Vérifier si le message est complet
-            if (!msg.to || !msg.from) {
-                console.error('Message incomplet reçu:', msg);
-                return;
-            }
 
             console.log('Message validation:', {
                 isForCurrentUser: msg.to === currentUser,
@@ -166,7 +173,6 @@ function setupChatListeners(socket) {
             }
         });
 
-        // Autres listeners...
     }
 }
 
@@ -176,13 +182,11 @@ function receivePrivateMessage(msg) {
     
     const currentUser = sessionStorage.getItem('display_name');
     
-    // Ajout de vérifications pour s'assurer que les propriétés nécessaires existent
     if (!msg.from) {
         console.error('Message reçu sans expéditeur (from)');
         return;
     }
 
-    // Si msg.to n'existe pas, on suppose que le message est pour l'utilisateur courant
     let chatPartner;
     if (!msg.to) {
         console.log('Message reçu sans destinataire (to), utilisation de l\'expéditeur comme partenaire');
@@ -441,16 +445,13 @@ function setupPrivateChat(friendName) {
     });
 
     // Créer une connexion privée pour ce chat
-    createPrivateConnection(friendName);    
-    // console.log(`Connexion privée créée entre ${sanitizeHTML(friendName)} et ${sanitizeHTML(sessionStorage.getItem('display_name'))}`);
+    // createPrivateConnection(friendName);
     console.log(`Connexion privée créée entre ${friendName} et ${sessionStorage.getItem('display_name')}`);    
 }
 
 function createPrivateConnection(friendName) {
     const displayName = sessionStorage.getItem('display_name');
-    const socket = getSocket(displayName); // Utiliser displayName
-    console.log(`Socket: ${socket.id}`);
-    console.log(`Friend name: ${friendName}`);
+    const socket = getSocket(displayName);
     if (socket) {
         socket.emit('create private room', { friend: friendName });
     }
@@ -722,9 +723,58 @@ function showFriendRequestSentToast(friendName) {
 }
 
 function blockUser(event) {
-	event.preventDefault();
-	const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
-	console.log(`Block ${friendName}`);
+    event.preventDefault();
+    const dropdown = event.target.closest('.dropdown-menu_chat');
+    const username = dropdown.getAttribute('data-friend');
+    
+    if (!username) {
+        console.error("Username not found");
+        return;
+    }
+
+    fetch('/api/block-user/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
+            'X-CSRFToken': getCookie('csrftoken')
+        },
+        body: JSON.stringify({ username: username })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast('User blocked successfully', 'success');
+            
+            // Supprimer les messages de l'utilisateur bloqué du chat
+            const chatLog = document.getElementById('chat-log');
+            const messages = chatLog.getElementsByClassName('message-container');
+            Array.from(messages).forEach(message => {
+                const usernameElement = message.querySelector('.username-link');
+                if (usernameElement && usernameElement.dataset.friend === username) {
+                    message.remove();
+                }
+            });
+
+            // Fermer le chat privé s'il est ouvert
+            if (privateChatLogs.has(username)) {
+                privateChatLogs.delete(username);
+                const chatbox = document.getElementById('chatbox');
+                if (chatbox) {
+                    const bsOffcanvas = bootstrap.Offcanvas.getInstance(chatbox);
+                    if (bsOffcanvas) {
+                        bsOffcanvas.hide();
+                    }
+                }
+            }
+        } else {
+            showToast(data.message || 'Failed to block user', 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error blocking user:', error);
+        showToast('An error occurred while blocking the user', 'error');
+    });
 }
 
 function viewProfile(event) {
@@ -922,6 +972,9 @@ async function fetchAndDisplayFriends() {
                         setupPrivateChat(friend.display_name);
                     }
                 }
+
+                // if new friend show toast whith "friend name added to friends"
+                // showToast(`${friend.display_name} added to friends`, 'info');
             });
         } catch (error) {
             console.error('Erreur lors de la récupération des amis:', error);

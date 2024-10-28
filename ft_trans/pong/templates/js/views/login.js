@@ -59,7 +59,7 @@ export function login() {
     // Utiliser setTimeout pour s'assurer que le DOM est complètement mis à jour
     setTimeout(() => {
         attachEventLoginPage();
-        checkRegistrationSuccess();
+        // checkRegistrationSuccess();
     }, 0);
 }
 
@@ -85,11 +85,7 @@ function attachEventLoginPage() {
 
     document.addEventListener("keydown", handleEnterKeyPress);
 
-    document.getElementById('login_with_42').addEventListener('click', function(event) {
-        event.preventDefault();
-        console.log('"Login with 42" button clicked');
-        window.location.href = '/api/auth/42/login/';
-    });
+    document.getElementById('login_with_42').addEventListener('click', handle42Login);
 }
 
 function handleUnmaskPassword(event) {
@@ -109,7 +105,7 @@ function handleUnmaskPassword(event) {
 function handleEnterKeyPress(event) {
     if (event.key === "Enter") {
         const loginForm = document.getElementById('loginForm');
-        if (loginForm) {
+        if (loginForm) {_success=true
             loginForm.dispatchEvent(new Event('submit'));
         }
     }
@@ -158,32 +154,9 @@ async function handleLogin(event) {
     }
 }
 
-async function handle42Login() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const authSuccess = urlParams.get('auth_success');
-    const error = urlParams.get('error');
-
-    if (authSuccess === 'true') {
-        try {
-            const response = await fetch('/api/auth/42/login/callback/' + window.location.search);
-            const data = await response.json();
-            if (data.success) {
-                sessionStorage.setItem('accessToken', data.access);
-                sessionStorage.setItem('refreshToken', data.refresh);
-                sessionStorage.setItem('username', data.username);
-                sessionStorage.setItem('display_name', data.display_name);
-                sessionStorage.setItem('avatar_url', data.avatar_url);
-                navigateTo('/dashboard');
-            } else {
-                showLoginToastErr(data.error || 'Échec de la connexion');
-            }
-        } catch (error) {
-            console.error('Erreur lors de la connexion avec 42:', error);
-            showLoginToastErr('Une erreur est survenue. Veuillez réessayer.');
-        }
-    } else if (error) {
-        showLoginToastErr(decodeURIComponent(error));
-    }
+async function handle42Login(e) {
+    e.preventDefault(); // Empêcher le comportement par défaut du bouton
+    window.location.href = '/api/auth/42/login/';
 }
 
 function showLoginToastErr(message) {
@@ -198,11 +171,13 @@ function checkRegistrationSuccess() {
     const successMessage = sessionStorage.getItem('registrationSuccess');
     const urlParams = new URLSearchParams(window.location.search);
     const authSuccess = urlParams.get('auth_success');
+    const data = urlParams.get('data');
 
     if (successMessage) {
         showSuccessToast(successMessage);
         sessionStorage.removeItem('registrationSuccess');
-    } else if (authSuccess === 'true') {
+    } else if (authSuccess === 'true' && !data) {
+        // Ne montrer le toast que si on n'a pas de données d'authentification
         showSuccessToast('42 registration successful. You can now log in.');
         history.replaceState(null, '', window.location.pathname);
     }
@@ -238,3 +213,17 @@ export function removeLoginEventListeners() {
     document.removeEventListener('click', handleUnmaskPassword);
     document.removeEventListener("keydown", handleEnterKeyPress);
 }
+
+// Ajouter l'appel de handle42Login lors du chargement de la page
+document.addEventListener('DOMContentLoaded', () => {
+    const login42Button = document.getElementById('login_with_42');
+    if (login42Button) {
+        login42Button.addEventListener('click', handle42Login);
+    }
+
+    // Vérifier si on revient d'une authentification 42
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('auth_success')) {
+        handle42Login();
+    }
+});

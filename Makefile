@@ -27,11 +27,15 @@ clean: down
 
 fclean: clean
 	@docker volume rm -f $(VOLUMES) > /dev/null
+	@docker system prune -af > /dev/null
 	@echo "Volumes supprimés."
+	@echo "System pruned."
 
 re: clean all
 
 refclean: fclean all
 
-.PHONY: all up start down stop clean fclean re refclean
+debug:
+	@docker compose logs -f
 
+.PHONY: all up start down stop clean fclean re refclean debug

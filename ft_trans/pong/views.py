@@ -17,7 +17,7 @@ from .serializers import CustomUserSerializer
 logger = logging.getLogger(__name__)
 from django.utils import timezone
 from django.contrib.auth import get_user_model
-from .models import CustomUser, Friendship, FriendRequest, MatchHistory
+from .models import CustomUser, Friendship, FriendRequest, MatchHistory, BlockedUser
 from django.contrib.auth.hashers import check_password, make_password
 from django.views.decorators.http import require_GET
 from django.conf import settings
@@ -216,6 +216,7 @@ def auth_42_callback(request):
         redirect_uri = request.build_absolute_uri('/api/auth/42/callback/')
         logger.info(f"URI de redirection : {redirect_uri}")
 
+        # Échange du code contre un token
         token_response = requests.post('https://api.intra.42.fr/oauth/token', data={
             'grant_type': 'authorization_code',
             'client_id': settings.FT_CLIENT_ID,
@@ -246,6 +247,7 @@ def auth_42_callback(request):
         user_info = user_info_response.json()
         logger.info(f"Informations utilisateur récupérées : {user_info}")
 
+        # Création ou mise à jour de l'utilisateur dans la base de données
         username = user_info.get('login')
         email = user_info.get('email', '')
         display_name = user_info.get('displayname', username)
@@ -265,16 +267,19 @@ def auth_42_callback(request):
         logger.info(f"Utilisateur {'créé' if created else 'existant'} : {user.username}")
 
         if not created:
+            # Mise à jour des informations si l'utilisateur existe déjà
             user.email = email
             user.avatar_url = avatar_url
             user.display_name = display_name
             user.save()
             logger.info(f"Informations utilisateur mises à jour pour : {user.username}")
 
+        # Connexion de l'utilisateur
         login(request, user)
         logger.info(f"Utilisateur connecté : {user.username}")
 
-        return redirect('/?auth_success=true')
+        # Redirection vers la page d'accueil avec un paramètre de succès
+        return redirect('/?create_success=true')
 
     except Exception as e:
         logger.error(f"Erreur lors de l'authentification avec 42 : {str(e)}")
@@ -417,50 +422,92 @@ def check_friendship_status(request, username):
         return JsonResponse({'error': 'Utilisateur non trouvé'}, status=404)
 
 def auth_42_login_redirect(request):
-    redirect_uri = request.build_absolute_uri('/api/auth/42/login/callback/')
-    return redirect(f'https://api.intra.42.fr/oauth/authorize?client_id={settings.FT_CLIENT_ID}&redirect_uri={redirect_uri}&response_type=code')
+    auth_url = 'https://api.intra.42.fr/oauth/authorize'
+    callback_url = request.build_absolute_uri('/api/auth/42/login/callback/')
+    
+    params = {
+        'client_id': settings.FT_CLIENT_ID,
+        'redirect_uri': callback_url,
+        'response_type': 'code',
+        'scope': 'public'
+    }
+    
+    auth_url = f"{auth_url}?{'&'.join(f'{k}={v}' for k, v in params.items())}"
+    return JsonResponse({
+        'success': True,
+        'redirect_url': auth_url
+    })
 
+@csrf_exempt
 def auth_42_login_callback(request):
     code = request.GET.get('code')
     if not code:
-        return JsonResponse({'error': 'Code non fourni'}, status=400)
-
-    redirect_uri = request.build_absolute_uri('/api/auth/42/login/callback/')
-    token_response = requests.post('https://api.intra.42.fr/oauth/token', data={
-        'grant_type': 'authorization_code',
-        'client_id': settings.FT_CLIENT_ID,
-        'client_secret': settings.FT_CLIENT_SECRET,
-        'code': code,
-        'redirect_uri': redirect_uri
-    })
-
-    if token_response.status_code != 200:
-        return JsonResponse({'error': 'Échec de l\'obtention du token'}, status=400)
-
-    access_token = token_response.json().get('access_token')
-    user_info = requests.get('https://api.intra.42.fr/v2/me', headers={
-        'Authorization': f'Bearer {access_token}'
-    }).json()
-
-    username = user_info.get('login')
+        return JsonResponse({
+            'success': False,
+            'error': 'No authorization code provided'
+        }, status=400)
 
     try:
-        user = CustomUser.objects.get(username=username)
-    except CustomUser.DoesNotExist:
-        return JsonResponse({'error': 'Utilisateur non trouvé'}, status=404)
+        # Échange du code contre un token
+        token_url = 'https://api.intra.42.fr/oauth/token'
+        callback_url = request.build_absolute_uri('/api/auth/42/login/callback/')
+        
+        token_response = requests.post(token_url, data={
+            'grant_type': 'authorization_code',
+            'client_id': settings.FT_CLIENT_ID,
+            'client_secret': settings.FT_CLIENT_SECRET,
+            'code': code,
+            'redirect_uri': callback_url
+        })
+        
+        if token_response.status_code != 200:
+            return JsonResponse({
+                'success': False,
+                'error': 'Failed to get access token'
+            }, status=400)
 
-    login(request, user)
-    refresh = RefreshToken.for_user(user)
+        token_data = token_response.json()
+        
+        # Récupération des informations utilisateur
+        user_response = requests.get(
+            'https://api.intra.42.fr/v2/me',
+            headers={'Authorization': f"Bearer {token_data['access_token']}"}
+        )
+        
+        if user_response.status_code != 200:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Failed to get user info'
+            }, status=400)
 
-    return JsonResponse({
-        'success': True,
-        'message': 'Connexion réussie',
-        'access': str(refresh.access_token),
-        'refresh': str(refresh),
-        'username': user.username,
-        'display_name': user.display_name,
-        'avatar_url': user.avatar_url,
-    })
+        user_data = user_response.json()
+        
+        # Récupération ou création de l'utilisateur
+        try:
+            user = CustomUser.objects.get(username=user_data['login'])
+        except CustomUser.DoesNotExist:
+            return JsonResponse({
+                'success': False,
+                'error': 'User not found. Please register first.'
+            }, status=404)
+
+        # Génération des tokens JWT
+        refresh = RefreshToken.for_user(user)
+        return JsonResponse({
+            'success': True,
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'username': user.username,
+            'display_name': user.display_name,
+            'avatar_url': user.avatar_url
+        })
+
+    except Exception as e:
+        logger.error(f"Erreur lors de l'authentification 42: {str(e)}")
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -494,7 +541,8 @@ def user_ping(request):
 @permission_classes([IsAuthenticated])
 def update_online_status(request):
     user = request.user
-    user.is_online = True
+    data = request.data
+    user.is_online = data.get('is_online', user.is_online)
     user.last_activity = timezone.now()
     user.save()
     return Response({'status': 'success'})
@@ -521,7 +569,7 @@ def check_friend_request(request, username):
             'request_sent': request_sent
         })
     except CustomUser.DoesNotExist:
-        return JsonResponse({'error': 'Utilisateur non trouvé'}, status=404)
+        return JsonResponse({'error': 'Utilisateur non trouv'}, status=404)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
@@ -579,6 +627,70 @@ def get_recent_matches(request, username):
         return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def block_user(request):
+    blocked_username = request.data.get('username')
+    try:
+        blocked_user = CustomUser.objects.get(username=blocked_username)
+        
+        # Vérifier si l'utilisateur essaie de se bloquer lui-même
+        if blocked_user == request.user:
+            return JsonResponse({
+                'success': False,
+                'message': 'You cannot block yourself'
+            }, status=400)
+
+        # Créer l'entrée de blocage
+        BlockedUser.objects.get_or_create(
+            user=request.user,
+            blocked_user=blocked_user
+        )
+
+        return JsonResponse({
+            'success': True,
+            'message': f'Successfully blocked {blocked_username}'
+        })
+    except CustomUser.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'User not found'
+        }, status=404)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def unblock_user(request):
+    username = request.data.get('username')
+    try:
+        blocked_user = CustomUser.objects.get(username=username)
+        BlockedUser.objects.filter(
+            user=request.user,
+            blocked_user=blocked_user
+        ).delete()
+        return JsonResponse({
+            'success': True,
+            'message': f'Successfully unblocked {username}'
+        })
+    except CustomUser.DoesNotExist:
+        return JsonResponse({
+            'success': False,
+            'message': 'User not found'
+        }, status=404)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_blocked_users(request):
+    blocked_users = BlockedUser.objects.filter(user=request.user)
+    blocked_list = [{
+        'username': block.blocked_user.username,
+        'display_name': block.blocked_user.display_name,
+        'blocked_at': block.created_at
+    } for block in blocked_users]
+    return JsonResponse({
+        'success': True,
+        'blocked_users': blocked_list
+    })
 
 
 
