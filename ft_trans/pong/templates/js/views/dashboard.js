@@ -56,8 +56,25 @@ export async function dashboard(player_name) {
         <div class="content">
             <div class="sidebar">
                 <h2 class="title-friends">Friends</h2>
-                <ul id="friends" class="list-group">
-                </ul>
+                <div class="friends-tabs">
+                    <button class="tab-button active" data-tab="online">Online Friends</button>
+                    <button class="tab-button" data-tab="pending">Pending Requests</button>
+                    <button class="tab-button" data-tab="blocked">Blocked Users</button>
+                </div>
+                <div class="friends-content">
+                    <div id="online" class="tab-content active">
+                        <ul id="online-friends" class="list-group">
+                        </ul>
+                    </div>
+                    <div id="pending" class="tab-content">
+                        <ul id="pending-friends" class="list-group">
+                        </ul>
+                    </div>
+                    <div id="blocked" class="tab-content">
+                        <ul id="blocked-friends" class="list-group">
+                        </ul>
+                    </div>
+                </div>
                 <div id="friendDropdown" class="dropdown-menu" style="display: none;">
                     <a class="dropdown-item" href="#" id="sendMessagePrivate">Send Private Message</a>
                     <a class="dropdown-item" href="#" id="startGame">Start a Game</a>
@@ -122,6 +139,7 @@ export async function dashboard(player_name) {
     };
 
 	setupDashboardEvents(navigateTo, displayName);
+	setupTabSystem();
 	checkForFriendRequests();
     fetchAndDisplayFriends();
     // loadGeneralChatMessages();
@@ -926,57 +944,137 @@ function showFriendRequestToast(fromUsername, requestId) {
 }
 
 async function fetchAndDisplayFriends() {
-    const friendsList = document.getElementById('friends');
-    if (friendsList) {
+    const onlineFriendsList = document.getElementById('online-friends');
+    const pendingFriendsList = document.getElementById('pending-friends');
+    const blockedFriendsList = document.getElementById('blocked-friends');
+
+    if (onlineFriendsList && pendingFriendsList && blockedFriendsList) {
         try {
-            const response = await fetch('/api/friends/', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-            const data = await response.json();
-            console.log('Données reçues par fetchAndDisplayFriends:', data);
-
-            friendsList.innerHTML = '';
-            blockedUsers.clear();  // Réinitialiser la liste
-
-            data.friends.forEach(friend => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center';
-                li.setAttribute('data-friend', friend.username);
-
-                const statusDot = document.createElement('span');
-                statusDot.className = `status-dot ${friend.is_online ? 'online' : 'offline'}`;
-
-                const usernameSpan = document.createElement('span');
-                usernameSpan.textContent = friend.display_name || friend.username;
-
-                li.appendChild(statusDot);
-                li.appendChild(usernameSpan);
-
-                // Désactiver l'élément si l'ami est bloqué
-                if (friend.is_blocked) {
-                    li.classList.add('disabled');
-                    li.style.pointerEvents = 'none';
-                    blockedUsers.add(friend.username);
-                    li.removeChild(statusDot);
-                } else {
-                    li.addEventListener('click', handleFriendClick);
-                }
-
-                friendsList.appendChild(li);
-
-                if (friend.is_online && !friend.is_blocked) {
-                    if (!privateChatLogs.has(friend.display_name)) {
-                        setupPrivateChat(friend.display_name);
+            const [friendsResponse, pendingResponse] = await Promise.all([
+                fetch('/api/friends/', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
+                        'Content-Type': 'application/json'
                     }
-                }
+                }),
+                fetch('/api/friends/pending/', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
+            ]);
+
+            const [friendsData, pendingData] = await Promise.all([
+                friendsResponse.json(),
+                pendingResponse.json()
+            ]);
+
+            // Clear all lists
+            onlineFriendsList.innerHTML = '';
+            pendingFriendsList.innerHTML = '';
+            blockedFriendsList.innerHTML = '';
+            blockedUsers.clear();
+
+            // Display online friends
+            friendsData.friends
+                .filter(friend => friend.is_online && !friend.is_blocked)
+                .forEach(friend => {
+                    createFriendListItem(friend, onlineFriendsList);
+                });
+
+            // Display pending requests
+            pendingData.pending_requests.forEach(request => {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center pending-request';
+                li.innerHTML = `
+                    <span>${request.from_username}</span>
+                    <div class="pending-actions">
+                        <button class="accept-btn" data-request-id="${request.id}">✓</button>
+                        <button class="reject-btn" data-request-id="${request.id}">✗</button>
+                    </div>
+                `;
+                pendingFriendsList.appendChild(li);
+
+                // Add event listeners for accept/reject buttons
+                li.querySelector('.accept-btn').addEventListener('click', () => acceptFriendRequest(request.id));
+                li.querySelector('.reject-btn').addEventListener('click', () => rejectFriendRequest(request.id));
             });
+
+            // Display blocked users
+            friendsData.friends
+                .filter(friend => friend.is_blocked)
+                .forEach(friend => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center blocked-user';
+                    li.innerHTML = `
+                        <span>${friend.display_name || friend.username}</span>
+                        <button class="unblock-btn" data-username="${friend.username}">Unblock</button>
+                    `;
+                    blockedFriendsList.appendChild(li);
+                    blockedUsers.add(friend.username);
+
+                    // Add event listener for unblock button
+                    li.querySelector('.unblock-btn').addEventListener('click', () => unblockUser(friend.username));
+                });
+
         } catch (error) {
-            console.error('Erreur lors de la récupération des amis:', error);
+            console.error('Error fetching friends data:', error);
         }
+    }
+}
+
+// Nouvelle fonction helper pour créer les éléments de la liste d'amis
+function createFriendListItem(friend, listElement) {
+    const li = document.createElement('li');
+    li.className = 'list-group-item d-flex justify-content-between align-items-center';
+    li.setAttribute('data-friend', friend.username);
+
+    const statusDot = document.createElement('span');
+    statusDot.className = `status-dot ${friend.is_online ? 'online' : 'offline'}`;
+
+    const usernameSpan = document.createElement('span');
+    usernameSpan.textContent = friend.display_name || friend.username;
+
+    li.appendChild(statusDot);
+    li.appendChild(usernameSpan);
+
+    li.addEventListener('click', handleFriendClick);
+
+    listElement.appendChild(li);
+
+    if (friend.is_online) {
+        if (!privateChatLogs.has(friend.display_name)) {
+            setupPrivateChat(friend.display_name);
+        }
+    }
+}
+
+// Nouvelle fonction pour débloquer un utilisateur
+async function unblockUser(username) {
+    try {
+        const response = await fetch('/api/unblock-user/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ display_name: username })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            showToast('User unblocked successfully', 'success');
+            fetchAndDisplayFriends(); // Refresh the lists
+        } else {
+            showToast(data.message || 'Failed to unblock user', 'error');
+        }
+    } catch (error) {
+        console.error('Error unblocking user:', error);
+        showToast('An error occurred while unblocking the user', 'error');
     }
 }
 
@@ -1071,4 +1169,25 @@ function handleLogout(event) {
     }
     removeDashboardEventListeners();
     logout();
+}
+
+function setupTabSystem() {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            // Retirer la classe active de tous les boutons et contenus
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            
+            // Ajouter la classe active au bouton cliqué
+            button.classList.add('active');
+            
+            // Afficher le contenu correspondant
+            const tabId = button.getAttribute('data-tab');
+            document.getElementById(tabId).classList.add('active');
+        });
+    });
 }
