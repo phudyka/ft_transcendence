@@ -92,7 +92,7 @@ export async function profile(displayName) {
                 <div class="row mt-4">
                     <div class="col-md-4">
                         <div class="card">
-                            <div class="card-bod            console.log('User profile:', userProfile);y">
+                            <div class="card-body">
                                 <h5 class="card-title">Player Statistics</h5>
                                 <p class="card-text">
                                     <strong>Wins:</strong> ${userProfile.wins}<br>

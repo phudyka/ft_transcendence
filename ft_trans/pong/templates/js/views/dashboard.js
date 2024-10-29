@@ -13,6 +13,7 @@ let socket;
 const privateChatLogs = new Map();
 const privateMessages = new Map(); // Nouvelle Map pour stocker les messages
 const username = sessionStorage.getItem('username');
+let blockedUsers = new Set();
 
 export async function dashboard(player_name) {
     const isAuthenticated = await checkAuthentication();
@@ -301,13 +302,6 @@ function setupDashboardEvents(navigateTo, username) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	// toast when block user
-	document.getElementById('friendDropdown_chat').querySelector('#blockUser').addEventListener('click', function (event) {
-		event.preventDefault();
-		var toast = new bootstrap.Toast(document.getElementById('blockUserToast'));
-		toast.show();
-	});
-
     if (window.location.pathname === '/dashboard') {
         setInterval(fetchAndDisplayFriends, 20000);
         setInterval(checkForFriendRequests, 20000);
@@ -551,6 +545,7 @@ function sendMessage(event) {
     console.log(`Socket connected: ${socket.connected}`);
     console.log(`Socket id: ${socket.id}`);
     console.log(`End of sendMessage function`);
+    updateOnlineStatus(displayName);
 
     if (message !== '' && socket && socket.connected) {
         socket.emit('chat message', { name: displayName, message: message });
@@ -562,6 +557,13 @@ function sendMessage(event) {
 
 function receiveMessage(msg) {
     console.log('Fonction receive Message appelée avec:', msg);
+    
+    // Vérifier si l'expéditeur est bloqué
+    if (blockedUsers.has(msg.name)) {
+        console.log(`Message ignoré de ${msg.name} car il est bloqué.`);
+        return;
+    }
+
     const chatLog = document.getElementById('chat-log');
     if (!chatLog) {
         console.error("L'élément chat-log n'existe pas dans le DOM");
@@ -575,12 +577,14 @@ function receiveMessage(msg) {
     usernameElement.innerText = `[${msg.name}]`;
     usernameElement.style = "cursor: pointer;";
 
+    updateOnlineStatus(msg.name);
+
     // saveMessage(msg.name, msg.message);
 
     usernameElement.addEventListener('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
-        const currentUsername = sessionStorage.getItem('username');
+        const currentUsername = sessionStorage.getItem('display_name');
         const isOwnUsername = msg.name === currentUsername;
         const dropdown = isOwnUsername ? document.getElementById('profileDropdown') : document.getElementById('friendDropdown_chat');
         const friendName = this.dataset.friend;
@@ -739,24 +743,13 @@ function blockUser(event) {
             'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
             'X-CSRFToken': getCookie('csrftoken')
         },
-        body: JSON.stringify({ username: username })
+        body: JSON.stringify({ display_name: username })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
             showToast('User blocked successfully', 'success');
-            
-            // Supprimer les messages de l'utilisateur bloqué du chat
-            const chatLog = document.getElementById('chat-log');
-            const messages = chatLog.getElementsByClassName('message-container');
-            Array.from(messages).forEach(message => {
-                const usernameElement = message.querySelector('.username-link');
-                if (usernameElement && usernameElement.dataset.friend === username) {
-                    message.remove();
-                }
-            });
 
-            // Fermer le chat privé s'il est ouvert
             if (privateChatLogs.has(username)) {
                 privateChatLogs.delete(username);
                 const chatbox = document.getElementById('chatbox');
@@ -933,7 +926,6 @@ function showFriendRequestToast(fromUsername, requestId) {
 }
 
 async function fetchAndDisplayFriends() {
-    // if list group friends exist try else return
     const friendsList = document.getElementById('friends');
     if (friendsList) {
         try {
@@ -947,8 +939,8 @@ async function fetchAndDisplayFriends() {
             const data = await response.json();
             console.log('Données reçues par fetchAndDisplayFriends:', data);
 
-            const friendsList = document.getElementById('friends');
             friendsList.innerHTML = '';
+            blockedUsers.clear();  // Réinitialiser la liste
 
             data.friends.forEach(friend => {
                 const li = document.createElement('li');
@@ -963,18 +955,24 @@ async function fetchAndDisplayFriends() {
 
                 li.appendChild(statusDot);
                 li.appendChild(usernameSpan);
-                li.addEventListener('click', handleFriendClick);
+
+                // Désactiver l'élément si l'ami est bloqué
+                if (friend.is_blocked) {
+                    li.classList.add('disabled');
+                    li.style.pointerEvents = 'none';
+                    blockedUsers.add(friend.username);
+                    li.removeChild(statusDot);
+                } else {
+                    li.addEventListener('click', handleFriendClick);
+                }
+
                 friendsList.appendChild(li);
 
-                if (friend.is_online) {
-                    //check if private chat already exist
+                if (friend.is_online && !friend.is_blocked) {
                     if (!privateChatLogs.has(friend.display_name)) {
                         setupPrivateChat(friend.display_name);
                     }
                 }
-
-                // if new friend show toast whith "friend name added to friends"
-                // showToast(`${friend.display_name} added to friends`, 'info');
             });
         } catch (error) {
             console.error('Erreur lors de la récupération des amis:', error);
@@ -1074,22 +1072,3 @@ function handleLogout(event) {
     removeDashboardEventListeners();
     logout();
 }
-
-function debugPrintMaps() {
-    console.log('=== Debug Maps State ===');
-    
-    console.log('privateChatLogs Map:');
-    privateChatLogs.forEach((value, key) => {
-        console.log(`Key: ${key}`);
-        console.log('Value:', value);
-    });
-
-    console.log('\nprivateMessages Map:');
-    privateMessages.forEach((messages, friend) => {
-        console.log(`Friend: ${friend}`);
-        console.log('Messages:', messages);
-    });
-    
-    console.log('=====================\n');
-}
-

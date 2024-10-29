@@ -111,6 +111,34 @@ html, body {
     border-color: #FF8C00;
 }
 
+.list-group-item.disabled {
+    opacity: 0.6;
+    background-color: rgba(34, 34, 34, 0.9);
+    cursor: not-allowed;
+    position: relative;
+    pointer-events: none;
+}
+
+.list-group-item.disabled::before {
+    content: "\1F6AB"; /* 🚫 */
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.2em;
+    color: #dc3545;
+}
+
+.list-group-item.disabled span:last-child {
+    margin-left: 30px;
+    color: #dc3545;
+}
+
+.list-group-item.disabled:hover {
+    background: rgba(34, 34, 34, 0.9);
+    transform: none;
+}
+
 /* GAME CONTAINER */
 .game-container {
     width: 70%;

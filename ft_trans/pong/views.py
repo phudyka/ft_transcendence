@@ -518,6 +518,7 @@ def verify_token(request):
 @permission_classes([IsAuthenticated])
 def get_friend_list(request):
     friendships = Friendship.objects.filter(user=request.user)
+    blocked_users = BlockedUser.objects.filter(user=request.user).values_list('blocked_user__username', flat=True)
     friends_data = []
     for friendship in friendships:
         friend = friendship.friend
@@ -525,7 +526,8 @@ def get_friend_list(request):
             'username': friend.username,
             'display_name': friend.display_name,
             'is_online': friend.is_online,
-            'avatar_url': friend.avatar_url
+            'avatar_url': friend.avatar_url,
+            'is_blocked': friend.username in blocked_users  # Indique si l'ami est bloqué
         })
     return JsonResponse({'friends': friends_data})
 
@@ -631,9 +633,9 @@ def get_recent_matches(request, username):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def block_user(request):
-    blocked_username = request.data.get('username')
+    blocked_username = request.data.get('display_name')
     try:
-        blocked_user = CustomUser.objects.get(username=blocked_username)
+        blocked_user = CustomUser.objects.get(display_name=blocked_username)
         
         # Vérifier si l'utilisateur essaie de se bloquer lui-même
         if blocked_user == request.user:
@@ -664,10 +666,19 @@ def unblock_user(request):
     username = request.data.get('username')
     try:
         blocked_user = CustomUser.objects.get(username=username)
-        BlockedUser.objects.filter(
+        # Vérifier si l'utilisateur est celui qui a bloqué
+        block = BlockedUser.objects.filter(
             user=request.user,
             blocked_user=blocked_user
-        ).delete()
+        ).first()
+        
+        if not block:
+            return JsonResponse({
+                'success': False,
+                'message': 'You cannot unblock this user as you are not the one who blocked them'
+            }, status=403)
+            
+        block.delete()
         return JsonResponse({
             'success': True,
             'message': f'Successfully unblocked {username}'
