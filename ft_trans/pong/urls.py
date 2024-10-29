@@ -3,7 +3,7 @@ from . import views
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-
+ 
 urlpatterns = [
 	path('api/auth/42/', views.auth_42_redirect, name='auth_42_redirect'),
 	path('api/auth/42/callback/', views.auth_42_callback, name='auth_42_callback'),
@@ -33,6 +33,9 @@ urlpatterns = [
 	path('api/users/display_name/<str:display_name>/update_stats/', views.update_user_stats, name='update_user_stats'),
 	path('api/save-match-result/', views.save_match_result, name='save_match_result'),
 	path('api/get-recent-matches/<str:username>/', views.get_recent_matches, name='get_recent_matches'),
+	path('api/block-user/', views.block_user, name='block_user'),
+	path('api/unblock-user/', views.unblock_user, name='unblock_user'),
+	path('api/blocked-users/', views.get_blocked_users, name='get_blocked_users'),
 	path('<path:path>', views.index, name='catch_all'),
 	path('', views.index, name='index'),
 ]

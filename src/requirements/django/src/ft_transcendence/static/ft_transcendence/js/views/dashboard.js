@@ -70,7 +70,7 @@ export async function dashboard(player_name) {
             </div>
 
                 <div class="game-container">
-                    <iframe id="pong" title="Pong" src="http://localhost:4000"></iframe>
+                    <iframe id="pong" title="Pong" src="http://localhost:8080"></iframe>
                 </div>
 
             <div class="chat-container">

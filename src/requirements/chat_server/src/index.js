@@ -1,13 +1,19 @@
 const express = require('express');
-const http = require('http');
+const https = require('https');
 const socketIo = require('socket.io');
 const cors = require('cors');
-const fetch = require('node-fetch');
+// const fetch = require('node-fetch');
+const fs = require('fs');
 
 const userConnections = new Map();
 
+const options = {
+    key: fs.readFileSync('/app/ssl_certificates/chat_server.key'),
+    cert: fs.readFileSync('/app/ssl_certificates/chat_server.crt')
+};
+
 const app = express();
-const server = http.createServer(app);
+const server = https.createServer(options, app);
 const io = socketIo(server, {
     cors: {
         origin: "*",
@@ -158,6 +164,6 @@ setInterval(() => {
     });
 }, 60000); // Vérifier chaque minute
 
-server.listen(3000, () => {
+server.listen(443, () => {
     console.log(`${formatDate(new Date())} Serveur en écoute sur le port 3000`);
 });

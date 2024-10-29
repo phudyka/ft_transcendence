@@ -11,7 +11,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 
 from pathlib import Path
-from os import getenv
+from datetime import timedelta
+import os
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,14 +23,53 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = getenv("DJANGO_SECRET_KEY")
+SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-APPEND_SLASH = False
+ALLOWED_HOSTS = [ '*' ]
 
-ALLOWED_HOSTS = [ 'localhost' ]
+CORS_ALLOWED_ORIGINS = [ '*' ]
 
+CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [ '*' ]
+
+##################################################################################################################
+##################################################################################################################
+
+# SIMPLE_JWT = { # for jwt
+#     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+#     'REFRESH_TOKEN_LIFETIME': timedelta(days=1),
+# }
+
+# AUTH_USER_MODEL = 'pong.CustomUser'
+
+# AUTHENTICATION_BACKENDS = [
+#     'django.contrib.auth.backends.ModelBackend',
+# ]
+
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'root': {
+#         'handlers': ['console'],
+#         'level': 'INFO',
+#     },
+# }
+
+# # a securiser avec import os et os.getenv('FT_CLIENT_ID') et os.getenv('FT_CLIENT_SECRET')
+# FT_CLIENT_ID = 'u-s4t2ud-0bdec356ea53d09b3992d0f90a9e4b9cdf8d0659d321388f9ba8ee3a41448165'
+# FT_CLIENT_SECRET = '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'
+
+##################################################################################################################
+##################################################################################################################
 
 # Application definition
 
@@ -39,7 +80,15 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'pong',
+    ## MODULES
+    'rest_framework',
+    'rest_framework.authtoken',
+    'corsheaders',
+    'rest_framework_simplejwt',
+    ## APPS
+    'user_management',
+    'game_server',
+    'chat_server',
 ]
 
 MIDDLEWARE = [
@@ -57,7 +106,7 @@ ROOT_URLCONF = 'ft_transcendence.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [ os.path.join(BASE_DIR, "ft_transcendence/templates")],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -79,11 +128,11 @@ WSGI_APPLICATION = 'ft_transcendence.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME' : getenv("DJANGO_DB_NAME"),
-        'USER' : getenv("POSTGRES_USER"),
-        'PASSWORD' : getenv("POSTGRES_PASSWORD"),
-        'HOST' : getenv("POSTGRES_HOST"),
-        'PORT' : getenv("POSTGRES_PORT"),
+        'NAME' : os.getenv("DJANGO_DB_NAME"),
+        'USER' : os.getenv("POSTGRES_USER"),
+        'PASSWORD' : os.getenv("POSTGRES_PASSWORD"),
+        'HOST' : os.getenv("POSTGRES_HOST"),
+        'PORT' : os.getenv("POSTGRES_PORT"),
     }
 }
 
@@ -125,6 +174,10 @@ USE_TZ = True
 STATIC_URL = 'static/'
 
 STATIC_ROOT = '/static'
+
+STATICFILES_DIRS = [
+    BASE_DIR / 'ft_transcendence/static',
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

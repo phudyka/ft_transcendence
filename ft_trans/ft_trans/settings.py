@@ -184,4 +184,4 @@ LOGGING = {
 
 # a securiser avec import os et os.getenv('FT_CLIENT_ID') et os.getenv('FT_CLIENT_SECRET')
 FT_CLIENT_ID = 'u-s4t2ud-0bdec356ea53d09b3992d0f90a9e4b9cdf8d0659d321388f9ba8ee3a41448165'
-FT_CLIENT_SECRET = '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'
+FT_CLIENT_SECRET = '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'
