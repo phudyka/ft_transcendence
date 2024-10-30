@@ -1,9 +1,7 @@
 import { navigateTo } from '../app.js';
 
-const player_name = sessionStorage.getItem('player_name');
-
 export function settings() {
-    const displayName = sessionStorage.getItem('displayName');
+    const displayName = sessionStorage.getItem('display_name');
     let avatarUrl = sessionStorage.getItem('avatar_url');
     if (avatarUrl) {
         avatarUrl = avatarUrl.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
@@ -88,7 +86,7 @@ export function settings() {
     </div>
 `;
 
-attachEventSettingsPage(navigateTo, player_name);
+attachEventSettingsPage(navigateTo, displayName);
 }
 
 function attachEventSettingsPage(navigateTo, player_name) {
@@ -122,7 +120,7 @@ function attachEventSettingsPage(navigateTo, player_name) {
 
             if (response.ok) {
                 showUpdateProfileToast();
-                const displayName = document.getElementById('displayName').value;
+                const displayName = document.getElementById('display_name').value;
                 const email = document.getElementById('email').value;
                 const avatarFile = document.getElementById('avatar').files[0];
 
@@ -185,8 +183,8 @@ function attachEventSettingsPage(navigateTo, player_name) {
     });
 
     // Pre-fill form fields
-    document.getElementById('displayName').value = player_name;
-    document.getElementById('email').value = 'newmail@example.com';
+    const prefilledDisplayName = sessionStorage.getItem('display_name');
+    document.getElementById('displayName').value = prefilledDisplayName;
 }
 
 function showUpdateProfileToast() {
