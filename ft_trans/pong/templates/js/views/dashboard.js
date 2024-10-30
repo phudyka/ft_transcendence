@@ -684,7 +684,6 @@ function addFriend(event) {
         return;
     }
 
-    // Vérifier le statut d'amitié avant d'envoyer une demande
     checkFriendshipStatus(friendName)
         .then(({ isFriend, requestSent }) => {
             if (isFriend) {
@@ -696,7 +695,6 @@ function addFriend(event) {
                 return;
             }
 
-            // Si pas amis et aucune demande en cours, envoyer une demande d'ami
             sendFriendRequest(friendName)
                 .then(response => {
                     if (!response.ok) {

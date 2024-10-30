@@ -3,6 +3,11 @@ import { getCsrfToken } from '../utils/token.js';
 import { removeDashboardEventListeners } from './dashboard.js';
 
 export function login() {
+    // Vérifier d'abord les paramètres d'authentification 42
+    if (check42AuthParams()) {
+        return; // Si l'authentification 42 est réussie, ne pas continuer avec le rendu normal
+    }
+
     removeDashboardEventListeners(); // Add this line
     console.log('login view');
     document.getElementById('ft_transcendence').innerHTML = `
@@ -59,7 +64,6 @@ export function login() {
     // Utiliser setTimeout pour s'assurer que le DOM est complètement mis à jour
     setTimeout(() => {
         attachEventLoginPage();
-        // checkRegistrationSuccess();
     }, 0);
 }
 
@@ -155,8 +159,39 @@ async function handleLogin(event) {
 }
 
 async function handle42Login(e) {
-    e.preventDefault(); // Empêcher le comportement par défaut du bouton
+    e.preventDefault();
     window.location.href = '/api/auth/42/login/';
+}
+
+function check42AuthParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const authSuccess = urlParams.get('auth_success');
+    
+    if (authSuccess === 'true') {
+        // Stocker toutes les informations de l'utilisateur
+        const access = urlParams.get('access');
+        const refresh = urlParams.get('refresh');
+        const username = urlParams.get('username');
+        const display_name = urlParams.get('display_name');
+        const avatar_url = urlParams.get('avatar_url');
+        
+        if (access && refresh && username) {
+            // Stocker les informations dans la session
+            sessionStorage.setItem('accessToken', access);
+            sessionStorage.setItem('refreshToken', refresh);
+            sessionStorage.setItem('username', username);
+            sessionStorage.setItem('display_name', display_name);
+            sessionStorage.setItem('avatar_url', avatar_url);
+            
+            // Nettoyer l'URL
+            history.replaceState(null, '', '/login');
+            
+            // Rediriger vers le dashboard
+            navigateTo('/dashboard');
+            return true;
+        }
+    }
+    return false;
 }
 
 function showLoginToastErr(message) {
@@ -213,17 +248,3 @@ export function removeLoginEventListeners() {
     document.removeEventListener('click', handleUnmaskPassword);
     document.removeEventListener("keydown", handleEnterKeyPress);
 }
-
-// Ajouter l'appel de handle42Login lors du chargement de la page
-document.addEventListener('DOMContentLoaded', () => {
-    const login42Button = document.getElementById('login_with_42');
-    if (login42Button) {
-        login42Button.addEventListener('click', handle42Login);
-    }
-
-    // Vérifier si on revient d'une authentification 42
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('auth_success')) {
-        handle42Login();
-    }
-});

@@ -33,9 +33,9 @@ html, body {
 
 #img_profile_pic {
     width: 50px;
-    height: auto;
     position: relative;
     transition: transform 0.3s ease;
+    border: 2px solid #FF8C00;
 }
 
 .logo:hover {

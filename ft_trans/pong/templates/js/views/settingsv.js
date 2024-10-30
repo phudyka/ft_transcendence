@@ -24,7 +24,7 @@ export function settings() {
                 <span class="nav-item" style="font-size: 2.5em; font-weight: bold;">${displayName}</span>
             </li>
             <li class="nav-item">
-                <img src="${avatarUrl}" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Photo de profil" style="width: 50px; height: 50px;padding: 0px;">
+                <img src="${avatarUrl}" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Photo de profil" style="width: 50px; height: 50px;padding: 0px; border: 2px solid #ff5722;">
             </li>
         </ul>
 

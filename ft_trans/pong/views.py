@@ -199,93 +199,6 @@ def get_user_stats(request):
     }
     return JsonResponse({'success': True, 'user': user_data})
 
-def auth_42_redirect(request):
-    redirect_uri = request.build_absolute_uri('/api/auth/42/callback/')
-    return redirect(
-        f'https://api.intra.42.fr/oauth/authorize?client_id={settings.FT_CLIENT_ID}&redirect_uri={redirect_uri}&response_type=code'
-    )
-
-@csrf_exempt
-def auth_42_callback(request):
-    try:
-        code = request.GET.get('code')
-        logger.info(f"Code reçu : {code}")
-        if not code:
-            raise ValueError('Aucun code fourni')
-
-        redirect_uri = request.build_absolute_uri('/api/auth/42/callback/')
-        logger.info(f"URI de redirection : {redirect_uri}")
-
-        # Échange du code contre un token
-        token_response = requests.post('https://api.intra.42.fr/oauth/token', data={
-            'grant_type': 'authorization_code',
-            'client_id': settings.FT_CLIENT_ID,
-            'client_secret': settings.FT_CLIENT_SECRET,
-            'code': code,
-            'redirect_uri': redirect_uri
-        })
-        logger.info(f"Réponse du token : {token_response.status_code} - {token_response.text}")
-
-        if token_response.status_code != 200:
-            raise ValueError(f'Échec de l\'obtention du token d\'accès : {token_response.text}')
-
-        access_token = token_response.json().get('access_token')
-        logger.info(f"Token d'accès obtenu : {access_token}")
-
-        if not access_token:
-            raise ValueError('Token d\'accès non obtenu')
-
-        # Récupération des informations de l'utilisateur
-        user_info_response = requests.get('https://api.intra.42.fr/v2/me', headers={
-            'Authorization': f'Bearer {access_token}'
-        })
-        logger.info(f"Réponse des informations utilisateur : {user_info_response.status_code} - {user_info_response.text}")
-
-        if user_info_response.status_code != 200:
-            raise ValueError(f'Échec de la récupération des informations utilisateur : {user_info_response.text}')
-
-        user_info = user_info_response.json()
-        logger.info(f"Informations utilisateur récupérées : {user_info}")
-
-        # Création ou mise à jour de l'utilisateur dans la base de données
-        username = user_info.get('login')
-        email = user_info.get('email', '')
-        display_name = user_info.get('displayname', username)
-        avatar_url = user_info.get('image', {}).get('link', '')
-
-        if not username:
-            raise ValueError('Nom d\'utilisateur non trouvé dans les informations récupérées')
-
-        user, created = CustomUser.objects.get_or_create(
-            username=username,
-            defaults={
-                'email': email,
-                'avatar_url': avatar_url,
-                'display_name': display_name,
-            }
-        )
-        logger.info(f"Utilisateur {'créé' if created else 'existant'} : {user.username}")
-
-        if not created:
-            # Mise à jour des informations si l'utilisateur existe déjà
-            user.email = email
-            user.avatar_url = avatar_url
-            user.display_name = display_name
-            user.save()
-            logger.info(f"Informations utilisateur mises à jour pour : {user.username}")
-
-        # Connexion de l'utilisateur
-        login(request, user)
-        logger.info(f"Utilisateur connecté : {user.username}")
-
-        # Redirection vers la page d'accueil avec un paramètre de succès
-        return redirect('/?create_success=true')
-
-    except Exception as e:
-        logger.error(f"Erreur lors de l'authentification avec 42 : {str(e)}")
-        return JsonResponse({'error': str(e)}, status=500)
-
-
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_profile(request, display_name):
@@ -311,7 +224,7 @@ def user_profile(request, display_name):
 def send_friend_request(request):
     to_username = request.data.get('to_username')
     try:
-        to_user = CustomUser.objects.get(username=to_username)
+        to_user = CustomUser.objects.get(display_name=to_username)
 
         if Friendship.objects.filter(user=request.user, friend=to_user).exists():
             return JsonResponse({'success': False, 'message': 'You are already friends with this user.'}, status=400)
@@ -420,94 +333,6 @@ def check_friendship_status(request, username):
         })
     except CustomUser.DoesNotExist:
         return JsonResponse({'error': 'Utilisateur non trouvé'}, status=404)
-
-def auth_42_login_redirect(request):
-    auth_url = 'https://api.intra.42.fr/oauth/authorize'
-    callback_url = request.build_absolute_uri('/api/auth/42/login/callback/')
-    
-    params = {
-        'client_id': settings.FT_CLIENT_ID,
-        'redirect_uri': callback_url,
-        'response_type': 'code',
-        'scope': 'public'
-    }
-    
-    auth_url = f"{auth_url}?{'&'.join(f'{k}={v}' for k, v in params.items())}"
-    return JsonResponse({
-        'success': True,
-        'redirect_url': auth_url
-    })
-
-@csrf_exempt
-def auth_42_login_callback(request):
-    code = request.GET.get('code')
-    if not code:
-        return JsonResponse({
-            'success': False,
-            'error': 'No authorization code provided'
-        }, status=400)
-
-    try:
-        # Échange du code contre un token
-        token_url = 'https://api.intra.42.fr/oauth/token'
-        callback_url = request.build_absolute_uri('/api/auth/42/login/callback/')
-        
-        token_response = requests.post(token_url, data={
-            'grant_type': 'authorization_code',
-            'client_id': settings.FT_CLIENT_ID,
-            'client_secret': settings.FT_CLIENT_SECRET,
-            'code': code,
-            'redirect_uri': callback_url
-        })
-        
-        if token_response.status_code != 200:
-            return JsonResponse({
-                'success': False,
-                'error': 'Failed to get access token'
-            }, status=400)
-
-        token_data = token_response.json()
-        
-        # Récupération des informations utilisateur
-        user_response = requests.get(
-            'https://api.intra.42.fr/v2/me',
-            headers={'Authorization': f"Bearer {token_data['access_token']}"}
-        )
-        
-        if user_response.status_code != 200:
-            return JsonResponse({
-                'success': False, 
-                'error': 'Failed to get user info'
-            }, status=400)
-
-        user_data = user_response.json()
-        
-        # Récupération ou création de l'utilisateur
-        try:
-            user = CustomUser.objects.get(username=user_data['login'])
-        except CustomUser.DoesNotExist:
-            return JsonResponse({
-                'success': False,
-                'error': 'User not found. Please register first.'
-            }, status=404)
-
-        # Génération des tokens JWT
-        refresh = RefreshToken.for_user(user)
-        return JsonResponse({
-            'success': True,
-            'access': str(refresh.access_token),
-            'refresh': str(refresh),
-            'username': user.username,
-            'display_name': user.display_name,
-            'avatar_url': user.avatar_url
-        })
-
-    except Exception as e:
-        logger.error(f"Erreur lors de l'authentification 42: {str(e)}")
-        return JsonResponse({
-            'success': False,
-            'error': str(e)
-        }, status=500)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -703,5 +528,83 @@ def get_blocked_users(request):
         'blocked_users': blocked_list
     })
 
+def auth_42_login(request):
+    auth_url = 'https://api.intra.42.fr/oauth/authorize'
+    params = {
+        'client_id': settings.FT_CLIENT_ID,
+        'redirect_uri': 'http://localhost:8000/api/auth/42/callback/',
+        'response_type': 'code',
+        'scope': 'public'
+    }
+    auth_url = f"{auth_url}?{'&'.join(f'{k}={v}' for k, v in params.items())}"
+    return redirect(auth_url)
 
+def auth_42_callback(request):
+    code = request.GET.get('code')
+    if not code:
+        return JsonResponse({'success': False, 'error': 'No authorization code'})
+
+    # Échanger le code contre un token
+    token_url = 'https://api.intra.42.fr/oauth/token'
+    data = {
+        'grant_type': 'authorization_code',
+        'client_id': settings.FT_CLIENT_ID,
+        'client_secret': settings.FT_CLIENT_SECRET,
+        'code': code,
+        'redirect_uri': 'http://localhost:8000/api/auth/42/callback/'
+    }
+    
+    response = requests.post(token_url, data=data)
+    if response.status_code != 200:
+        return redirect('/register?error=auth_failed')
+
+    token_data = response.json()
+    access_token = token_data.get('access_token')
+
+    # Obtenir les informations de l'utilisateur
+    user_url = 'https://api.intra.42.fr/v2/me'
+    headers = {'Authorization': f'Bearer {access_token}'}
+    user_response = requests.get(user_url, headers=headers)
+    
+    if user_response.status_code != 200:
+        return redirect('/register?error=profile_fetch_failed')
+
+    user_data = user_response.json()
+    
+    # Vérifier si l'utilisateur existe déjà
+    try:
+        user = User.objects.get(email=user_data['email'])
+        # Utilisateur existant - générer les tokens et rediriger
+        refresh = RefreshToken.for_user(user)
+        response_data = {
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'username': user.username,
+            'display_name': user.display_name,
+            'avatar_url': user.avatar_url
+        }
+        return redirect(f'/login?auth_success=true&' + '&'.join(f'{k}={v}' for k, v in response_data.items()))
+    except User.DoesNotExist:
+        # Formater l'URL de l'avatar comme les autres
+        avatar_url = f'url("{user_data["image"]["versions"]["small"]}")'
+        
+        # Créer le nouvel utilisateur
+        user = User.objects.create_user(
+            username=user_data['login'],
+            email=user_data['email'],
+            display_name=user_data['login'],
+            avatar_url=avatar_url,
+            password=None
+        )
+        
+        # Générer les tokens et rediriger
+        refresh = RefreshToken.for_user(user)
+        response_data = {
+            'access': str(refresh.access_token),
+            'refresh': str(refresh),
+            'username': user.username,
+            'display_name': user.display_name,
+            'avatar_url': avatar_url
+        }
+        return redirect(f'/login?auth_success=true&' + '&'.join(f'{k}={v}' for k, v in response_data.items()))
 

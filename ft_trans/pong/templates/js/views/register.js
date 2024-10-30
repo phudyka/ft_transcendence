@@ -208,7 +208,7 @@ function setupRegisterEvents(navigateTo) {
 
     document.getElementById('registerbutton42').addEventListener('click', function(event) {
         event.preventDefault();
-        window.location.href = '/api/auth/42/';
+        window.location.href = '/api/auth/42/login/';
     });
 
     const unmaskButtons = document.querySelectorAll('.unmask');
