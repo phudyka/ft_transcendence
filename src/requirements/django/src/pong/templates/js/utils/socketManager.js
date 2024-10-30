@@ -15,7 +15,7 @@ export function initializeSocket(username) {
         return null;
     }
 
-    const socket = io('http://localhost:3000', {
+    const socket = io('http://localhost:8080/chat_server', {
         transports: ['websocket'],
         query: { username: username }
     });

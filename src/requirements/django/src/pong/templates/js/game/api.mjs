@@ -1,5 +1,5 @@
 async function getUserByDisplayName(displayName, token) {
-  const response = await fetch(`http://localhost:8000/api/user/${displayName}/`, {
+  const response = await fetch(`http://localhost:8080/api/user/${displayName}/`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`
@@ -45,7 +45,7 @@ export async function updateUserStats(displayName, token, hasWon) {
     }
 
     // Construction de la requête PUT pour mettre à jour les statistiques de l'utilisateur
-    const response = await fetch(`http://localhost:8000/api/users/display_name/${displayName}/update_stats/`, {
+    const response = await fetch(`http://localhost:8080/api/users/display_name/${displayName}/update_stats/`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -78,7 +78,7 @@ export async function updateUserStats(displayName, token, hasWon) {
 
 export async function saveMatchResult(token, result) {
   try {
-    const response = await fetch('http://localhost:8000/api/save-match-result/', {
+    const response = await fetch('http://localhost:8080/api/save-match-result/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
