@@ -36,6 +36,7 @@ html, body {
     position: relative;
     transition: transform 0.3s ease;
     border: 2px solid #FF8C00;
+    object-fit: cover;
 }
 
 .logo:hover {

@@ -2,8 +2,10 @@ from django.urls import path, include
 from . import views
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.conf.urls.static import static
+from django.conf import settings
+import os
 
- 
 urlpatterns = [
 	path('api/content/', views.content, name='content'),
 	path('api/set-csrf-token/', views.set_csrf_token, name='set_csrf_token'),
@@ -34,6 +36,7 @@ urlpatterns = [
 	path('api/blocked-users/', views.get_blocked_users, name='get_blocked_users'),
 	path('api/auth/42/login/', views.auth_42_login, name='auth_42_login'),
 	path('api/auth/42/callback/', views.auth_42_callback, name='auth_42_callback'),
+	path('content/<path:path>', views.serve_content, name='serve_content'),
 	path('<path:path>', views.index, name='catch_all'),
 	path('', views.index, name='index'),
-]
+] + static('/content/', document_root=os.path.join('ft_trans', 'pong', 'templates', 'content'))

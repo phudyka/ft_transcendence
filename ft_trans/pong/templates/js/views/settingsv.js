@@ -120,7 +120,7 @@ function attachEventSettingsPage(navigateTo, player_name) {
 
             if (response.ok) {
                 showUpdateProfileToast();
-                const displayName = document.getElementById('display_name').value;
+                const displayName = document.getElementById('displayName').value;
                 const email = document.getElementById('email').value;
                 const avatarFile = document.getElementById('avatar').files[0];
 

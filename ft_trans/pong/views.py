@@ -31,6 +31,10 @@ from django.core.validators import validate_email
 from PIL import Image
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
+import base64
+import os
+from django.core.files.base import ContentFile
+from django.http import HttpResponse
 
 
 User = get_user_model()
@@ -277,43 +281,31 @@ def get_friend_requests(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_user_settings(request):
-    logger.info(f"Requête reçue pour update_user_settings: {request.data}")
-    logger.info(f"Utilisateur authentifié: {request.user}")
-    user = request.user
-    display_name = request.data.get('displayName')
-    email = request.data.get('email')
-    avatar = request.FILES.get('avatar')
-
-    if display_name:
-        if CustomUser.objects.filter(display_name=display_name).exclude(id=user.id).exists():
-            return JsonResponse({'success': False, 'message': 'This display name is already in use.'}, status=400)
-        user.display_name = display_name
-
-    if email:
-        try:
-            validate_email(email)
-            if CustomUser.objects.filter(email=email).exclude(id=user.id).exists():
-                return JsonResponse({'success': False, 'message': 'This email is already in use.'}, status=400)
-            user.email = email
-        except ValidationError:
-            return JsonResponse({'success': False, 'message': 'Invalid email.'}, status=400)
-
-    if avatar:
-        if avatar.size > 5 * 1024 * 1024:  # 5 MB
-            return JsonResponse({'success': False, 'message': 'The file is too large. Maximum size is 5 MB.'}, status=400)
-
-        try:
-            img = Image.open(avatar)
-            width, height = img.size
-            if width < 100 or height < 100 or width > 1000 or height > 1000:
-                return JsonResponse({'success': False, 'message': 'Image dimensions must be between 100x100 and 1000x1000 pixels.'}, status=400)
-        except:
-            return JsonResponse({'success': False, 'message': 'Invalid image file.'}, status=400)
-
-        user.avatar_url = avatar
-
-    user.save()
-    return JsonResponse({'success': True, 'message': 'Settings updated successfully.'})
+    try:
+        data = request.data
+        user = request.user
+        
+        if 'avatar_url' in data:
+            # Sauvegarder l'image et obtenir la nouvelle URL
+            new_avatar_url = save_avatar_image(data['avatar_url'], user.username)
+            user.avatar_url = new_avatar_url
+        
+        if 'display_name' in data:
+            user.display_name = data['display_name']
+        
+        user.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Settings updated successfully',
+            'avatar_url': user.avatar_url,
+            'display_name': user.display_name
+        })
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -607,4 +599,41 @@ def auth_42_callback(request):
             'avatar_url': avatar_url
         }
         return redirect(f'/login?auth_success=true&' + '&'.join(f'{k}={v}' for k, v in response_data.items()))
+
+def save_avatar_image(image_url, username):
+    # Créer le dossier content s'il n'existe pas
+    content_dir = os.path.join('ft_trans', 'pong', 'templates', 'content', 'avatars')
+    os.makedirs(content_dir, exist_ok=True)
+    
+    # Nettoyer l'URL de l'image
+    image_url = image_url.replace('url("', '').replace('")', '')
+    
+    try:
+        # Télécharger l'image
+        response = requests.get(image_url)
+        if response.status_code == 200:
+            # Créer un nom de fichier unique
+            file_extension = os.path.splitext(image_url.split('/')[-1])[1]
+            if not file_extension:
+                file_extension = '.png'
+            filename = f'avatar_{username}{file_extension}'
+            filepath = os.path.join(content_dir, filename)
+            
+            # Sauvegarder l'image
+            with open(filepath, 'wb') as f:
+                f.write(response.content)
+            
+            # Retourner l'URL relative pour l'accès via le serveur
+            return f'url("/content/avatars/{filename}")'
+    except Exception as e:
+        logger.error(f"Error saving avatar image: {str(e)}")
+        return image_url
+
+def serve_content(request, path):
+    content_path = os.path.join('ft_trans', 'pong', 'templates', 'content', path)
+    try:
+        with open(content_path, 'rb') as f:
+            return HttpResponse(f.read(), content_type='image/png')
+    except FileNotFoundError:
+        return HttpResponse(status=404)
 

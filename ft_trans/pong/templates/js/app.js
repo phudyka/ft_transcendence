@@ -35,7 +35,7 @@ function initRouter() {
             // Gérer le cas où l'URL est simplement /profile
             console.log('Accès au profil de l\'utilisateur connecté');
             const username = sessionStorage.getItem('username');
-            profile(username); // Afficher le profil de l'utilisateur connecté
+            profile(username);
         } else {
             switch (path) {
                 case '/':
