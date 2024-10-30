@@ -88,7 +88,7 @@ export async function dashboard(player_name) {
             </div>
 
                 <div class="game-container">
-                    <iframe id="pong" title="Pong" src="https://localhost:8080/game_server/home"></iframe>
+                    <iframe id="pong" title="Pong" src="https://localhost:8080/game_server"></iframe>
                 </div>
 
             <div class="chat-container">
@@ -135,7 +135,7 @@ export async function dashboard(player_name) {
         const csrfToken = getCookie('csrftoken');
         console.log(sessionStorage);
         const avatar = sessionStorage.getItem('avatar_url');
-        iframe.contentWindow.postMessage({ username: displayName, token: token, csrfToken: csrfToken, avatar: avatar }, 'https://localhost:8080/game_server/home');
+        iframe.contentWindow.postMessage({ username: displayName, token: token, csrfToken: csrfToken, avatar: avatar }, 'https://localhost:8080/game_server');
     };
 
 	setupDashboardEvents(navigateTo, displayName);

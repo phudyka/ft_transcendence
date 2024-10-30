@@ -61,8 +61,6 @@ function initRouter() {
                 case '/settings':
                     settings();
                     break;
-                case '/game_server':
-                    break;
                 default:
                     notFound();
                     console.log('404: Page not found');
