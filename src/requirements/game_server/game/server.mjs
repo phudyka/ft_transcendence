@@ -26,7 +26,7 @@ const options = {
 };
 const app = express();
 
-app.use(cors({origin: "https://localhost:8080"}));
+app.use(cors({ origin: ["https://localhost:8080", "https://localhost:443"] }));
 
 const server = createServer(options, app);
 const io = new Server(server);

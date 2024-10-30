@@ -10,14 +10,14 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import * as THREE from './node_modules/three/build/three.module.js';
+import * as THREE from '/game_server/node_modules/three/build/three.module.js';
 import Light from './light.mjs';
 import Camera from './camera.mjs';
 import Graphic from './graphic.mjs';
 import Logo from './logo.mjs';
 import { fadeOutLogoAndStartAnimation } from './animation.mjs';
 import { Pad } from './pad.mjs';
-import { OrbitControls } from './node_modules/three/examples/jsm/controls/OrbitControls.js';
+import { OrbitControls } from '/game_server/node_modules/three/examples/jsm/controls/OrbitControls.js';
 import loadModel from './loadIsland.mjs';
 import { Ball } from './ball.mjs';
 import { hitPadEvent, initSocketEvent, SoundLobby } from './socketEvent.mjs';

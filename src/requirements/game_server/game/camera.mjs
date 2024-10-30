@@ -1,4 +1,4 @@
-import { PerspectiveCamera } from "./node_modules/three/build/three.module.js";
+import { PerspectiveCamera } from "/game_server/node_modules/three/build/three.module.js";
 
 export default class Camera extends PerspectiveCamera {
     constructor() {

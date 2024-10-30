@@ -29,7 +29,7 @@ export async function fadeOutLogoAndStartAnimation(logo, scene, camera, renderer
 
 function startCameraAnimation(scene, camera, renderer) {
     const loader = new THREE.TextureLoader();
-    loader.load('png/skybox.png', function(texture) {
+    loader.load('/game_server/png/skybox.png', function(texture) {
         scene.background = texture;
     });
 

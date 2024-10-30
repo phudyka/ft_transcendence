@@ -1,4 +1,4 @@
-import { AudioListener, Audio, AudioLoader } from './node_modules/three/build/three.module.js';
+import { AudioListener, Audio, AudioLoader } from '/game_server/node_modules/three/build/three.module.js';
 
 
 export default class Sound {
@@ -9,20 +9,20 @@ export default class Sound {
         this.sounds = {};
         this.soundsInGame = {};
 
-		this.loadSound('woosh', '/sound/woosh.wav', 1, false);
-        this.loadSound('pong', '/sound/pong.wav', 0.2, false);
-        this.loadSound('ambient', '/sound/ambient.wav', 0.2, true);
-        this.loadSound('lobby', '/sound/lobby.wav', 0.1, true);
-        this.loadSound('inGame', '/sound/inGame.mp3', 0.1, true, true);
-        this.loadSound('song1', '/sound/song1.wav', 0.2, true, true);
-        this.loadSound('song2', '/sound/song2.mp3', 0.2, true, true);
-        this.loadSound('song3', '/sound/song3.wav', 0.2, true, true);
-        this.loadSound('song4', '/sound/song4.wav', 0.2, true, true);
-        this.loadSound('song5', '/sound/song5.wav', 0.2, true, true);
-		this.loadSound('win', '/sound/win.mp3', 0.1, false);
-		this.loadSound('loose', '/sound/loose.mp3', 0.1, false);
-        this.loadSound('Goal', '/sound/Goal.mp3', 0.3, false);
-        this.loadSound('endTournament', '/sound/Fin-tournois.mp3', 0.3, false);
+		this.loadSound('woosh', '/game_server/sound/woosh.wav', 1, false);
+        this.loadSound('pong', '/game_server/sound/pong.wav', 0.2, false);
+        this.loadSound('ambient', '/game_server/sound/ambient.wav', 0.2, true);
+        this.loadSound('lobby', '/game_server/sound/lobby.wav', 0.1, true);
+        this.loadSound('inGame', '/game_server/sound/inGame.mp3', 0.1, true, true);
+        this.loadSound('song1', '/game_server/sound/song1.wav', 0.2, true, true);
+        this.loadSound('song2', '/game_server/sound/song2.mp3', 0.2, true, true);
+        this.loadSound('song3', '/game_server/sound/song3.wav', 0.2, true, true);
+        this.loadSound('song4', '/game_server/sound/song4.wav', 0.2, true, true);
+        this.loadSound('song5', '/game_server/sound/song5.wav', 0.2, true, true);
+		this.loadSound('win', '/game_server/sound/win.mp3', 0.1, false);
+		this.loadSound('loose', '/game_server/sound/loose.mp3', 0.1, false);
+        this.loadSound('Goal', '/game_server/sound/Goal.mp3', 0.3, false);
+        this.loadSound('endTournament', '/game_server/sound/Fin-tournois.mp3', 0.3, false);
     }
 
     loadSound(name, url, volume = 1, loop = false, inGame = false) {

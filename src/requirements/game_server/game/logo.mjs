@@ -1,7 +1,7 @@
 import { TextureLoader, PlaneGeometry, Mesh, MeshBasicMaterial } from "./node_modules/three/build/three.module.js";
 
 export default class Logo extends Mesh {
-    constructor(scene, texturePath = './png/logoScreen.png', width = 160, height = 100, position = {x: 0, y: 0, z: 0}, rotation = {x: -1.56, y: 0, z: 0}) {
+    constructor(scene, texturePath = '/game_server/png/logoScreen.png', width = 160, height = 100, position = {x: 0, y: 0, z: 0}, rotation = {x: -1.56, y: 0, z: 0}) {
         const textureLoader = new TextureLoader();
         const texture = textureLoader.load(texturePath);
 

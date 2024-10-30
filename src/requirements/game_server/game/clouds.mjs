@@ -1,7 +1,7 @@
 import { TextureLoader, PlaneGeometry, Mesh, MeshBasicMaterial } from "./node_modules/three/build/three.module.js";
 
 export default class Clouds extends Mesh {
-    constructor(scene, texturePath = './png/clouds.png', width = window.innerWidth / 2, height = window.innerHeight / 2, position = {x: 0, y: 60, z: 0}, rotation = {x: -1.56, y: 0, z: 0}) {
+    constructor(scene, texturePath = '/game_server/png/clouds.png', width = window.innerWidth / 2, height = window.innerHeight / 2, position = {x: 0, y: 60, z: 0}, rotation = {x: -1.56, y: 0, z: 0}) {
         const textureLoader = new TextureLoader();
         const texture = textureLoader.load(texturePath);
 

@@ -10,14 +10,14 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-import * as THREE from './node_modules/three/build/three.module.js';
-import { GLTFLoader } from './node_modules/three/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from '/game_server/node_modules/three/build/three.module.js';
+import { GLTFLoader } from '/game_server/node_modules/three/examples/jsm/loaders/GLTFLoader.js';
 
 export default async function loadModel(scene, onLoad) {
     const loader = new GLTFLoader();
 
     try {
-        const gltf = await loader.loadAsync('scenes/pongScene_V4.glb');
+        const gltf = await loader.loadAsync('/game_server/scenes/pongScene_V4.glb');
         const model = gltf.scene;
 
         model.traverse((child) => {
