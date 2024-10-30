@@ -32,7 +32,7 @@ let csrfToken;
 let avatar;
 
 window.addEventListener('message', function(event) {
-    if (event.origin === 'http://localhost:8000') {
+    if (event.origin === 'http://localhost:8080') {
         username = event.data.username;
         token = event.data.token;
         csrfToken = event.data.csrfToken;

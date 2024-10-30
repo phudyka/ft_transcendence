@@ -754,7 +754,7 @@ function blockUser(event) {
         return;
     }
 
-    fetch('/api/block-user/', {
+    fetch('https://localhost:8080/api/block-user/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
