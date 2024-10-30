@@ -20,7 +20,7 @@ const __dirname = path.dirname(__filename);
 
 router.use(express.static(path.join(__dirname, 'public')));
 
-router.get("/", (req, res) => {
+router.get("/home", (req, res) => {
     res.sendFile(path.join(__dirname, 'public/index.html'));
 });
 
@@ -32,7 +32,7 @@ router.get('/main.mjs', (req, res) => {
 router.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
 
 router.use((req, res) => {
-    res.status(404).send('404 Not Found');
+    res.status(404).send('404 Edson');
 });
 
 export default router;

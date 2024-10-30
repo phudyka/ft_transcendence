@@ -12,25 +12,25 @@ volumes:
 
 services:
 ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ##
-  adminer:
-    image: adminer:latest
-    container_name: "adminer"
-    networks:
-      - db_network
-    ports:
-      - "8081:8080"
-  postman:
-    ## Username: kasm_user
-    ## Password: password
-    container_name: "postman"
-    networks:
-      - 42nice
-    shm_size: 512m
-    ports:
-      - 8082:6901
-    environment:
-      - VNC_PW=password
-    image: kasmweb/postman:1.16.0
+  # adminer:
+  #   image: adminer:latest
+  #   container_name: "adminer"
+  #   networks:
+  #     - db_network
+  #   ports:
+  #     - "8081:8080"
+  # postman:
+  #   ## Username: kasm_user
+  #   ## Password: password
+  #   container_name: "postman"
+  #   networks:
+  #     - 42nice
+  #   shm_size: 512m
+  #   ports:
+  #     - 8082:6901
+  #   environment:
+  #     - VNC_PW=password
+  #   image: kasmweb/postman:1.16.0
 
 
 ## INTERFACE ## INTERFACE ## INTERFACE ## INTERFACE ## INTERFACE ## INTERFACE ##
@@ -51,7 +51,7 @@ services:
     networks:
       - 42nice
     ports:
-      - "443:443"
+      - "8080:443"
 
 
   ## BACKEND ## BACKEND ## BACKEND ## BACKEND ## BACKEND ## BACKEND ##
@@ -65,6 +65,10 @@ services:
       retries: 5
     depends_on:
       postgresql:
+        condition: service_healthy
+      game_server:
+        condition: service_healthy
+      chat_server:
         condition: service_healthy
     restart: no
     environment:
@@ -114,10 +118,12 @@ services:
     restart: no
     networks:
       - 42nice
+    # ports:
+    #   - "8081:443"
 
 
   ## MicroServices ## MicroServices ## MicroServices ## MicroServices ##
-  chat:
+  chat_server:
     build: requirements/chat_server
     container_name: "chat_server"
     healthcheck:

@@ -32,7 +32,7 @@ let csrfToken;
 let avatar;
 
 window.addEventListener('message', function(event) {
-    if (event.origin === 'https://django') {
+    if (event.origin === 'https://localhost:8080') {
         username = event.data.username;
         token = event.data.token;
         csrfToken = event.data.csrfToken;

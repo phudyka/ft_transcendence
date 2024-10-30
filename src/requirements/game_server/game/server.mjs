@@ -18,12 +18,16 @@ import { fileURLToPath } from 'url';
 import routes from './routes.mjs';
 import setupSockets from './sockets.mjs';
 import fs from 'fs';
+import cors from 'cors';
 
 const options = {
     key: fs.readFileSync('/app/ssl_certificates/game_server.key'),
     cert: fs.readFileSync('/app/ssl_certificates/game_server.crt')
 };
 const app = express();
+
+app.use(cors({origin: "https://localhost:8080"}));
+
 const server = createServer(options, app);
 const io = new Server(server);
 const port = 443;
