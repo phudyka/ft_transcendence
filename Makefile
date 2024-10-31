@@ -25,10 +25,16 @@ clean: down
 	@docker image rm -f $(IMAGES) > /dev/null 2>&1
 	@echo "Images supprimées."
 
-fclean: clean
+fclean:
+	docker compose down -v
+	docker system prune -af --volumes
+	@docker image rm -f $(IMAGES) > /dev/null 2>&1
 	@docker volume rm -f $(VOLUMES) > /dev/null
 	@docker system prune -af > /dev/null
+	@rm -rf ./backend/postgres-data/* > /dev/null 2>&1
+	@echo "Images supprimées."
 	@echo "Volumes supprimés."
+	@echo "Database supprimée."
 	@echo "System pruned."
 
 re: clean all

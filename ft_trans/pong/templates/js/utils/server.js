@@ -131,6 +131,29 @@ io.on('connection', (socket) => {
             }
         }
     });
+
+    // Ajouter ces nouveaux événements
+    socket.on('friend_request', (data) => {
+        console.log(`${formatDate(new Date())} Demande d'ami de ${data.from} à ${data.to}`);
+        const recipientSocketId = users.get(data.to);
+        if (recipientSocketId) {
+            io.to(recipientSocketId).emit('friend_request_received', {
+                from: data.from,
+                requestId: data.requestId
+            });
+        }
+    });
+
+    socket.on('friend_request_response', (data) => {
+        console.log(`${formatDate(new Date())} Réponse à la demande d'ami: ${data.response} de ${data.to} à ${data.from}`);
+        const senderSocketId = users.get(data.from);
+        if (senderSocketId) {
+            io.to(senderSocketId).emit('friend_request_updated', {
+                from: data.to,
+                response: data.response
+            });
+        }
+    });
 });
 
 function updateLastActivity(username) {

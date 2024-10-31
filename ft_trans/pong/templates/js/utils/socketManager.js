@@ -1,4 +1,7 @@
 import { fetchWithToken } from './api.js';
+import { fetchAndDisplayFriends } from '../views/dashboard.js';
+import { showToast } from './unmask.js';
+import { acceptFriendRequest, rejectFriendRequest } from '../utils/friendManager.js';
 
 let sockets = new Map();
 let activityTimers = new Map();
@@ -37,6 +40,20 @@ export function initializeSocket(username) {
 
     socket.on('connect_error', (error) => {
         console.error(`Connection error for ${username}:`, error);
+    });
+
+    socket.on('friend_request_received', (data) => {
+        console.log('Friend request received:', data);
+        showFriendRequestToast(data.from, data.requestId);
+    });
+
+    socket.on('friend_request_updated', (data) => {
+        console.log('Friend request updated:', data);
+        const message = data.response === 'accepted' 
+            ? `${data.from} a accepté votre demande d'ami!` 
+            : `${data.from} a refusé votre demande d'ami.`;
+        showToast(message, data.response === 'accepted' ? 'success' : 'info');
+        fetchAndDisplayFriends(); // Rafraîchir la liste des amis
     });
 
     sockets.set(username, socket);
@@ -92,4 +109,46 @@ export function disconnectSocket(username) {
         socket.disconnect();
         sockets.delete(username);
     }
+}
+
+export function sendFriendRequestSocket(to, requestId) {
+    const username = sessionStorage.getItem('display_name');
+    const socket = getSocket(username);
+    if (socket) {
+        socket.emit('friend_request', {
+            from: username,
+            to: to,
+            requestId: requestId
+        });
+    }
+}
+
+export function sendFriendRequestResponse(to, response, requestId) {
+    const username = sessionStorage.getItem('display_name');
+    const socket = getSocket(username);
+    if (socket) {
+        socket.emit('friend_request_response', {
+            from: to,
+            to: username,
+            response: response,
+            requestId: requestId
+        });
+    }
+}
+
+function showFriendRequestToast(fromUsername, requestId) {
+    const toastHtml = `
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header" style="background-color: #FFD700;">
+                <strong class="me-auto" style="color: #ff5722; background-color: white;">Friend Request</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                <p>Friend request received from ${fromUsername}</p>
+                <button class="btn btn-primary" onclick="acceptFriendRequest('${requestId}')">Accept</button>
+                <button class="btn btn-secondary" onclick="rejectFriendRequest('${requestId}')">Reject</button>
+            </div>
+        </div>
+    `;
+    document.body.innerHTML += toastHtml;
 }

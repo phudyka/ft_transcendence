@@ -43,7 +43,7 @@ export function settings() {
                 <div class="mb-3">
                     <label for="avatar" class="form-label">Avatar</label>
                     <div class="d-flex align-items-center">
-                        <img id="currentAvatar" src="${avatarUrl}" alt="Avatar actuel" class="img-thumbnail rounded-circle me-3 avatar-img" style="width: 100px; height: 100px;padding: 0px; border: 1px solid #ff5722;">
+                        <img id="currentAvatar" src="${avatarUrl}" alt="Avatar actuel" class="img-thumbnail rounded-circle me-3 avatar-img" style="width: 100px; height: 100px;padding: 0px; border: 2px solid #ff5722;">
                         <input type="file" class="form-control" id="avatar" name="avatar" accept="image/jpeg,image/png,image/gif">
                     </div>
                     <small class="form-text text-muted">

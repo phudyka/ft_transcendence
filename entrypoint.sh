@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Appliquer les migrations
-python manage.py makemigrations
-python manage.py migrate
+python manage.py makemigrations --noinput
+python manage.py migrate --noinput
 
-# # Démarrer le serveur Django
-# exec "$@"
+# Décommenter exec "$@" pour exécuter la commande CMD
+exec "$@"

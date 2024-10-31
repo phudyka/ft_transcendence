@@ -17,8 +17,8 @@ RUN pip install -r requirements.txt
 COPY . /code/
 
 # Copy entrypoint script
-# COPY entrypoint.sh /code/entrypoint.sh
-# RUN chmod +x /code/entrypoint.sh
+COPY entrypoint.sh /code/entrypoint.sh
+RUN chmod +x /code/entrypoint.sh
 
 # Expose the port the app runs on
 EXPOSE 8000

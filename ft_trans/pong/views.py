@@ -92,7 +92,7 @@ def login_view(request):
 					'avatar_url': user.avatar_url,
 				}, status=200)
 			else:
-				return JsonResponse({'success': False, 'message': 'Invalid credentials'}, status=401)
+				return JsonResponse({'success': False, 'message': 'Account name or password incorrect'}, status=401)
 		except json.JSONDecodeError:
 			return JsonResponse({'success': False, 'message': 'Invalid JSON data'}, status=400)
 		except Exception as e:

@@ -7,7 +7,7 @@ import { removeLoginEventListeners } from './login.js';
 import { checkAuthentication } from '../utils/auth.js';
 import { showToast } from '../utils/unmask.js';
 import { checkFriendshipStatus } from './profile.js';
-import { updateOnlineStatus } from '../utils/socketManager.js';
+import { updateOnlineStatus, sendFriendRequestSocket, sendFriendRequestResponse } from '../utils/socketManager.js';
 
 let socket;
 const privateChatLogs = new Map();
@@ -142,7 +142,7 @@ export async function dashboard(player_name) {
 	setupTabSystem();
 	checkForFriendRequests();
     fetchAndDisplayFriends();
-    // loadGeneralChatMessages();
+    loadGeneralChatMessages();
 }
 
 function setupChatListeners(socket) {
@@ -159,13 +159,11 @@ function setupChatListeners(socket) {
         socket.off('private message');
 
         socket.on('chat message', (msg) => {
-            console.log('Message reçu du serveur:', msg);
-            //if receive message from same user at very little delay, don't display it
-            const currentUsername = sessionStorage.getItem('username');
-            if (msg.name === currentUsername && msg.time - Date.now() < 5000) {
+            if (msg.name === socket.displayName) {
                 console.log('Message duplicate');
                 return;
             }
+            console.log('Message reçu du serveur:', msg);
             receiveMessage(msg);
         });
 
@@ -190,6 +188,20 @@ function setupChatListeners(socket) {
             } else {
                 console.log('Message ignored - not relevant for current user');
             }
+        });
+
+        socket.on('friend_request_received', (data) => {
+            console.log('Friend request received:', data);
+            showFriendRequestToast(data.from, data.requestId);
+        });
+
+        socket.on('friend_request_updated', (data) => {
+            console.log('Friend request updated:', data);
+            const message = data.response === 'accepted' 
+                ? `${data.from} a accepté votre demande d'ami!` 
+                : `${data.from} a refusé votre demande d'ami.`;
+            showToast(message, data.response === 'accepted' ? 'success' : 'info');
+            fetchAndDisplayFriends();
         });
 
     }
@@ -316,14 +328,7 @@ function setupDashboardEvents(navigateTo, username) {
 	document.getElementById('friendDropdown_chat').querySelector('#addToFriend').addEventListener('click', addFriend);
 	document.getElementById('friendDropdown_chat').querySelector('#blockUser').addEventListener('click', blockUser);
 
-	// Profile picture
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    if (window.location.pathname === '/dashboard') {
-        setInterval(fetchAndDisplayFriends, 20000);
-        setInterval(checkForFriendRequests, 20000);
-    };
+    setInterval(checkForFriendRequests, 60000);
 }
 
 function scrollToBottom2(friendName) {
@@ -567,7 +572,6 @@ function sendMessage(event) {
 
     if (message !== '' && socket && socket.connected) {
         socket.emit('chat message', { name: displayName, message: message });
-        saveMessage(displayName, message);
         messageInput.value = '';
         getSocket(displayName);
     }
@@ -597,7 +601,7 @@ function receiveMessage(msg) {
 
     updateOnlineStatus(msg.name);
 
-    // saveMessage(msg.name, msg.message);
+    saveMessage(msg.name, msg.message);
 
     usernameElement.addEventListener('click', function (event) {
         event.preventDefault();
@@ -707,6 +711,7 @@ function addFriend(event) {
                 .then(data => {
                     console.log('Friend request sent successfully', data);
                     showToast('Friend request sent successfully', 'success');
+                    sendFriendRequestSocket(friendName, data.request_id);
                 })
                 .catch(error => {
                     console.error('Error sending friend request:', error);
@@ -802,6 +807,8 @@ function saveMessage(friendName, message) {
     let messages = JSON.parse(sessionStorage.getItem('general_chat_messages')) || [];
 
     messages.push({ friendName, message, timestamp: new Date().toISOString() });
+    console.log('Message saved:', messages);
+    console.log('From:', friendName);
 
     if (messages.length > 15) {
         messages = messages.slice(-15);
@@ -817,37 +824,47 @@ function loadGeneralChatMessages() {
         return;
     }
 
-    const messages = JSON.parse(sessionStorage.getItem('general_chat_messages')) || [];
+    const messagesString = sessionStorage.getItem('general_chat_messages');
+    if (!messagesString) {
+        return;
+    }
 
-    chatLog.innerHTML = ''; // Effacer les messages précédents
+    try {
+        // Parse les messages correctement
+        const messages = JSON.parse(messagesString);
+        
+        chatLog.innerHTML = ''; // Effacer les messages précédents
 
-    messages.forEach(msg => {
-        const messageElement = document.createElement('div');
+        messages.forEach(msg => {
+            const messageElement = document.createElement('div');
 
-        const usernameElement = document.createElement('span');
-        usernameElement.classList.add('username-link');
-        usernameElement.dataset.friend = msg.name;
-        usernameElement.innerText = `[${msg.name}]`;
-        usernameElement.style.cursor = "pointer";
-        usernameElement.classList.add('bold-username');
+            const usernameElement = document.createElement('span');
+            usernameElement.classList.add('username-link');
+            usernameElement.dataset.friend = msg.friendName;
+            usernameElement.innerText = `[${msg.friendName}]`;
+            usernameElement.style.cursor = "pointer";
+            usernameElement.classList.add('bold-username');
 
-        // Ajouter l'écouteur d'événements pour le clic sur le nom d'utilisateur
-        usernameElement.addEventListener('click', function(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            handleUsernameClick(event, msg.name);
+            // Ajouter l'écouteur d'événements pour le clic sur le nom d'utilisateur
+            usernameElement.addEventListener('click', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                handleUsernameClick(event, msg.friendName);
+            });
+
+            const messageTextElement = document.createElement('span');
+            messageTextElement.innerText = ` : ${msg.message}`;
+
+            messageElement.appendChild(usernameElement);
+            messageElement.appendChild(messageTextElement);
+
+            chatLog.appendChild(messageElement);
         });
 
-        const messageTextElement = document.createElement('span');
-        messageTextElement.innerText = ` : ${msg.message}`;
-
-        messageElement.appendChild(usernameElement);
-        messageElement.appendChild(messageTextElement);
-
-        chatLog.appendChild(messageElement);
-    });
-
-    chatLog.scrollTop = chatLog.scrollHeight;
+        chatLog.scrollTop = chatLog.scrollHeight;
+    } catch (error) {
+        console.error('Erreur lors du chargement des messages:', error);
+    }
 }
 
 function handleUsernameClick(event, username) {
@@ -941,7 +958,7 @@ function showFriendRequestToast(fromUsername, requestId) {
     });    toast.show();
 }
 
-async function fetchAndDisplayFriends() {
+export async function fetchAndDisplayFriends() {
     const onlineFriendsList = document.getElementById('online-friends');
     const pendingFriendsList = document.getElementById('pending-friends');
     const blockedFriendsList = document.getElementById('blocked-friends');
@@ -1115,8 +1132,6 @@ function resetActivityTimer() {
     }
 }
 
-//quand je deconnecte, je veux que les event listener soit supprimer
-// document.addEventListener('click', logout);
 
 export function removeDashboardEventListeners() {
     // Remove logout listener
@@ -1166,6 +1181,7 @@ function handleLogout(event) {
         socket.disconnect();
     }
     removeDashboardEventListeners();
+    sessionStorage.removeItem('general_chat_messages');
     logout();
 }
 
