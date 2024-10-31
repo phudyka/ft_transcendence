@@ -24,7 +24,9 @@ import { hitPadEvent, initSocketEvent, SoundLobby } from './socketEvent.mjs';
 import Sound from './sounds.mjs';
 import { updateUserStats } from './api.mjs';
 
-const socket = io();
+const socket = io('https://localhost:8080', {
+    path: '/socket.io'
+});
 
 let username;
 let token;
