@@ -24,7 +24,7 @@ export function settings() {
                 <span class="nav-item" style="font-size: 2.5em; font-weight: bold;">${displayName}</span>
             </li>
             <li class="nav-item">
-                <img src="${avatarUrl}" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Photo de profil" style="width: 50px; height: 50px;padding: 0px; border: 2px solid #ff5722;">
+                <img src="${avatarUrl}" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Photo de profil" style="width: 50px; height: 50px;padding: 0px; border: 2px solid #ff5722; object-fit: cover;flex-shrink: 0;">
             </li>
         </ul>
 
@@ -119,23 +119,15 @@ function attachEventSettingsPage(navigateTo, player_name) {
             });
 
             if (response.ok) {
+                const data = await response.json();
                 showUpdateProfileToast();
-                const displayName = document.getElementById('displayName').value;
-                const email = document.getElementById('email').value;
-                const avatarFile = document.getElementById('avatar').files[0];
-
-                if (displayName !== player_name) {
-                    sessionStorage.setItem('player_name', displayName);
+                
+                if (data.avatar_url) {
+                    sessionStorage.setItem('avatar_url', data.avatar_url);
                 }
-                if (email !== sessionStorage.getItem('email')) {
-                    sessionStorage.setItem('email', email);
-                }
-                if (avatarFile) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        sessionStorage.setItem('avatar_url', e.target.result);
-                    };
-                    reader.readAsDataURL(avatarFile);
+                
+                if (data.display_name) {
+                    sessionStorage.setItem('display_name', data.display_name);
                 }
             } else {
                 const errorData = await response.json();

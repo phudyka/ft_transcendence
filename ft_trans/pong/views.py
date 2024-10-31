@@ -282,16 +282,30 @@ def get_friend_requests(request):
 @permission_classes([IsAuthenticated])
 def update_user_settings(request):
     try:
-        data = request.data
         user = request.user
+        avatar_file = request.FILES.get('avatar')
         
-        if 'avatar_url' in data:
+        if avatar_file:
             # Sauvegarder l'image et obtenir la nouvelle URL
-            new_avatar_url = save_avatar_image(data['avatar_url'], user.username)
-            user.avatar_url = new_avatar_url
+            content_dir = os.path.join('ft_trans', 'pong', 'templates', 'content', 'avatars')
+            os.makedirs(content_dir, exist_ok=True)
+            
+            # Créer un nom de fichier unique
+            file_extension = os.path.splitext(avatar_file.name)[1]
+            filename = f'avatar_{user.username}_{timezone.now().timestamp()}{file_extension}'
+            filepath = os.path.join(content_dir, filename)
+            
+            # Sauvegarder le fichier
+            with open(filepath, 'wb+') as destination:
+                for chunk in avatar_file.chunks():
+                    destination.write(chunk)
+            
+            # Mettre à jour l'URL de l'avatar
+            avatar_url = f'url("/content/avatars/{filename}")'
+            user.avatar_url = avatar_url
         
-        if 'display_name' in data:
-            user.display_name = data['display_name']
+        if 'display_name' in request.data:
+            user.display_name = request.data['display_name']
         
         user.save()
         
