@@ -214,7 +214,7 @@ function setupChatListeners(socket) {
             displayPrivateMessage(chatPartner, senderDisplay, msg.message);
 
             // Notification si nécessaire
-            if (!msg.isSelf && msg.from !== currentUser) {
+            if (!msg.isSelf && msg.from !== currentUser && !blockedUsers.has(msg.from)) {
                 const offcanvas = document.querySelector('.offcanvas.offcanvas-end.show');
                 if (!offcanvas) {
                     showToast(`Nouveau message de ${msg.from}`, 'info');
@@ -1028,13 +1028,13 @@ export async function fetchAndDisplayFriends() {
 function createFriendListItem(friend, listElement) {
     const li = document.createElement('li');
     li.className = 'list-group-item d-flex justify-content-between align-items-center';
-    li.setAttribute('data-friend', friend.username);
+    li.setAttribute('data-friend', friend.display_name);
 
     const statusDot = document.createElement('span');
     statusDot.className = `status-dot ${friend.is_online ? 'online' : 'offline'}`;
 
     const usernameSpan = document.createElement('span');
-    usernameSpan.textContent = friend.display_name || friend.username;
+    usernameSpan.textContent = friend.display_name;
 
     li.appendChild(statusDot);
     li.appendChild(usernameSpan);
