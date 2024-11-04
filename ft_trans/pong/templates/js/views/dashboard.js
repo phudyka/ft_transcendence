@@ -27,6 +27,9 @@ export async function dashboard(player_name) {
     const displayName = sessionStorage.getItem('display_name');
     let avatarUrl = sessionStorage.getItem('avatar_url');
     socket = initializeSocket(displayName);
+    
+    // Charger les utilisateurs bloqués avant de configurer les écouteurs de chat
+    await loadBlockedUsers();
     setupChatListeners(socket);
 
     if (!displayName) {
@@ -54,7 +57,6 @@ export async function dashboard(player_name) {
 
         <div class="content">
             <div class="sidebar">
-                <h2 class="title-friends">Friends</h2>
                 <div class="friends-tabs">
                     <button class="tab-button active" data-tab="online">Online Friends</button>
                     <button class="tab-button" data-tab="pending">Pending Requests</button>
@@ -139,7 +141,6 @@ export async function dashboard(player_name) {
 
 	setupDashboardEvents(navigateTo, displayName);
 	setupTabSystem();
-	checkForFriendRequests();
     fetchAndDisplayFriends();
     loadGeneralChatMessages();
 }
@@ -223,7 +224,23 @@ function setupChatListeners(socket) {
 
         socket.on('friend_request_received', (data) => {
             console.log('Friend request received:', data);
-            showFriendRequestToast(data.from, data.requestId);
+            const pendingFriendsList = document.getElementById('pending-friends');
+            if (pendingFriendsList) {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center pending-request';
+                li.innerHTML = `
+                    <span>${data.from}</span>
+                    <div class="pending-actions">
+                        <button class="accept-btn" data-request-id="${data.requestId}">✓</button>
+                        <button class="reject-btn" data-request-id="${data.requestId}">✗</button>
+                    </div>
+                `;
+                pendingFriendsList.appendChild(li);
+
+                // Add event listeners for accept/reject buttons
+                li.querySelector('.accept-btn').addEventListener('click', () => acceptFriendRequest(data.requestId));
+                li.querySelector('.reject-btn').addEventListener('click', () => rejectFriendRequest(data.requestId));
+            }
         });
 
         socket.on('friend_request_updated', (data) => {
@@ -303,7 +320,6 @@ function setupDashboardEvents(navigateTo, username) {
 	document.getElementById('friendDropdown_chat').querySelector('#addToFriend').addEventListener('click', addFriend);
 	document.getElementById('friendDropdown_chat').querySelector('#blockUser').addEventListener('click', blockUser);
 
-    setInterval(checkForFriendRequests, 60000);
 }
 
 function handleProfilePictureClick(event) {
@@ -535,8 +551,9 @@ function sendMessage(event) {
 
 function receiveMessage(msg) {
     console.log('Fonction receive Message appelée avec:', msg);
+    console.log('Blocked users:', Array.from(blockedUsers));
     
-    // Vérifier si l'expéditeur est bloqué
+    // Vérifier si l'expéditeur est bloqué en utilisant le display_name
     if (blockedUsers.has(msg.name)) {
         console.log(`Message ignoré de ${msg.name} car il est bloqué.`);
         return;
@@ -708,8 +725,24 @@ function blockUser(event) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showToast('User blocked successfully', 'success');
+            // Ajouter au Set des utilisateurs bloqués
+            blockedUsers.add(username);
+            
+            // Nettoyer les messages existants de l'utilisateur bloqué
+            const chatLog = document.getElementById('chat-log');
+            if (chatLog) {
+                const messages = chatLog.getElementsByTagName('div');
+                Array.from(messages).forEach(message => {
+                    const usernameElement = message.querySelector('.username-link');
+                    if (usernameElement && usernameElement.dataset.friend === username) {
+                        message.remove();
+                    }
+                });
+            }
 
+            showToast('User blocked successfully', 'success');
+            
+            // Fermer le chat privé si ouvert
             if (privateChatLogs.has(username)) {
                 privateChatLogs.delete(username);
                 const chatbox = document.getElementById('chatbox');
@@ -720,6 +753,8 @@ function blockUser(event) {
                     }
                 }
             }
+            
+            fetchAndDisplayFriends();
         } else {
             showToast(data.message || 'Failed to block user', 'error');
         }
@@ -842,16 +877,6 @@ function handleUsernameClick(event, username) {
     }
 }
 
-function checkForFriendRequests() {
-    fetchFriendRequests()
-        .then(friendRequests => {
-            console.log('Données des demandes d\'ami:', friendRequests);
-            friendRequests.forEach(request => {
-                showFriendRequestToast(request.from_username, request.id);
-            });
-        })
-        .catch(error => console.error('Erreur lors de la récupération des demandes d\'ami:', error));
-}
 
 function showFriendRequestToast(fromUsername, requestId) {
     const toastHtml = `
@@ -906,7 +931,7 @@ export async function fetchAndDisplayFriends() {
         try {
             console.log('=== Fetching Friends Data ===');
             
-            const [friendsResponse, pendingResponse] = await Promise.all([
+            const [friendsResponse, pendingResponse, blockedResponse] = await Promise.all([
                 fetch('/api/friends/', {
                     method: 'GET',
                     headers: {
@@ -920,84 +945,82 @@ export async function fetchAndDisplayFriends() {
                         'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
                         'Content-Type': 'application/json'
                     }
+                }),
+                fetch('/api/blocked-users/', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
+                        'Content-Type': 'application/json'
+                    }
                 })
             ]);
 
-            const [friendsData, pendingData] = await Promise.all([
+            const [friendsData, pendingData, blockedData] = await Promise.all([
                 friendsResponse.json(),
-                pendingResponse.json()
+                pendingResponse.json(),
+                blockedResponse.json()
             ]);
 
-            console.log('Friends Data:', friendsData);
-            console.log('Online Friends:', friendsData.friends.filter(friend => friend.is_online && !friend.is_blocked));
-            console.log('Blocked Friends:', friendsData.friends.filter(friend => friend.is_blocked));
-            console.log('Pending Requests:', pendingData);
+            // Mettre à jour le Set des utilisateurs bloqués
+            blockedUsers.clear();
+            if (blockedData.success && blockedData.blocked_users) {
+                blockedData.blocked_users.forEach(displayName => {
+                    blockedUsers.add(displayName);
+                });
+            }
 
             // Clear all lists
             onlineFriendsList.innerHTML = '';
             pendingFriendsList.innerHTML = '';
             blockedFriendsList.innerHTML = '';
-            blockedUsers.clear();
 
-            // Display online friends
-            const onlineFriends = friendsData.friends.filter(friend => friend.is_online && !friend.is_blocked);
-            console.log('Creating list items for online friends:', onlineFriends.length);
+            // Display online friends (excluding blocked users)
+            const onlineFriends = friendsData.friends.filter(friend => 
+                friend.is_online && !blockedUsers.has(friend.display_name)
+            );
             onlineFriends.forEach(friend => {
-                console.log('Creating list item for friend:', friend);
                 createFriendListItem(friend, onlineFriendsList);
             });
 
             // Display pending requests
             if (pendingData.success && pendingData.friend_requests) {
-                console.log('Processing pending requests:', pendingData.friend_requests.length);
                 pendingData.friend_requests.forEach(request => {
-                    console.log('Processing request from:', request.from_username);
-                    const li = document.createElement('li');
-                    li.className = 'list-group-item d-flex justify-content-between align-items-center pending-request';
-                    li.innerHTML = `
-                        <span>${request.from_username}</span>
-                        <div class="pending-actions">
-                            <button class="accept-btn" data-request-id="${request.id}">✓</button>
-                            <button class="reject-btn" data-request-id="${request.id}">✗</button>
-                        </div>
-                    `;
-                    pendingFriendsList.appendChild(li);
+                    if (!blockedUsers.has(request.from_username)) {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item d-flex justify-content-between align-items-center pending-request';
+                        li.innerHTML = `
+                            <span>${request.from_username}</span>
+                            <div class="pending-actions">
+                                <button class="accept-btn" data-request-id="${request.id}">✓</button>
+                                <button class="reject-btn" data-request-id="${request.id}">✗</button>
+                            </div>
+                        `;
+                        pendingFriendsList.appendChild(li);
 
-                    // Add event listeners for accept/reject buttons
-                    li.querySelector('.accept-btn').addEventListener('click', () => acceptFriendRequest(request.id));
-                    li.querySelector('.reject-btn').addEventListener('click', () => rejectFriendRequest(request.id));
+                        li.querySelector('.accept-btn').addEventListener('click', () => acceptFriendRequest(request.id));
+                        li.querySelector('.reject-btn').addEventListener('click', () => rejectFriendRequest(request.id));
+                    }
                 });
             }
 
             // Display blocked users
-            const blockedFriends = friendsData.friends.filter(friend => friend.is_blocked);
-            console.log('Creating list items for blocked friends:', blockedFriends.length);
-            blockedFriends.forEach(friend => {
-                console.log('Creating blocked user item for:', friend);
-                const li = document.createElement('li');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center blocked-user';
-                li.innerHTML = `
-                    <span>${friend.display_name || friend.username}</span>
-                    <button class="unblock-btn" data-username="${friend.username}">Unblock</button>
-                `;
-                blockedFriendsList.appendChild(li);
-                blockedUsers.add(friend.username);
+            if (blockedData.success && blockedData.blocked_users) {
+                blockedData.blocked_users.forEach(displayName => {
+                    const li = document.createElement('li');
+                    li.className = 'list-group-item d-flex justify-content-between align-items-center blocked-user';
+                    li.innerHTML = `
+                        <span>${displayName}</span>
+                        <button class="unblock-btn" data-display-name="${displayName}">Unblock</button>
+                    `;
+                    blockedFriendsList.appendChild(li);
 
-                // Add event listener for unblock button
-                li.querySelector('.unblock-btn').addEventListener('click', () => unblockUser(friend.username));
-            });
+                    li.querySelector('.unblock-btn').addEventListener('click', () => unblockUser(displayName));
+                });
+            }
 
         } catch (error) {
-            console.error('Error fetching friends data:', error);
-            console.error('Error details:', error.message);
-            console.error('Error stack:', error.stack);
+            console.error('Error fetching data:', error);
         }
-    } else {
-        console.error('One or more required elements not found:', {
-            onlineFriendsList: !!onlineFriendsList,
-            pendingFriendsList: !!pendingFriendsList,
-            blockedFriendsList: !!blockedFriendsList
-        });
     }
 }
 
@@ -1136,4 +1159,34 @@ function setupTabSystem() {
             document.getElementById(tabId).classList.add('active');
         });
     });
+}
+
+// 1. Ajouter une fonction pour charger les utilisateurs bloqués
+async function loadBlockedUsers() {
+    try {
+        const response = await fetch('/api/blocked-users/', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch blocked users');
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            // Mettre à jour le Set des utilisateurs bloqués
+            blockedUsers.clear();
+            data.blocked_users.forEach(displayName => {
+                blockedUsers.add(displayName);
+            });
+            console.log('All blocked users:', Array.from(blockedUsers));
+            console.log('Total number of blocked users:', blockedUsers.size);
+        }
+    } catch (error) {
+        console.error('Error loading blocked users:', error);
+    }
 }

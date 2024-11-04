@@ -273,7 +273,7 @@ def get_friend_requests(request):
     friend_requests = FriendRequest.objects.filter(to_user=request.user, status='pending')
     requests_data = [{
         'id': fr.id,
-        'from_username': fr.from_user.username,
+        'from_username': fr.from_user.display_name,
         'created_at': fr.created_at
     } for fr in friend_requests]
     return JsonResponse({'success': True, 'friend_requests': requests_data})
@@ -349,16 +349,15 @@ def verify_token(request):
 @permission_classes([IsAuthenticated])
 def get_friend_list(request):
     friendships = Friendship.objects.filter(user=request.user)
-    blocked_users = BlockedUser.objects.filter(user=request.user).values_list('blocked_user__username', flat=True)
+    blocked_users = BlockedUser.objects.filter(user=request.user).values_list('blocked_user__display_name', flat=True)
     friends_data = []
     for friendship in friendships:
         friend = friendship.friend
         friends_data.append({
-            'username': friend.username,
             'display_name': friend.display_name,
             'is_online': friend.is_online,
             'avatar_url': friend.avatar_url,
-            'is_blocked': friend.username in blocked_users
+            'is_blocked': friend.display_name in blocked_users
         })
     return JsonResponse({'friends': friends_data})
 
@@ -524,11 +523,7 @@ def unblock_user(request):
 @permission_classes([IsAuthenticated])
 def get_blocked_users(request):
     blocked_users = BlockedUser.objects.filter(user=request.user)
-    blocked_list = [{
-        'username': block.blocked_user.username,
-        'display_name': block.blocked_user.display_name,
-        'blocked_at': block.created_at
-    } for block in blocked_users]
+    blocked_list = [block.blocked_user.display_name for block in blocked_users]
     return JsonResponse({
         'success': True,
         'blocked_users': blocked_list
