@@ -40,24 +40,24 @@ const users = new Map();
 io.on('connection', (socket) => {
     console.log('Un utilisateur s\'est connecté:', socket.id);
 
-    socket.on('register', (username) => {
-        if (username) {
-            userConnections.set(username, { socketId: socket.id, lastActivity: Date.now() });
-            if (!users.has(username)) {
-                socket.username = username;
-                users.set(username, socket.id);
-                console.log(`${formatDate(new Date())} Utilisateur enregistré: ${username}`);
+    socket.on('register', (displayName) => {
+        if (displayName) {
+            userConnections.set(displayName, { socketId: socket.id, lastActivity: Date.now() });
+            if (!users.has(displayName)) {
+                socket.displayName = displayName;
+                users.set(displayName, socket.id);
+                console.log(`${formatDate(new Date())} Utilisateur enregistré: ${displayName}`);
             } else {
-                console.log(`${formatDate(new Date())} L'utilisateur ${username} est déjà connecté`);
+                console.log(`${formatDate(new Date())} L'utilisateur ${displayName} est déjà connecté`);
                 // Déconnecter l'ancien socket si nécessaire
-                const existingSocketId = users.get(username);
+                const existingSocketId = users.get(displayName);
                 const existingSocket = io.sockets.sockets.get(existingSocketId);
                 if (existingSocket) {
                     existingSocket.disconnect();
                 }
-                socket.username = username;
-                users.set(username, socket.id);
-                console.log(`${formatDate(new Date())} Utilisateur ${username} reconnecté avec le nouveau socket ${socket.id}`);
+                socket.displayName = displayName;
+                users.set(displayName, socket.id);
+                console.log(`${formatDate(new Date())} Utilisateur ${displayName} reconnecté avec le nouveau socket ${socket.id}`);
             }
         } else {
             console.error(`${formatDate(new Date())} Tentative d'enregistrement avec un nom d'utilisateur invalide`);
@@ -70,30 +70,29 @@ io.on('connection', (socket) => {
         updateLastActivity(msg.name);
     });
 
-    socket.on('create private room', (data) => {
-        console.log(`Création de la salle privée pour ${socket.username} et ${data.friend}`);
-        const roomName = [socket.username, data.friend].sort().join('-');
-        socket.join(roomName);
-        const friendSocket = users.get(data.friend);
-        if (friendSocket) {
-            io.to(friendSocket).emit('private room created', { friend: socket.username });
-        }
-        socket.emit('private room created', { friend: data.friend });
-        console.log(`Salle privée créée : ${roomName}`);
-    });
-
     socket.on('private message', ({ to, message }) => {
-        console.log(`${formatDate(new Date())} Message privé de ${socket.username} à ${to}: ${message}`);
+        console.log(`${formatDate(new Date())} Message privé de ${socket.displayName} à ${to}: ${message}`);
         const recipientSocketId = users.get(to);
         if (recipientSocketId) {
-            const roomName = [socket.username, to].sort().join('-');
-            console.log(`${formatDate(new Date())} Message privé de ${socket.username} à ${to} dans la salle ${roomName}: ${message}`);
-            io.to(roomName).emit('private message', {
-                from: socket.username,
-                message: message
+            // Envoyer le message au destinataire ET à l'expéditeur
+            io.to(recipientSocketId).emit('private message', {
+                from: socket.displayName,
+                message: message,
+                time: Date.now()
             });
+            
+            // Envoyer une confirmation à l'expéditeur
+            socket.emit('private message', {
+                from: socket.displayName,
+                message: message,
+                time: Date.now(),
+                isSelf: true
+            });
+            
+            console.log(`${formatDate(new Date())} Message privé envoyé à ${to} via socket ${recipientSocketId}`);
         } else {
             socket.emit('error', { message: `${to} n'est pas en ligne.` });
+            console.log(`${formatDate(new Date())} Tentative d'envoi à ${to} mais l'utilisateur n'est pas en ligne.`);
         }
     });
 

@@ -358,7 +358,7 @@ def get_friend_list(request):
             'display_name': friend.display_name,
             'is_online': friend.is_online,
             'avatar_url': friend.avatar_url,
-            'is_blocked': friend.username in blocked_users  # Indique si l'ami est bloqué
+            'is_blocked': friend.username in blocked_users
         })
     return JsonResponse({'friends': friends_data})
 

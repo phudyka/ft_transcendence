@@ -211,8 +211,8 @@ iframe#pong {
 
 #send-button,
 [id^="send-button-"] {
-    width: 36px;
-    height: 36px;
+    width: clamp(30px, 3vw, 36px);
+    height: clamp(30px, 3vw, 36px); 
     background-color: #FF8C00;
     border: none;
     border-radius: 50%;
@@ -224,7 +224,8 @@ iframe#pong {
     margin: 0 5px;
     padding: 0;
     color: white;
-    font-size: 18px;
+    font-size: clamp(14px, 1.5vw, 18px);
+    position: relative;
 }
 
 #send-button:hover,

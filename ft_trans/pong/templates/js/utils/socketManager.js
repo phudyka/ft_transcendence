@@ -6,40 +6,40 @@ import { acceptFriendRequest, rejectFriendRequest } from '../utils/friendManager
 let sockets = new Map();
 let activityTimers = new Map();
 
-export function initializeSocket(username) {
-    if (sockets.has(username) && sockets.get(username).connected) {
-        console.log('Socket déjà initialisé pour cet utilisateur');
-        resetActivityTimer(username);
-        return sockets.get(username);
+export function initializeSocket(displayName) {
+    if (sockets.has(displayName) && sockets.get(displayName).connected) {
+        console.log('Socket déjà initialisé pour cet utilisateur:', displayName);
+        resetActivityTimer(displayName);
+        return sockets.get(displayName);
     }
 
-    if (!username) {
+    if (!displayName) {
         console.error('Nom d\'utilisateur non trouvé');
         return null;
     }
 
     const socket = io('http://localhost:3000', {
         transports: ['websocket'],
-        query: { username: username }
+        query: { username: displayName }
     });
 
-    socket.username = username;
+    socket.displayName = displayName;
 
     socket.on('connect', () => {
-        console.log(`Connected to chat server for ${username}`);
-        socket.emit('register', username);
-        resetActivityTimer(username);
+        console.log(`Connected to chat server for ${displayName}`);
+        socket.emit('register', displayName);
+        resetActivityTimer(displayName);
     });
 
     socket.on('disconnect', () => {
-        console.log(`Disconnected from chat server for ${username}`);
-        sockets.delete(username);
-        clearActivityTimer(username);
-        updateOnlineStatus(username, false);
+        console.log(`Disconnected from chat server for ${displayName}`);
+        sockets.delete(displayName);
+        clearActivityTimer(displayName);
+        updateOnlineStatus(displayName, false);
     });
 
     socket.on('connect_error', (error) => {
-        console.error(`Connection error for ${username}:`, error);
+        console.error(`Connection error for ${displayName}:`, error);
     });
 
     socket.on('friend_request_received', (data) => {
@@ -56,9 +56,9 @@ export function initializeSocket(username) {
         fetchAndDisplayFriends(); // Rafraîchir la liste des amis
     });
 
-    sockets.set(username, socket);
-    console.log(`Socket: ${socket} linked to ${username}`);
-    resetActivityTimer(username);
+    sockets.set(displayName, socket);
+    console.log(`Socket: ${socket.id} linked to ${displayName}`);
+    resetActivityTimer(displayName);
     return socket;
 }
 
