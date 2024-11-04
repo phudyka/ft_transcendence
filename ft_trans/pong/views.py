@@ -494,9 +494,9 @@ def block_user(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def unblock_user(request):
-    username = request.data.get('username')
+    display_name = request.data.get('display_name')
     try:
-        blocked_user = CustomUser.objects.get(username=username)
+        blocked_user = CustomUser.objects.get(display_name=display_name)
         # Vérifier si l'utilisateur est celui qui a bloqué
         block = BlockedUser.objects.filter(
             user=request.user,
@@ -512,7 +512,7 @@ def unblock_user(request):
         block.delete()
         return JsonResponse({
             'success': True,
-            'message': f'Successfully unblocked {username}'
+            'message': f'Successfully unblocked {display_name}'
         })
     except CustomUser.DoesNotExist:
         return JsonResponse({

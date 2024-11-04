@@ -1,18 +1,17 @@
 import { navigateTo } from '../app.js';
-import { logout, setGlobalSocket } from '../utils/token.js';
+import { logout } from '../utils/token.js';
 import { getSocket, initializeSocket } from '../utils/socketManager.js';
-import { fetchFriendList, sendFriendRequest, fetchFriendRequests, acceptFriendRequest, rejectFriendRequest } from '../utils/friendManager.js';
+import { sendFriendRequest, fetchFriendRequests, acceptFriendRequest, rejectFriendRequest } from '../utils/friendManager.js';
 import { getCookie } from './settingsv.js';
 import { removeLoginEventListeners } from './login.js';
 import { checkAuthentication } from '../utils/auth.js';
 import { showToast } from '../utils/unmask.js';
 import { checkFriendshipStatus } from './profile.js';
-import { updateOnlineStatus, sendFriendRequestSocket, sendFriendRequestResponse } from '../utils/socketManager.js';
+import { updateOnlineStatus, sendFriendRequestSocket } from '../utils/socketManager.js';
 
 let socket;
 const privateChatLogs = new Map();
-const privateMessages = new Map(); // Nouvelle Map pour stocker les messages
-const username = sessionStorage.getItem('username');
+const privateMessages = new Map();
 let blockedUsers = new Set();
 
 export async function dashboard(player_name) {
@@ -239,45 +238,6 @@ function setupChatListeners(socket) {
     }
 }
 
-function receivePrivateMessage(msg) {
-    console.log('=== Processing received private message ===');
-    console.log('Message details:', msg);
-    
-    const currentUser = sessionStorage.getItem('display_name');
-    
-    if (!msg.from || !msg.message) {
-        console.error('Invalid message format:', msg);
-        return;
-    }
-
-    const chatPartner = msg.from;
-    console.log('Chat partner identified:', chatPartner);
-
-    if (!privateChatLogs.has(chatPartner)) {
-        console.log('Setting up new private chat for:', chatPartner);
-        setupPrivateChat(chatPartner);
-    }
-
-    if (!privateMessages.has(chatPartner)) {
-        privateMessages.set(chatPartner, []);
-    }
-    privateMessages.get(chatPartner).push({
-        sender: msg.from,
-        content: msg.message
-    });
-
-    const senderDisplay = msg.from === currentUser ? 'Vous' : msg.from;
-    displayPrivateMessage(chatPartner, senderDisplay, msg.message);
-    
-    if (msg.from !== currentUser) {
-        showToast(`Nouveau message de ${msg.from}`, 'info');
-    }
-}
-
-function generateUniqueId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
-}
-
 function openPrivateChat(friendName) {
 	let chatLog = privateChatLogs.get(friendName);
 	if (!chatLog) {
@@ -345,24 +305,6 @@ function setupDashboardEvents(navigateTo, username) {
 
     setInterval(checkForFriendRequests, 60000);
 }
-
-function scrollToBottom2(friendName) {
-	const chatLog2 = document.getElementById(`chat-log-${friendName}`);
-	chatLog2.scrollTop = chatLog2.scrollHeight;
-}
-
-function formatMessage(message) {
-	/* for no html injection */
-	if (message.startsWith("```")) {
-		return `<pre>${message}</pre>`;
-	}
-
-	/* syntax : [player_name] : message */
-	message = message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-	message = message.replace(/(```[\s\S]*?```)/g, '<pre>$1</pre>');
-
-	return `${message}`;
-  }
 
 function handleProfilePictureClick(event) {
     event.stopPropagation();
@@ -743,28 +685,6 @@ function addFriend(event) {
         });
 }
 
-function showFriendRequestSentToast(friendName) {
-    const toastHtml = `
-        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-                <strong class="me-auto">Friend Request Sent</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                Friend request sent to ${friendName} successfully!
-            </div>
-        </div>
-    `;
-
-    const toastContainer = document.createElement('div');
-    toastContainer.className = 'toast-container position-fixed top-0 start-50 translate-middle-x p-3';
-    toastContainer.innerHTML = toastHtml;
-    document.body.appendChild(toastContainer);
-
-    const toastElement = toastContainer.querySelector('.toast');
-    const toast = new bootstrap.Toast(toastElement);
-    toast.show();
-}
 
 function blockUser(event) {
     event.preventDefault();
@@ -1130,34 +1050,6 @@ async function unblockUser(username) {
     } catch (error) {
         console.error('Error unblocking user:', error);
         showToast('An error occurred while unblocking the user', 'error');
-    }
-}
-
-function reinitializeSocket() {
-    const username = sessionStorage.getItem('username');
-    if (username && !socket) {
-        socket = initializeSocket(username);
-        setupChatListeners(socket);
-    }
-}
-
-// // Appelez reinitializeSocket au chargement de la page
-// window.addEventListener('load', reinitializeSocket);
-
-function showFriendDropdown(event, friendName) {
-    const dropdown = document.getElementById('friendDropdown');
-    dropdown.setAttribute('data-friend', friendName);
-    dropdown.style.display = 'block';
-    // Positionner le dropdown près du curseur
-    dropdown.style.left = `${event.clientX}px`;
-    dropdown.style.top = `${event.clientY}px`;
-}
-
-function updateFriendStatus(friendName, isOnline) {
-    const friendItem = document.querySelector(`#friends li[data-friend="${friendName}"]`);
-    if (friendItem) {
-        const statusDot = friendItem.querySelector('.status-dot');
-        statusDot.className = `status-dot ${isOnline ? 'online' : 'offline'}`;
     }
 }
 
