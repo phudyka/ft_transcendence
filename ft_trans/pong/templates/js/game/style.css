@@ -163,42 +163,45 @@ body {
     font-weight: bold;
     text-transform: uppercase;
     text-align: center;
-    background: linear-gradient(135deg, #000000, #333333bd);
-    color: #FFD700;
+    background: linear-gradient(135deg, #0066ff, #00a2ff);
+    color: #FFCC00;
     position: relative;
     padding: 20px 40px;
     border-radius: 20px;
     letter-spacing: 4px;
     z-index: 1;
     font-family: 'Bebas Neue', sans-serif;
-    box-shadow: 0 0 20px rgba(255, 215, 0, 0.8), 0 0 40px rgba(255, 215, 0, 0.6);
+    box-shadow: 0 0 20px rgba(0, 102, 255, 0.8), 0 0 40px rgba(0, 162, 255, 0.6);
+    border: 3px solid #FFCC00;
     overflow: hidden;
-    animation: neon-glow 3s infinite ease-in-out;
+    animation: winner-glow 3s infinite ease-in-out;
 }
 
-@keyframes neon-glow {
+@keyframes winner-glow {
     0%, 100% {
-        text-shadow: 0 0 10px rgba(255, 215, 0, 0.5), 0 0 20px rgba(255, 215, 0, 0.4);
+        text-shadow: 0 0 10px rgba(255, 204, 0, 0.5), 0 0 20px rgba(255, 204, 0, 0.4);
+        box-shadow: 0 0 20px rgba(0, 102, 255, 0.8), 0 0 40px rgba(0, 162, 255, 0.6);
     }
     50% {
-        text-shadow: 0 0 30px rgba(255, 215, 0, 0.9), 0 0 50px rgba(255, 215, 0, 0.7);
+        text-shadow: 0 0 30px rgba(255, 204, 0, 0.9), 0 0 50px rgba(255, 204, 0, 0.7);
+        box-shadow: 0 0 30px rgba(0, 102, 255, 0.9), 0 0 60px rgba(0, 162, 255, 0.8);
     }
 }
 
 #winner-message::before {
-	font-family: 'Roboto', Arial, sans-serif;
-	font-weight: 900;
     content: '';
     position: absolute;
     top: 0;
     left: -150%;
     width: 400%;
     height: 100%;
-    background: linear-gradient(120deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
-    animation: light-sweep 5s infinite ease-in-out;
+    background: linear-gradient(120deg, 
+        rgba(255, 204, 0, 0.1),
+        rgba(255, 204, 0, 0.3),
+        rgba(255, 204, 0, 0.1)
+    );
+    animation: light-sweep 3s infinite ease-in-out;
     z-index: 0;
-    opacity: 0.4;
-    border-radius: 20px;
 }
 
 @keyframes light-sweep {
