@@ -286,21 +286,17 @@ def update_user_settings(request):
         avatar_file = request.FILES.get('avatar')
         
         if avatar_file:
-            # Sauvegarder l'image et obtenir la nouvelle URL
             content_dir = os.path.join('ft_trans', 'pong', 'templates', 'content', 'avatars')
             os.makedirs(content_dir, exist_ok=True)
             
-            # Créer un nom de fichier unique
             file_extension = os.path.splitext(avatar_file.name)[1]
             filename = f'avatar_{user.username}_{timezone.now().timestamp()}{file_extension}'
             filepath = os.path.join(content_dir, filename)
             
-            # Sauvegarder le fichier
             with open(filepath, 'wb+') as destination:
                 for chunk in avatar_file.chunks():
                     destination.write(chunk)
             
-            # Mettre à jour l'URL de l'avatar
             avatar_url = f'url("/content/avatars/{filename}")'
             user.avatar_url = avatar_url
         
@@ -363,14 +359,6 @@ def get_friend_list(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def user_ping(request):
-    user = request.user
-    user.last_activity = timezone.now()
-    user.save()
-    return JsonResponse({'status': 'success'})
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
 def update_online_status(request):
     user = request.user
     data = request.data
@@ -378,11 +366,6 @@ def update_online_status(request):
     user.last_activity = timezone.now()
     user.save()
     return Response({'status': 'success'})
-
-# Gardez la fonction utilitaire séparée si nécessaire
-def update_offline_status():
-    five_minutes_ago = timezone.now() - timezone.timedelta(minutes=5)
-    CustomUser.objects.filter(last_activity__lt=five_minutes_ago, is_online=True).update(is_online=False)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -545,7 +528,6 @@ def auth_42_callback(request):
     if not code:
         return JsonResponse({'success': False, 'error': 'No authorization code'})
 
-    # Échanger le code contre un token
     token_url = 'https://api.intra.42.fr/oauth/token'
     data = {
         'grant_type': 'authorization_code',
@@ -562,7 +544,6 @@ def auth_42_callback(request):
     token_data = response.json()
     access_token = token_data.get('access_token')
 
-    # Obtenir les informations de l'utilisateur
     user_url = 'https://api.intra.42.fr/v2/me'
     headers = {'Authorization': f'Bearer {access_token}'}
     user_response = requests.get(user_url, headers=headers)
@@ -572,10 +553,8 @@ def auth_42_callback(request):
 
     user_data = user_response.json()
     
-    # Vérifier si l'utilisateur existe déjà
     try:
         user = User.objects.get(email=user_data['email'])
-        # Utilisateur existant - générer les tokens et rediriger
         refresh = RefreshToken.for_user(user)
         response_data = {
             'access': str(refresh.access_token),
@@ -589,7 +568,6 @@ def auth_42_callback(request):
         # Formater l'URL de l'avatar comme les autres
         avatar_url = f'url("{user_data["image"]["versions"]["small"]}")'
         
-        # Créer le nouvel utilisateur
         user = User.objects.create_user(
             username=user_data['login'],
             email=user_data['email'],
@@ -598,7 +576,6 @@ def auth_42_callback(request):
             password=None
         )
         
-        # Générer les tokens et rediriger
         refresh = RefreshToken.for_user(user)
         response_data = {
             'access': str(refresh.access_token),

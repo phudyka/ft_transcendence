@@ -28,6 +28,9 @@ export async function dashboard(player_name) {
     let avatarUrl = sessionStorage.getItem('avatar_url');
     socket = initializeSocket(displayName);
     
+    // Ajouter la configuration de reconnexion automatique
+    setupAutoReconnect();
+
     // Charger les utilisateurs bloqués avant de configurer les écouteurs de chat
     await loadBlockedUsers();
     setupChatListeners(socket);
@@ -252,6 +255,11 @@ function setupChatListeners(socket) {
             fetchAndDisplayFriends();
         });
 
+        socket.on('friend_status_change', (data) => {
+            console.log('Friend status changed:', data);
+            fetchAndDisplayFriends();
+        });
+
     }
 }
 
@@ -320,6 +328,10 @@ function setupDashboardEvents(navigateTo, username) {
 	document.getElementById('friendDropdown_chat').querySelector('#addToFriend').addEventListener('click', addFriend);
 	document.getElementById('friendDropdown_chat').querySelector('#blockUser').addEventListener('click', blockUser);
 
+	// Ajouter un intervalle pour rafraîchir périodiquement la liste d'amis
+	window.fetchFriendsInterval = setInterval(() => {
+		fetchAndDisplayFriends();
+	}, 30000); // Rafraîchir toutes les 30 secondes
 }
 
 function handleProfilePictureClick(event) {
@@ -533,19 +545,26 @@ function goTosettings(event) {
 function sendMessage(event) {
     event.preventDefault();
     const displayName = sessionStorage.getItem('display_name');
+    let socket = getSocket(displayName);
+
+    // Si le socket n'existe pas ou n'est pas connecté, essayer de le réinitialiser
+    if (!socket || !socket.connected) {
+        socket = initializeSocket(displayName);
+        if (!socket) {
+            showToast('Connection lost. Please refresh the page.', 'error');
+            return;
+        }
+    }
+
     const messageInput = document.getElementById('message-input');
     const message = messageInput.value.trim();
-    const socket = getSocket(displayName);
-    console.log(`sendMessage function called`);
-    console.log(`Socket connected: ${socket.connected}`);
-    console.log(`Socket id: ${socket.id}`);
-    console.log(`End of sendMessage function`);
-    updateOnlineStatus(displayName);
 
-    if (message !== '' && socket && socket.connected) {
+    if (message !== '' && socket.connected) {
         socket.emit('chat message', { name: displayName, message: message });
         messageInput.value = '';
-        getSocket(displayName);
+        updateOnlineStatus(displayName);
+    } else if (!socket.connected) {
+        showToast('Connection lost. Trying to reconnect...', 'warning');
     }
 }
 
@@ -1115,7 +1134,7 @@ export function removeDashboardEventListeners() {
     clearInterval(window.fetchFriendsInterval);
     clearInterval(window.checkFriendRequestsInterval);
 
-    // Remove socket listeners
+    // Remove socket listeners and disconnect
     const displayName = sessionStorage.getItem('display_name');
     const socket = getSocket(displayName);
     if (socket) {
@@ -1123,8 +1142,36 @@ export function removeDashboardEventListeners() {
         socket.off('private message');
         socket.off('force_disconnect');
         socket.off('user_disconnected');
+        socket.disconnect();
     }
     console.log('removeDashboardEventListeners');
+
+    // Nettoyer l'intervalle de reconnexion
+    if (window.reconnectInterval) {
+        clearInterval(window.reconnectInterval);
+    }
+
+    // Arrêter les intervalles de vérification
+    if (window.fetchFriendsInterval) {
+        clearInterval(window.fetchFriendsInterval);
+    }
+    if (window.checkFriendRequestsInterval) {
+        clearInterval(window.checkFriendRequestsInterval);
+    }
+    if (window.reconnectInterval) {
+        clearInterval(window.reconnectInterval);
+    }
+
+    // Nettoyer les maps et sets
+    privateChatLogs.clear();
+    privateMessages.clear();
+    blockedUsers.clear();
+
+    // Supprimer les écouteurs d'événements de la souris et du clavier
+    document.removeEventListener('mousemove', resetActivityTimer);
+    document.removeEventListener('keypress', resetActivityTimer);
+
+    console.log('All dashboard event listeners and intervals removed');
 }
 
 // Modify the existing logout function
@@ -1189,4 +1236,24 @@ async function loadBlockedUsers() {
     } catch (error) {
         console.error('Error loading blocked users:', error);
     }
+}
+
+// Ajouter une fonction de reconnexion automatique
+function setupAutoReconnect() {
+    const displayName = sessionStorage.getItem('display_name');
+    let socket = getSocket(displayName);
+
+    // Vérifier la connexion toutes les 30 secondes
+    const reconnectInterval = setInterval(() => {
+        if (!socket || !socket.connected) {
+            console.log('Attempting to reconnect socket...');
+            socket = initializeSocket(displayName);
+            if (socket) {
+                setupChatListeners(socket);
+            }
+        }
+    }, 30000);
+
+    // Stocker l'intervalle pour le nettoyer plus tard
+    window.reconnectInterval = reconnectInterval;
 }

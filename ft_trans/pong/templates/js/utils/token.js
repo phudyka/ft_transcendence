@@ -1,5 +1,6 @@
 import { navigateTo } from '../app.js';
 import { getCookie } from '../views/settingsv.js';
+import { removeDashboardEventListeners } from '../views/dashboard.js';
 // Déclarez une variable globale pour stocker la référence au socket
 let globalSocket;
 
@@ -67,32 +68,37 @@ export function generateToken() {
 }
 
 export async function logout() {
-    // Déconnexion du socket si il existe
+    // Supprimer d'abord les event listeners du dashboard
+    removeDashboardEventListeners();
+    
+    // Déconnecter le socket si il existe
     if (globalSocket && globalSocket.connected) {
         globalSocket.disconnect();
         console.log('Utilisateur déconnecté du socket');
     }
 
-    try {
-        await fetch('/api/update-online-status/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
-            },
-            body: JSON.stringify({ is_online: false }),
-        });
-    } catch (error) {
-        console.error('Erreur lors de la mise à jour du statut en ligne:', error);
+    // Mettre à jour le statut en ligne seulement si l'utilisateur est connecté
+    const accessToken = sessionStorage.getItem('accessToken');
+    if (accessToken) {
+        try {
+            await fetch('/api/update-online-status/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${accessToken}`,
+                },
+                body: JSON.stringify({ is_online: false }),
+            });
+        } catch (error) {
+            console.error('Erreur lors de la mise à jour du statut en ligne:', error);
+        }
     }
-    sessionStorage.removeItem('accessToken');
-    sessionStorage.removeItem('refreshToken');
-    sessionStorage.removeItem('username');
-    sessionStorage.removeItem('display_name');
-    sessionStorage.removeItem('avatar_url');
-    sessionStorage.removeItem('csrfToken');
+
+    // Nettoyer la session et les cookies
+    sessionStorage.clear();
     document.cookie = '';
-    document.removeEventListener('c', logout);
+    
+    // Rediriger vers la page de login
     navigateTo('/login');
 }
 

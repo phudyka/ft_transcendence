@@ -109,7 +109,7 @@ function handleUnmaskPassword(event) {
 function handleEnterKeyPress(event) {
     if (event.key === "Enter") {
         const loginForm = document.getElementById('loginForm');
-        if (loginForm) {_success=true
+        if (loginForm) {
             loginForm.dispatchEvent(new Event('submit'));
         }
     }
