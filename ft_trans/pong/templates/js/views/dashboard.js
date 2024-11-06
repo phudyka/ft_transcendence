@@ -284,7 +284,8 @@ function openPrivateChat(friendName) {
 }
 
 function setupDashboardEvents(navigateTo, username) {
-	//Logout
+    setupAnimations();
+    //Logout
 	document.getElementById('logoutLink').addEventListener('click', handleLogout);
 
 	// Friend menu
@@ -1248,4 +1249,29 @@ function setupAutoReconnect() {
     }, 30000);
 
     window.reconnectInterval = reconnectInterval;
+}
+
+// Ajouter dans setupDashboardEvents
+function setupAnimations() {
+    // Animation des halos
+    const container = document.querySelector('.dashboard-container');
+    if (container) {
+        container.style.opacity = '0';
+        setTimeout(() => {
+            container.style.transition = 'opacity 0.5s ease';
+            container.style.opacity = '1';
+        }, 100);
+    }
+
+    // Animation des éléments au chargement
+    const elements = document.querySelectorAll('.sidebar, .chat-container, .game-container');
+    elements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            el.style.transition = 'all 0.5s ease';
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, 200 + index * 100);
+    });
 }

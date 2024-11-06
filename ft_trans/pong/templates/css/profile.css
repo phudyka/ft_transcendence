@@ -8,6 +8,14 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    border: 2px solid #ff5722;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 15px rgba(255, 87, 34, 0.3);
+}
+
+.profile-icon:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px rgba(255, 87, 34, 0.5);
 }
 
 .profile-icon img {
@@ -24,11 +32,28 @@
 .card {
     border-radius: 10px;
     box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(145deg, 
+        rgba(40, 40, 40, 0.8), 
+        rgba(25, 25, 25, 0.9));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
 }
 
 #friendButton {
     width: 200px;
-    background-color: #FF8C00;
+    background: linear-gradient(45deg, #ff5722, #ff7043);
+    background-size: 200% 200%;
+    animation: gradient 5s ease infinite;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
     border: none;
     color: white;
     padding: 10px 20px;
@@ -84,7 +109,12 @@
 }
 
 #backToDashboard {
-    background-color: #FF8C00;
+    background: linear-gradient(45deg, #ff5722, #ff7043);
+    background-size: 200% 200%;
+    animation: gradient 5s ease infinite;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
     border: none;
     color: white;
     padding: 10px 20px;
@@ -252,4 +282,17 @@
 
 .match-result.loss {
     color: #F44336;
+}
+
+/* Ajout des animations */
+@keyframes gradient {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes glowing {
+    0% { opacity: 0.15; }
+    50% { opacity: 0.25; }
+    100% { opacity: 0.15; }
 }
