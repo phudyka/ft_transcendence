@@ -1,47 +1,31 @@
 import json
 import logging
 import requests
-from django.http import JsonResponse
-from django.contrib.auth.models import User
-from django.contrib.auth import authenticate, login
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.shortcuts import render
+import os
+from django.http import JsonResponse, HttpResponse
+from django.contrib.auth import authenticate, login, get_user_model
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
+from django.shortcuts import render, redirect
 from django.middleware.csrf import get_token
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.decorators import action
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
-from django.db import IntegrityError
-from django.shortcuts import redirect
-from rest_framework import viewsets, status
-from .serializers import CustomUserSerializer
-logger = logging.getLogger(__name__)
-from django.utils import timezone
-from django.contrib.auth import get_user_model
-from .models import CustomUser, Friendship, FriendRequest, MatchHistory, BlockedUser
-from django.contrib.auth.hashers import check_password, make_password
-from django.views.decorators.http import require_GET
-from django.conf import settings
-from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from django.views.decorators.http import require_http_methods
-from .serializers import FriendshipSerializer
-from django.core.exceptions import ValidationError
-from django.core.files.images import get_image_dimensions
-from django.core.validators import validate_email
-from PIL import Image
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.decorators import login_required
-import base64
-import os
-from django.core.files.base import ContentFile
-from django.http import HttpResponse
+from rest_framework import viewsets, status
+from django.db import IntegrityError
+from django.utils import timezone
+from django.views.decorators.http import require_GET, require_http_methods
+from django.conf import settings
+from .models import CustomUser, Friendship, FriendRequest, MatchHistory, BlockedUser
+from .serializers import CustomUserSerializer, FriendshipSerializer
 
-
+logger = logging.getLogger(__name__)
 User = get_user_model()
 
 def create_user(request):
 	if request.method == 'POST':
 		data = json.loads(request.body)
+		
 		user = User.create_user(data['username'], data=data['password'])
 		return JsonResponse({'message': 'user created with id ' + str(user.id)}, status=201)
 	else:

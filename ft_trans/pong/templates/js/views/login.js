@@ -3,12 +3,11 @@ import { getCsrfToken } from '../utils/token.js';
 import { removeDashboardEventListeners } from './dashboard.js';
 
 export function login() {
-    // Vérifier d'abord les paramètres d'authentification 42
     if (check42AuthParams()) {
-        return; // Si l'authentification 42 est réussie, ne pas continuer avec le rendu normal
+        return;
     }
 
-    removeDashboardEventListeners(); // Add this line
+    removeDashboardEventListeners();
     console.log('login view');
     document.getElementById('ft_transcendence').innerHTML = `
     <div class="container login-container">
@@ -119,9 +118,9 @@ async function handleLogin(event) {
     event.preventDefault();
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    
     try {
-        const csrfToken = await getCsrfToken();
-        console.log("CSRF token obtenu :", csrfToken);
+        let csrfToken = await getCsrfToken();
         const response = await fetch('/api/login/', {
             method: 'POST',
             headers: {
@@ -131,30 +130,54 @@ async function handleLogin(event) {
             body: JSON.stringify({ username, password }),
             credentials: 'include',
         });
-        const data = await response.json();
-        if (data.success) {
-            console.log('Connexion réussie');
-            sessionStorage.setItem('accessToken', data.access);
-            sessionStorage.setItem('refreshToken', data.refresh);
-            sessionStorage.setItem('username', data.username);
-            sessionStorage.setItem('display_name', data.display_name);
-            sessionStorage.setItem('avatar_url', data.avatar_url);
-            navigateTo('/dashboard');
-            // Mettez à jour le statut en ligne
-            await fetch('/api/update-online-status/', {
+
+        // Si on reçoit une erreur 403, on réessaie une fois avec un nouveau token
+        if (response.status === 403) {
+            csrfToken = await getCsrfToken();
+            const secondResponse = await fetch('/api/login/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${data.access}`,
+                    'X-CSRFToken': csrfToken,
                 },
+                body: JSON.stringify({ username, password }),
+                credentials: 'include',
             });
+            const data = await secondResponse.json();
+            handleLoginResponse(data);
         } else {
-            console.error('Échec de la connexion :', data.message);
-            showLoginToastErr(data.message);
+            const data = await response.json();
+            handleLoginResponse(data);
         }
     } catch (error) {
         console.error('Erreur :', error);
         showLoginToastErr('Une erreur est survenue. Veuillez réessayer.');
+    }
+}
+
+// Nouvelle fonction pour gérer la réponse de login
+function handleLoginResponse(data) {
+    if (data.success) {
+        console.log('Connexion réussie');
+        sessionStorage.setItem('accessToken', data.access);
+        sessionStorage.setItem('refreshToken', data.refresh);
+        sessionStorage.setItem('username', data.username);
+        sessionStorage.setItem('display_name', data.display_name);
+        sessionStorage.setItem('avatar_url', data.avatar_url);
+        navigateTo('/dashboard');
+        
+        // Mettre à jour le statut en ligne
+        fetch('/api/update-online-status/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${data.access}`,
+            },
+            body: JSON.stringify({ is_online: true }),
+        });
+    } else {
+        console.error('Échec de la connexion :', data.message);
+        showLoginToastErr(data.message);
     }
 }
 

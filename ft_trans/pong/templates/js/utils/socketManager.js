@@ -5,6 +5,7 @@ import { acceptFriendRequest, rejectFriendRequest } from '../utils/friendManager
 
 let sockets = new Map();
 let activityTimers = new Map();
+let isLoggingOut = false;
 
 export function initializeSocket(displayName) {
     if (sockets.has(displayName) && sockets.get(displayName).connected) {
@@ -31,11 +32,16 @@ export function initializeSocket(displayName) {
         resetActivityTimer(displayName);
     });
 
-    socket.on('disconnect', () => {
-        console.log(`Disconnected from chat server for ${displayName}`);
-        sockets.delete(displayName);
-        clearActivityTimer(displayName);
-        updateOnlineStatus(displayName, false);
+    socket.on('disconnect', async () => {
+        if (isLoggingOut) {
+            console.log(`Déconnexion en cours pour ${socket.displayName}`);
+            return;
+        }
+
+        console.log(`Déconnecté du serveur de chat pour ${socket.displayName}`);
+        sockets.delete(socket.displayName);
+        clearActivityTimer(socket.displayName);
+        await updateOnlineStatus(socket.displayName, false);
     });
 
     socket.on('connect_error', (error) => {
@@ -78,7 +84,13 @@ function clearActivityTimer(username) {
 }
 
 export async function updateOnlineStatus(username, isOnline) {
+    if (isLoggingOut) return;
+
     try {
+        const token = sessionStorage.getItem('accessToken');
+        if (!token) {
+            console.error('No access token found');
+        }
         const response = await fetchWithToken('/api/update-online-status/', {
             method: 'POST',
             headers: {
@@ -96,6 +108,10 @@ export async function updateOnlineStatus(username, isOnline) {
     } catch (error) {
         console.error('Error updating online status:', error);
     }
+}
+
+export function setLoggingOut(flag) {
+    isLoggingOut = flag;
 }
 
 export function getSocket(username) {

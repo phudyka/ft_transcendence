@@ -27,11 +27,7 @@ export async function dashboard(player_name) {
     const displayName = sessionStorage.getItem('display_name');
     let avatarUrl = sessionStorage.getItem('avatar_url');
     socket = initializeSocket(displayName);
-    
-    // Ajouter la configuration de reconnexion automatique
     setupAutoReconnect();
-
-    // Charger les utilisateurs bloqués avant de configurer les écouteurs de chat
     await loadBlockedUsers();
     setupChatListeners(socket);
 
@@ -328,17 +324,17 @@ function setupDashboardEvents(navigateTo, username) {
 	document.getElementById('friendDropdown_chat').querySelector('#addToFriend').addEventListener('click', addFriend);
 	document.getElementById('friendDropdown_chat').querySelector('#blockUser').addEventListener('click', blockUser);
 
-	// Ajouter un intervalle pour rafraîchir périodiquement la liste d'amis
+	// Add an interval to refresh the friends list periodically
 	window.fetchFriendsInterval = setInterval(() => {
 		fetchAndDisplayFriends();
-	}, 30000); // Rafraîchir toutes les 30 secondes
+	}, 30000);
 }
 
 function handleProfilePictureClick(event) {
     event.stopPropagation();
     const dropdown = document.getElementById('profileDropdown');
 
-    // Masquer tous les dropdowns visibles
+    // Hide all visible dropdowns
     const visibleDropdowns = document.querySelectorAll('.dropdown-menu, .dropdown-menu_chat');
     visibleDropdowns.forEach(dropdown => {
         dropdown.style.display = 'none';
@@ -1146,12 +1142,6 @@ export function removeDashboardEventListeners() {
     }
     console.log('removeDashboardEventListeners');
 
-    // Nettoyer l'intervalle de reconnexion
-    if (window.reconnectInterval) {
-        clearInterval(window.reconnectInterval);
-    }
-
-    // Arrêter les intervalles de vérification
     if (window.fetchFriendsInterval) {
         clearInterval(window.fetchFriendsInterval);
     }
@@ -1172,6 +1162,9 @@ export function removeDashboardEventListeners() {
     document.removeEventListener('keypress', resetActivityTimer);
 
     console.log('All dashboard event listeners and intervals removed');
+
+    //clear all Intervals
+    clearInterval(window.reconnectInterval);
 }
 
 // Modify the existing logout function
@@ -1243,7 +1236,7 @@ function setupAutoReconnect() {
     const displayName = sessionStorage.getItem('display_name');
     let socket = getSocket(displayName);
 
-    // Vérifier la connexion toutes les 30 secondes
+    // Check connection every 30 seconds
     const reconnectInterval = setInterval(() => {
         if (!socket || !socket.connected) {
             console.log('Attempting to reconnect socket...');
@@ -1254,6 +1247,5 @@ function setupAutoReconnect() {
         }
     }, 30000);
 
-    // Stocker l'intervalle pour le nettoyer plus tard
     window.reconnectInterval = reconnectInterval;
 }

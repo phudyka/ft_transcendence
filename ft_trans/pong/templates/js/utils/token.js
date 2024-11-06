@@ -1,6 +1,7 @@
 import { navigateTo } from '../app.js';
 import { getCookie } from '../views/settingsv.js';
 import { removeDashboardEventListeners } from '../views/dashboard.js';
+import { setLoggingOut } from './socketManager.js';
 // Déclarez une variable globale pour stocker la référence au socket
 let globalSocket;
 
@@ -68,18 +69,12 @@ export function generateToken() {
 }
 
 export async function logout() {
-    // Supprimer d'abord les event listeners du dashboard
-    removeDashboardEventListeners();
-    
-    // Déconnecter le socket si il existe
-    if (globalSocket && globalSocket.connected) {
-        globalSocket.disconnect();
-        console.log('Utilisateur déconnecté du socket');
-    }
+    setLoggingOut(true);
 
-    // Mettre à jour le statut en ligne seulement si l'utilisateur est connecté
+    // Mise à jour du statut en ligne avant de déconnecter
     const accessToken = sessionStorage.getItem('accessToken');
-    if (accessToken) {
+    const displayName = sessionStorage.getItem('display_name');
+    if (accessToken && displayName) {
         try {
             await fetch('/api/update-online-status/', {
                 method: 'POST',
@@ -89,17 +84,28 @@ export async function logout() {
                 },
                 body: JSON.stringify({ is_online: false }),
             });
+            console.log('Online status updated before logout.');
         } catch (error) {
-            console.error('Erreur lors de la mise à jour du statut en ligne:', error);
+            console.error('Error updating online status:', error);
         }
     }
 
-    // Nettoyer la session et les cookies
+    // remove dashboard event listeners
+    removeDashboardEventListeners();
+
+    // disconnect socket if it exists
+    if (globalSocket && globalSocket.connected) {
+        globalSocket.disconnect();
+        console.log('Utilisateur déconnecté du socket');
+    }
+
+    // clean session and cookies
     sessionStorage.clear();
     document.cookie = '';
-    
-    // Rediriger vers la page de login
+    setLoggingOut(false);
     navigateTo('/login');
+    console.log('Redirection vers la page de login et rechargement de la page');
+    window.location.reload();
 }
 
 export async function refreshAccessToken() {
@@ -133,5 +139,3 @@ export async function refreshAccessToken() {
         return false;
     }
 }
-
-setInterval(refreshAccessToken, 50 * 60 * 1000);
