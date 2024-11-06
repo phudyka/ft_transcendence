@@ -18,7 +18,7 @@ export function initializeSocket(displayName) {
         return null;
     }
 
-    const socket = io('https://studious-meme-5gqp5vqp5q7hv9qx-443.app.github.dev', {
+    const socket = io('https://c1r4p1.42nice.fr:8080', {
         transports: ['websocket'],
         path: '/c_socket.io',
         query: { username: displayName }

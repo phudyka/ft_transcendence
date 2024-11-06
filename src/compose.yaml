@@ -53,7 +53,7 @@ services:
     networks:
       - 42nice
     ports:
-      - "443:443"
+      - "8080:443"
 
 
   ## BACKEND ## BACKEND ## BACKEND ## BACKEND ## BACKEND ## BACKEND ##

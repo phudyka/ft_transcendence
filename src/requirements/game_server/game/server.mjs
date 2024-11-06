@@ -27,7 +27,7 @@ const options = {
 const app = express();
 
 app.use(cors({
-    origin: ["https://localhost:443", "https://studious-meme-5gqp5vqp5q7hv9qx-443.app.github.dev"],
+    origin: ["https://localhost:443", "https://c1r4p1.42nice.fr:8080"],
     methods: ["GET", "POST"],
     credentials: true
 }));

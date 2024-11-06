@@ -92,7 +92,7 @@ export async function dashboard(player_name) {
             </div>
 
                 <div class="game-container">
-                    <iframe id="pong" title="Pong" src="https://studious-meme-5gqp5vqp5q7hv9qx-443.app.github.dev/game_server"></iframe>
+                    <iframe id="pong" title="Pong" src="https://c1r4p1.42nice.fr:8080/game_server"></iframe>
                 </div>
 
             <div class="chat-container">
@@ -139,7 +139,7 @@ export async function dashboard(player_name) {
         const csrfToken = getCookie('csrftoken');
         console.log(sessionStorage);
         const avatar = sessionStorage.getItem('avatar_url');
-        iframe.contentWindow.postMessage({ username: displayName, token: token, csrfToken: csrfToken, avatar: avatar }, 'https://studious-meme-5gqp5vqp5q7hv9qx-443.app.github.dev/game_server');
+        iframe.contentWindow.postMessage({ username: displayName, token: token, csrfToken: csrfToken, avatar: avatar }, 'https://c1r4p1.42nice.fr:8080/game_server');
     };
 
 	setupDashboardEvents(navigateTo, displayName);

@@ -16,6 +16,7 @@ IMAGES =	src-grafana\
 			
 
 VOLUMES =	src_static_files\
+			src_postgres_data\
 
 all: $(NAME)
 
