@@ -3,6 +3,9 @@ import { getCsrfToken } from '../utils/token.js';
 import { showToast } from '../utils/unmask.js';
 
 export function register() {
+
+    document.body.style.overflowY = 'auto';
+
     document.getElementById('ft_transcendence').innerHTML = `
     <div class="container register-container">
         <h1 class="register-title" style="margin-top: 5%;">Create Your Account</h1>

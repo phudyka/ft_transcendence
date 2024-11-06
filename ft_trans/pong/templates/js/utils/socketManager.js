@@ -89,7 +89,7 @@ export async function updateOnlineStatus(username, isOnline) {
     try {
         const token = sessionStorage.getItem('accessToken');
         if (!token) {
-            console.error('No access token found');
+            return;
         }
         const response = await fetchWithToken('/api/update-online-status/', {
             method: 'POST',
