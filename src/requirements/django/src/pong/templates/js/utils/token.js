@@ -10,7 +10,7 @@ export function setGlobalSocket(socket) {
 }
 
 function refreshToken() {
-    return fetch('http://localhost:8000/api/token/refresh/', {
+    return fetch('/api/token/refresh/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -44,7 +44,7 @@ export async function getCsrfToken() {
 }
 
 export function generateToken() {
-    return fetch('http://localhost:8000/api/token/', {
+    return fetch('/api/token/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

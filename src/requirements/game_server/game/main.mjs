@@ -25,6 +25,7 @@ import Sound from './sounds.mjs';
 import { updateUserStats } from './api.mjs';
 
 const socket = io('https://c1r4p1.42nice.fr:8080', {
+    transports: ['websocket'],
     path: '/g_socket.io'
 });
 
