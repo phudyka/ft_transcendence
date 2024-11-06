@@ -1,9 +1,7 @@
 import { navigateTo } from '../app.js';
 
-const player_name = sessionStorage.getItem('player_name');
-
 export function settings() {
-    const displayName = sessionStorage.getItem('displayName');
+    const displayName = sessionStorage.getItem('display_name');
     let avatarUrl = sessionStorage.getItem('avatar_url');
     if (avatarUrl) {
         avatarUrl = avatarUrl.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
@@ -26,7 +24,7 @@ export function settings() {
                 <span class="nav-item" style="font-size: 2.5em; font-weight: bold;">${displayName}</span>
             </li>
             <li class="nav-item">
-                <img src="${avatarUrl}" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Photo de profil" style="width: 50px; height: 50px;padding: 0px;">
+                <img src="${avatarUrl}" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Photo de profil" style="width: 50px; height: 50px;padding: 0px; border: 2px solid #ff5722; object-fit: cover;flex-shrink: 0;">
             </li>
         </ul>
 
@@ -45,7 +43,7 @@ export function settings() {
                 <div class="mb-3">
                     <label for="avatar" class="form-label">Avatar</label>
                     <div class="d-flex align-items-center">
-                        <img id="currentAvatar" src="${avatarUrl}" alt="Avatar actuel" class="img-thumbnail rounded-circle me-3 avatar-img" style="width: 100px; height: 100px;padding: 0px; border: 1px solid #ff5722;">
+                        <img id="currentAvatar" src="${avatarUrl}" alt="Avatar actuel" class="img-thumbnail rounded-circle me-3 avatar-img" style="width: 100px; height: 100px;padding: 0px; border: 2px solid #ff5722;">
                         <input type="file" class="form-control" id="avatar" name="avatar" accept="image/jpeg,image/png,image/gif">
                     </div>
                     <small class="form-text text-muted">
@@ -88,7 +86,7 @@ export function settings() {
     </div>
 `;
 
-attachEventSettingsPage(navigateTo, player_name);
+attachEventSettingsPage(navigateTo, displayName);
 }
 
 function attachEventSettingsPage(navigateTo, player_name) {
@@ -121,23 +119,15 @@ function attachEventSettingsPage(navigateTo, player_name) {
             });
 
             if (response.ok) {
+                const data = await response.json();
                 showUpdateProfileToast();
-                const displayName = document.getElementById('displayName').value;
-                const email = document.getElementById('email').value;
-                const avatarFile = document.getElementById('avatar').files[0];
-
-                if (displayName !== player_name) {
-                    sessionStorage.setItem('player_name', displayName);
+                
+                if (data.avatar_url) {
+                    sessionStorage.setItem('avatar_url', data.avatar_url);
                 }
-                if (email !== sessionStorage.getItem('email')) {
-                    sessionStorage.setItem('email', email);
-                }
-                if (avatarFile) {
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        sessionStorage.setItem('avatar_url', e.target.result);
-                    };
-                    reader.readAsDataURL(avatarFile);
+                
+                if (data.display_name) {
+                    sessionStorage.setItem('display_name', data.display_name);
                 }
             } else {
                 const errorData = await response.json();
@@ -185,8 +175,8 @@ function attachEventSettingsPage(navigateTo, player_name) {
     });
 
     // Pre-fill form fields
-    document.getElementById('displayName').value = player_name;
-    document.getElementById('email').value = 'newmail@example.com';
+    const prefilledDisplayName = sessionStorage.getItem('display_name');
+    document.getElementById('displayName').value = prefilledDisplayName;
 }
 
 function showUpdateProfileToast() {

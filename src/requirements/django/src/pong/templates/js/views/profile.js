@@ -60,7 +60,7 @@ export async function profile(displayName) {
             }
 
             const userProfile = data.user;
-            if (userProfile.avatar_url) {
+            if (userProfile.avatar_url && userProfile.avatar_url.startsWith('url(')) {
                 userProfile.avatar_url = userProfile.avatar_url.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
             }
             const totalGames = userProfile.wins + userProfile.losses;

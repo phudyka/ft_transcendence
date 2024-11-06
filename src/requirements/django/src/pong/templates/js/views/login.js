@@ -3,63 +3,67 @@ import { getCsrfToken } from '../utils/token.js';
 import { removeDashboardEventListeners } from './dashboard.js';
 
 export function login() {
+    // Vérifier d'abord les paramètres d'authentification 42
+    if (check42AuthParams()) {
+        return; // Si l'authentification 42 est réussie, ne pas continuer avec le rendu normal
+    }
+
     removeDashboardEventListeners(); // Add this line
     console.log('login view');
     document.getElementById('ft_transcendence').innerHTML = `
     <div class="container login-container">
-        <img src="${staticUrl}content/logo_400_400.png" id="logo_pong_login" alt="Logo" width="200" height="200">
-        <form id="loginForm">
-            <p>
-                <label for="username" style="color: #ff5722; margin-top:10px;">Account name</label>
-                <input type="text" placeholder="Enter Account name" id="username">
-            </p>
-            <p>
-                <label for="password" style="color: #ff5722;">Password</label>
-                <div class="password-wrapper">
-                    <input type="password" placeholder="Enter Password" id="password" class="password">
-                    <button class="unmask" type="button" title="Mask/Unmask password to check content">
-                        <i class="fas fa-lock"></i>
-                    </button>
+        <div class="login-wrapper">
+            <img src="${staticUrl}content/logo_400_400.png" id="logo_pong_login" alt="Logo">
+            <form id="loginForm">
+                <div class="input-group">
+                    <label for="username">Account name</label>
+                    <input type="text" placeholder="Enter Account name" id="username">
                 </div>
-            </p>
-            <button type="submit" class="btn btn-primary" id="login_button" style="margin-top: 40px;">Login</button>
-            <button type="submit" class="btn btn-primary" id="login_with_42" style="background-color: #FF8C00;">Login with 42</button>
-            <div>
-                <div class="text-center">
-                    <button type="button" id="create_account" style="margin-top: 10px;" class="btn btn-outline-light">Create account</button>
+                <div class="input-group">
+                    <label for="password">Password</label>
+                    <div class="password-wrapper">
+                        <input type="password" placeholder="Enter Password" id="password">
+                        <button class="unmask" type="button" title="Mask/Unmask password">
+                            <i class="fas fa-lock"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="buttons-group">
+                    <button type="submit" class="btn" id="login_button">Login</button>
+                    <button type="button" class="btn" id="login_with_42">Login with 42</button>
+                    <button type="button" id="create_account">Create account</button>
+                </div>
+            </form>
+        </div>
+        <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 11">
+            <div id="loginToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header bg-danger text-white">
+                    <strong class="me-auto">Login Error</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    Invalid username or password
                 </div>
             </div>
-        </form>
-    </div>
-    <div class="position-fixed top-0 start-50 translate-middle-x p-3" style="z-index: 11">
-        <div id="loginToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header bg-danger text-white">
-                <strong class="me-auto">Login Error</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                Invalid username or password
+            <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                <div class="toast-header bg-success text-white">
+                    <strong class="me-auto">Success</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                    Operation successful
+                </div>
             </div>
         </div>
-        <div id="successToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header bg-success text-white">
-                <strong class="me-auto">Success</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                Operation successful
-            </div>
-        </div>
+        <footer>
+            <p>© 2024 42Company, Inc</p>
+        </footer>
     </div>
-    <footer>
-        <p>© 2024 42Company, Inc</p>
-    </footer>
     `;
 
     // Utiliser setTimeout pour s'assurer que le DOM est complètement mis à jour
     setTimeout(() => {
         attachEventLoginPage();
-        // checkRegistrationSuccess();
     }, 0);
 }
 
@@ -105,7 +109,7 @@ function handleUnmaskPassword(event) {
 function handleEnterKeyPress(event) {
     if (event.key === "Enter") {
         const loginForm = document.getElementById('loginForm');
-        if (loginForm) {_success=true
+        if (loginForm) {
             loginForm.dispatchEvent(new Event('submit'));
         }
     }
@@ -155,8 +159,39 @@ async function handleLogin(event) {
 }
 
 async function handle42Login(e) {
-    e.preventDefault(); // Empêcher le comportement par défaut du bouton
+    e.preventDefault();
     window.location.href = '/api/auth/42/login/';
+}
+
+function check42AuthParams() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const authSuccess = urlParams.get('auth_success');
+    
+    if (authSuccess === 'true') {
+        // Stocker toutes les informations de l'utilisateur
+        const access = urlParams.get('access');
+        const refresh = urlParams.get('refresh');
+        const username = urlParams.get('username');
+        const display_name = urlParams.get('display_name');
+        const avatar_url = urlParams.get('avatar_url');
+        
+        if (access && refresh && username) {
+            // Stocker les informations dans la session
+            sessionStorage.setItem('accessToken', access);
+            sessionStorage.setItem('refreshToken', refresh);
+            sessionStorage.setItem('username', username);
+            sessionStorage.setItem('display_name', display_name);
+            sessionStorage.setItem('avatar_url', avatar_url);
+            
+            // Nettoyer l'URL
+            history.replaceState(null, '', '/login');
+            
+            // Rediriger vers le dashboard
+            navigateTo('/dashboard');
+            return true;
+        }
+    }
+    return false;
 }
 
 function showLoginToastErr(message) {
@@ -213,17 +248,3 @@ export function removeLoginEventListeners() {
     document.removeEventListener('click', handleUnmaskPassword);
     document.removeEventListener("keydown", handleEnterKeyPress);
 }
-
-// Ajouter l'appel de handle42Login lors du chargement de la page
-document.addEventListener('DOMContentLoaded', () => {
-    const login42Button = document.getElementById('login_with_42');
-    if (login42Button) {
-        login42Button.addEventListener('click', handle42Login);
-    }
-
-    // Vérifier si on revient d'une authentification 42
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.has('auth_success')) {
-        handle42Login();
-    }
-});

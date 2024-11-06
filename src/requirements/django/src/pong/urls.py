@@ -2,14 +2,11 @@ from django.urls import path, include
 from . import views
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.conf.urls.static import static
+from django.conf import settings
+import os
 
- 
 urlpatterns = [
-	# path('game_server', views.game),
-	path('api/auth/42/', views.auth_42_redirect, name='auth_42_redirect'),
-	path('api/auth/42/callback/', views.auth_42_callback, name='auth_42_callback'),
-	path('api/auth/42/login/', views.auth_42_login_redirect, name='auth_42_login_redirect'),
-	path('api/auth/42/login/callback/', views.auth_42_login_callback, name='auth_42_login_callback'),
 	path('api/content/', views.content, name='content'),
 	path('api/set-csrf-token/', views.set_csrf_token, name='set_csrf_token'),
 	path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -30,13 +27,15 @@ urlpatterns = [
 	path('api/update-user-settings/', views.update_user_settings, name='update_user_settings'),
     path('api/check-friend-request/<str:username>/', views.check_friend_request, name='check_friend_request'),
 	path('api/profile/<str:username>/', views.user_profile, name='user_profile'),
-	path('api/user-ping/', views.user_ping, name='user_ping'),
 	path('api/users/display_name/<str:display_name>/update_stats/', views.update_user_stats, name='update_user_stats'),
 	path('api/save-match-result/', views.save_match_result, name='save_match_result'),
 	path('api/get-recent-matches/<str:username>/', views.get_recent_matches, name='get_recent_matches'),
 	path('api/block-user/', views.block_user, name='block_user'),
 	path('api/unblock-user/', views.unblock_user, name='unblock_user'),
 	path('api/blocked-users/', views.get_blocked_users, name='get_blocked_users'),
+	path('api/auth/42/login/', views.auth_42_login, name='auth_42_login'),
+	path('api/auth/42/callback/', views.auth_42_callback, name='auth_42_callback'),
+	path('content/<path:path>', views.serve_content, name='serve_content'),
 	path('<path:path>', views.index, name='catch_all'),
 	path('', views.index, name='index'),
-]
+] + static('/content/', document_root=os.path.join('ft_trans', 'pong', 'templates', 'content'))

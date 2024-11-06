@@ -1,47 +1,64 @@
 import { fetchWithToken } from './api.js';
+import { fetchAndDisplayFriends } from '../views/dashboard.js';
+import { showToast } from './unmask.js';
+import { acceptFriendRequest, rejectFriendRequest } from '../utils/friendManager.js';
 
 let sockets = new Map();
 let activityTimers = new Map();
 
-export function initializeSocket(username) {
-    if (sockets.has(username) && sockets.get(username).connected) {
-        console.log('Socket déjà initialisé pour cet utilisateur');
-        resetActivityTimer(username);
-        return sockets.get(username);
+export function initializeSocket(displayName) {
+    if (sockets.has(displayName) && sockets.get(displayName).connected) {
+        console.log('Socket déjà initialisé pour cet utilisateur:', displayName);
+        resetActivityTimer(displayName);
+        return sockets.get(displayName);
     }
 
-    if (!username) {
+    if (!displayName) {
         console.error('Nom d\'utilisateur non trouvé');
         return null;
     }
 
-    const socket = io('http://localhost:8080/chat_server', {
+    const socket = io('http://localhost:3000', {
         transports: ['websocket'],
-        query: { username: username }
+        query: { username: displayName }
     });
 
-    socket.username = username;
+    socket.displayName = displayName;
 
     socket.on('connect', () => {
-        console.log(`Connected to chat server for ${username}`);
-        socket.emit('register', username);
-        resetActivityTimer(username);
+        console.log(`Connected to chat server for ${displayName}`);
+        socket.emit('register', displayName);
+        resetActivityTimer(displayName);
     });
 
     socket.on('disconnect', () => {
-        console.log(`Disconnected from chat server for ${username}`);
-        sockets.delete(username);
-        clearActivityTimer(username);
-        updateOnlineStatus(username, false);
+        console.log(`Disconnected from chat server for ${displayName}`);
+        sockets.delete(displayName);
+        clearActivityTimer(displayName);
+        updateOnlineStatus(displayName, false);
     });
 
     socket.on('connect_error', (error) => {
-        console.error(`Connection error for ${username}:`, error);
+        console.error(`Connection error for ${displayName}:`, error);
     });
 
-    sockets.set(username, socket);
-    console.log(`Socket: ${socket} linked to ${username}`);
-    resetActivityTimer(username);
+    socket.on('friend_request_received', (data) => {
+        console.log('Friend request received:', data);
+        showFriendRequestToast(data.from, data.requestId);
+    });
+
+    socket.on('friend_request_updated', (data) => {
+        console.log('Friend request updated:', data);
+        const message = data.response === 'accepted' 
+            ? `${data.from} a accepté votre demande d'ami!` 
+            : `${data.from} a refusé votre demande d'ami.`;
+        showToast(message, data.response === 'accepted' ? 'success' : 'info');
+        fetchAndDisplayFriends(); // Rafraîchir la liste des amis
+    });
+
+    sockets.set(displayName, socket);
+    console.log(`Socket: ${socket.id} linked to ${displayName}`);
+    resetActivityTimer(displayName);
     return socket;
 }
 
@@ -92,4 +109,46 @@ export function disconnectSocket(username) {
         socket.disconnect();
         sockets.delete(username);
     }
+}
+
+export function sendFriendRequestSocket(to, requestId) {
+    const username = sessionStorage.getItem('display_name');
+    const socket = getSocket(username);
+    if (socket) {
+        socket.emit('friend_request', {
+            from: username,
+            to: to,
+            requestId: requestId
+        });
+    }
+}
+
+export function sendFriendRequestResponse(to, response, requestId) {
+    const username = sessionStorage.getItem('display_name');
+    const socket = getSocket(username);
+    if (socket) {
+        socket.emit('friend_request_response', {
+            from: to,
+            to: username,
+            response: response,
+            requestId: requestId
+        });
+    }
+}
+
+function showFriendRequestToast(fromUsername, requestId) {
+    const toastHtml = `
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header" style="background-color: #FFD700;">
+                <strong class="me-auto" style="color: #ff5722; background-color: white;">Friend Request</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                <p>Friend request received from ${fromUsername}</p>
+                <button class="btn btn-primary" onclick="acceptFriendRequest('${requestId}')">Accept</button>
+                <button class="btn btn-secondary" onclick="rejectFriendRequest('${requestId}')">Reject</button>
+            </div>
+        </div>
+    `;
+    document.body.innerHTML += toastHtml;
 }

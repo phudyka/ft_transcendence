@@ -1,18 +1,17 @@
 import { navigateTo } from '../app.js';
-import { logout, setGlobalSocket } from '../utils/token.js';
+import { logout } from '../utils/token.js';
 import { getSocket, initializeSocket } from '../utils/socketManager.js';
-import { fetchFriendList, sendFriendRequest, fetchFriendRequests, acceptFriendRequest, rejectFriendRequest } from '../utils/friendManager.js';
+import { sendFriendRequest, fetchFriendRequests, acceptFriendRequest, rejectFriendRequest } from '../utils/friendManager.js';
 import { getCookie } from './settingsv.js';
 import { removeLoginEventListeners } from './login.js';
 import { checkAuthentication } from '../utils/auth.js';
 import { showToast } from '../utils/unmask.js';
 import { checkFriendshipStatus } from './profile.js';
-import { updateOnlineStatus } from '../utils/socketManager.js';
+import { updateOnlineStatus, sendFriendRequestSocket } from '../utils/socketManager.js';
 
 let socket;
 const privateChatLogs = new Map();
-const privateMessages = new Map(); // Nouvelle Map pour stocker les messages
-const username = sessionStorage.getItem('username');
+const privateMessages = new Map();
 let blockedUsers = new Set();
 
 export async function dashboard(player_name) {
@@ -28,6 +27,12 @@ export async function dashboard(player_name) {
     const displayName = sessionStorage.getItem('display_name');
     let avatarUrl = sessionStorage.getItem('avatar_url');
     socket = initializeSocket(displayName);
+    
+    // Ajouter la configuration de reconnexion automatique
+    setupAutoReconnect();
+
+    // Charger les utilisateurs bloqués avant de configurer les écouteurs de chat
+    await loadBlockedUsers();
     setupChatListeners(socket);
 
     if (!displayName) {
@@ -55,7 +60,6 @@ export async function dashboard(player_name) {
 
         <div class="content">
             <div class="sidebar">
-                <h2 class="title-friends">Friends</h2>
                 <div class="friends-tabs">
                     <button class="tab-button active" data-tab="online">Online Friends</button>
                     <button class="tab-button" data-tab="pending">Pending Requests</button>
@@ -140,9 +144,8 @@ export async function dashboard(player_name) {
 
 	setupDashboardEvents(navigateTo, displayName);
 	setupTabSystem();
-	checkForFriendRequests();
     fetchAndDisplayFriends();
-    // loadGeneralChatMessages();
+    loadGeneralChatMessages();
 }
 
 function setupChatListeners(socket) {
@@ -156,99 +159,108 @@ function setupChatListeners(socket) {
             displayName: socket.displayName
         });
 
+        // Suppression des anciens écouteurs pour éviter les doublons
         socket.off('private message');
+        socket.off('chat message');
 
+        // Écoute des messages de chat général
         socket.on('chat message', (msg) => {
-            console.log('Message reçu du serveur:', msg);
-            //if receive message from same user at very little delay, don't display it
-            const currentUsername = sessionStorage.getItem('username');
-            if (msg.name === currentUsername && msg.time - Date.now() < 5000) {
-                console.log('Message duplicate');
-                return;
-            }
             receiveMessage(msg);
         });
 
+        // Écoute des messages privés
+        socket.off('private message');
         socket.on('private message', (msg) => {
-            console.log('=== Private message received ===');
-            console.log('Message data:', msg);
-            
-            const currentUser = sessionStorage.getItem('display_name');
-            console.log('Current user:', currentUser);
+            console.log('Private message received:', msg);
+            if (!msg.from || !msg.message) {
+                console.error('Invalid message format:', msg);
+                return;
+            }
 
-            console.log('Message validation:', {
-                isForCurrentUser: msg.to === currentUser,
-                isFromCurrentUser: msg.from === currentUser,
-                from: msg.from,
-                to: msg.to
+            const currentUser = sessionStorage.getItem('display_name');
+            
+            // Correction de la détermination du chatPartner
+            let chatPartner;
+            if (msg.isSelf) {
+                // Si c'est notre propre message, le partenaire est stocké dans le privateChatLogs actuel
+                const chatbox = document.getElementById('chatbox');
+                const title = chatbox?.querySelector('#chatboxLabel')?.textContent;
+                chatPartner = title ? title.replace('Message privé avec ', '') : null;
+            } else {
+                chatPartner = msg.from; // Si c'est un message reçu, le partenaire est l'expéditeur
+            }
+
+            if (!chatPartner) {
+                console.error('Cannot determine chat partner:', msg);
+                return;
+            }
+
+            console.log('Chat partner determined:', chatPartner);
+
+            // S'assurer que le chat privé est configuré
+            if (!privateChatLogs.has(chatPartner)) {
+                setupPrivateChat(chatPartner);
+            }
+
+            // Stocker le message
+            if (!privateMessages.has(chatPartner)) {
+                privateMessages.set(chatPartner, []);
+            }
+            privateMessages.get(chatPartner).push({
+                sender: msg.from,
+                content: msg.message,
+                isSelf: msg.isSelf
             });
 
-            // Si le message est pour l'utilisateur courant ou de l'utilisateur courant
-            if (msg.to === currentUser || msg.from === currentUser) {
-                console.log('Processing message for:', currentUser);
-                receivePrivateMessage(msg);
-            } else {
-                console.log('Message ignored - not relevant for current user');
+            // Afficher le message
+            const senderDisplay = msg.isSelf ? 'Vous' : msg.from;
+            displayPrivateMessage(chatPartner, senderDisplay, msg.message);
+
+            // Notification si nécessaire
+            if (!msg.isSelf && msg.from !== currentUser && !blockedUsers.has(msg.from)) {
+                const offcanvas = document.querySelector('.offcanvas.offcanvas-end.show');
+                if (!offcanvas) {
+                    showToast(`Nouveau message de ${msg.from}`, 'info');
+                }
             }
         });
 
+        socket.on('friend_request_received', (data) => {
+            console.log('Friend request received:', data);
+            const pendingFriendsList = document.getElementById('pending-friends');
+            if (pendingFriendsList) {
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-center pending-request';
+                li.innerHTML = `
+                    <span>${data.from}</span>
+                    <div class="pending-actions">
+                        <button class="accept-btn" data-request-id="${data.requestId}">✓</button>
+                        <button class="reject-btn" data-request-id="${data.requestId}">✗</button>
+                    </div>
+                `;
+                pendingFriendsList.appendChild(li);
+
+                // Add event listeners for accept/reject buttons
+                li.querySelector('.accept-btn').addEventListener('click', () => acceptFriendRequest(data.requestId));
+                li.querySelector('.reject-btn').addEventListener('click', () => rejectFriendRequest(data.requestId));
+            }
+        });
+
+        socket.on('friend_request_updated', (data) => {
+            console.log('Friend request updated:', data);
+            const message = data.response === 'accepted' 
+                ? `${data.from} a accepté votre demande d'ami!` 
+                : `${data.from} a refusé votre demande d'ami.`;
+            showToast(message, data.response === 'accepted' ? 'success' : 'info');
+            fetchAndDisplayFriends();
+        });
+
+        socket.on('friend_status_change', (data) => {
+            console.log('Friend status changed:', data);
+            fetchAndDisplayFriends();
+        });
+
     }
-}
-
-function receivePrivateMessage(msg) {
-    console.log('=== Processing received private message ===');
-    console.log('Message details:', msg);
-    
-    const currentUser = sessionStorage.getItem('display_name');
-    
-    if (!msg.from) {
-        console.error('Message reçu sans expéditeur (from)');
-        return;
-    }
-
-    let chatPartner;
-    if (!msg.to) {
-        console.log('Message reçu sans destinataire (to), utilisation de l\'expéditeur comme partenaire');
-        chatPartner = msg.from === currentUser ? undefined : msg.from;
-    } else {
-        chatPartner = msg.from === currentUser ? msg.to : msg.from;
-    }
-
-    console.log('Chat partner identification:', {
-        currentUser,
-        messageFrom: msg.from,
-        messageTo: msg.to,
-        identifiedPartner: chatPartner
-    });
-
-    if (!chatPartner) {
-        console.error('Impossible d\'identifier le partenaire de chat');
-        return;
-    }
-
-    if (!privateChatLogs.has(chatPartner)) {
-        console.log('Setting up new chat for:', chatPartner);
-        setupPrivateChat(chatPartner);
-    }
-
-    if (!privateMessages.has(chatPartner)) {
-        console.log('Initializing message array for:', chatPartner);
-        privateMessages.set(chatPartner, []);
-    }
-
-    privateMessages.get(chatPartner).push({
-        sender: msg.from,
-        content: msg.message
-    });
-
-    const senderDisplay = msg.from === currentUser ? 'Vous' : msg.from;
-    console.log('Displaying message from:', senderDisplay);
-    
-    displayPrivateMessage(chatPartner, senderDisplay, msg.message);
-}
-
-function generateUniqueId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
 }
 
 function openPrivateChat(friendName) {
@@ -276,7 +288,8 @@ function openPrivateChat(friendName) {
 }
 
 function setupDashboardEvents(navigateTo, username) {
-	//Logout
+    setupAnimations();
+    //Logout
 	document.getElementById('logoutLink').addEventListener('click', handleLogout);
 
 	// Friend menu
@@ -316,33 +329,11 @@ function setupDashboardEvents(navigateTo, username) {
 	document.getElementById('friendDropdown_chat').querySelector('#addToFriend').addEventListener('click', addFriend);
 	document.getElementById('friendDropdown_chat').querySelector('#blockUser').addEventListener('click', blockUser);
 
-	// Profile picture
-
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-    if (window.location.pathname === '/dashboard') {
-        setInterval(fetchAndDisplayFriends, 20000);
-        setInterval(checkForFriendRequests, 20000);
-    };
+	// Ajouter un intervalle pour rafraîchir périodiquement la liste d'amis
+	window.fetchFriendsInterval = setInterval(() => {
+		fetchAndDisplayFriends();
+	}, 30000); // Rafraîchir toutes les 30 secondes
 }
-
-function scrollToBottom2(friendName) {
-	const chatLog2 = document.getElementById(`chat-log-${friendName}`);
-	chatLog2.scrollTop = chatLog2.scrollHeight;
-}
-
-function formatMessage(message) {
-	/* for no html injection */
-	if (message.startsWith("```")) {
-		return `<pre>${message}</pre>`;
-	}
-
-	/* syntax : [player_name] : message */
-	message = message.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-	message = message.replace(/(```[\s\S]*?```)/g, '<pre>$1</pre>');
-
-	return `${message}`;
-  }
 
 function handleProfilePictureClick(event) {
     event.stopPropagation();
@@ -425,6 +416,11 @@ function showChatbox(event) {
 }
 
 function setupPrivateChat(friendName) {
+    if (!friendName) {
+        console.error('Invalid friend name for private chat setup');
+        return;
+    }
+
     if (privateChatLogs.has(friendName)) {
         console.log(`Chat privé déjà configuré pour ${friendName}`);
         return;
@@ -432,7 +428,7 @@ function setupPrivateChat(friendName) {
     
     const privateChatContainer = document.getElementById('private-chats-container');
     privateChatContainer.innerHTML = `
-        <h5 class="offcanvas-title" id="chatboxLabel">Message privé : ${friendName}</h5>
+        <h5 class="offcanvas-title" id="chatboxLabel">Message privé avec ${friendName}</h5>
         <div class="chat-container2">
             <div class="chat-log2" id="chat-log-${friendName}"></div>
         </div>
@@ -441,6 +437,10 @@ function setupPrivateChat(friendName) {
             <button id="send-button-${friendName}">►</button>
         </div>
     `;
+
+    // Créer et stocker le chat log
+    const chatLog = document.getElementById(`chat-log-${friendName}`);
+    privateChatLogs.set(friendName, chatLog);
 
     // Restaurer les messages précédents
     if (privateMessages.has(friendName)) {
@@ -453,26 +453,12 @@ function setupPrivateChat(friendName) {
     const sendButton = document.getElementById(`send-button-${friendName}`);
     sendButton.addEventListener('click', () => {
         sendPrivateMessage(friendName);
-        document.getElementById(`message-input-${friendName}`).value = '';
     });
 
-    // Créer une connexion privée pour ce chat
-    // createPrivateConnection(friendName);
-    console.log(`Connexion privée créée entre ${friendName} et ${sessionStorage.getItem('display_name')}`);    
-}
-
-function createPrivateConnection(friendName) {
-    const displayName = sessionStorage.getItem('display_name');
-    const socket = getSocket(displayName);
-    if (socket) {
-        socket.emit('create private room', { friend: friendName });
-    }
+    console.log(`Connexion privée créée entre ${friendName} et ${sessionStorage.getItem('display_name')}`);
 }
 
 function sendPrivateMessage(friendName) {
-    console.log('=== Starting sendPrivateMessage ===');
-    console.log(`Attempting to send message to: ${friendName}`);
-    
     const input = document.getElementById(`message-input-${friendName}`);
     if (!input) {
         console.error(`Input element not found for friend: ${friendName}`);
@@ -484,28 +470,25 @@ function sendPrivateMessage(friendName) {
     const socket = getSocket(currentUser);
 
     if (message && socket && socket.connected) {
-        const sanitizedMessage = sanitizeHTML(message);
-        const messageData = {
-            to: friendName,      // Destinataire explicite
-            from: currentUser,   // Expéditeur explicite
-            message: sanitizedMessage,
-            time: Date.now()
-        };
-        
-        console.log('Emitting socket message with data:', messageData);
-        socket.emit('private message', messageData);
-        
-        // Stocker le message localement aussi
-        if (!privateMessages.has(friendName)) {
-            privateMessages.set(friendName, []);
+        // Assurons-nous que le chat est configuré avant d'envoyer
+        if (!privateChatLogs.has(friendName)) {
+            setupPrivateChat(friendName);
         }
-        privateMessages.get(friendName).push({
-            sender: currentUser,
-            content: sanitizedMessage
+
+        socket.emit('private message', {
+            to: friendName,
+            from: currentUser, // Ajout explicite de l'expéditeur
+            message: sanitizeHTML(message)
         });
         
-        displayPrivateMessage(friendName, 'Vous', sanitizedMessage);
         input.value = '';
+    } else {
+        console.error('Cannot send message:', {
+            hasMessage: !!message,
+            hasSocket: !!socket,
+            socketConnected: socket?.connected
+        });
+        displayPrivateMessage(friendName, 'System', 'Impossible d\'envoyer le message : problème de connexion', true);
     }
 }
 
@@ -516,23 +499,30 @@ function sanitizeHTML(str) {
     return temp.innerHTML;
 }
 
-function displayPrivateMessage(friendName, sender, message) {
+function displayPrivateMessage(friendName, sender, message, isSystem = false) {
     const chatLog = document.getElementById(`chat-log-${friendName}`);
     if (chatLog) {
         const messageElement = document.createElement('div');
         messageElement.classList.add('message-container');
 
-        const usernameElement = document.createElement('span');
-        usernameElement.classList.add('username-link');
-        usernameElement.textContent = sender === 'Vous' ? `[Me] ` : `[${sanitizeHTML(friendName)}]`;
+        if (isSystem) {
+            messageElement.classList.add('system-message');
+            messageElement.innerHTML = `
+                <span class="system-text">${sanitizeHTML(message)}</span>
+            `;
+        } else {
+            const usernameElement = document.createElement('span');
+            usernameElement.classList.add('username-link');
+            usernameElement.textContent = sender === 'Vous' ? `[Me] ` : `[${sanitizeHTML(friendName)}]`;
 
-        const messageTextElement = document.createElement('span');
-        messageTextElement.classList.add('message-text');
-        messageTextElement.textContent = sanitizeHTML(message);
+            const messageTextElement = document.createElement('span');
+            messageTextElement.classList.add('message-text');
+            messageTextElement.textContent = sanitizeHTML(message);
 
-        messageElement.appendChild(usernameElement);
-        messageElement.appendChild(document.createTextNode(': '));
-        messageElement.appendChild(messageTextElement);
+            messageElement.appendChild(usernameElement);
+            messageElement.appendChild(document.createTextNode(': '));
+            messageElement.appendChild(messageTextElement);
+        }
 
         chatLog.appendChild(messageElement);
         chatLog.scrollTop = chatLog.scrollHeight;
@@ -556,27 +546,34 @@ function goTosettings(event) {
 function sendMessage(event) {
     event.preventDefault();
     const displayName = sessionStorage.getItem('display_name');
+    let socket = getSocket(displayName);
+
+    // Si le socket n'existe pas ou n'est pas connecté, essayer de le réinitialiser
+    if (!socket || !socket.connected) {
+        socket = initializeSocket(displayName);
+        if (!socket) {
+            showToast('Connection lost. Please refresh the page.', 'error');
+            return;
+        }
+    }
+
     const messageInput = document.getElementById('message-input');
     const message = messageInput.value.trim();
-    const socket = getSocket(displayName);
-    console.log(`sendMessage function called`);
-    console.log(`Socket connected: ${socket.connected}`);
-    console.log(`Socket id: ${socket.id}`);
-    console.log(`End of sendMessage function`);
-    updateOnlineStatus(displayName);
 
-    if (message !== '' && socket && socket.connected) {
+    if (message !== '' && socket.connected) {
         socket.emit('chat message', { name: displayName, message: message });
-        saveMessage(displayName, message);
         messageInput.value = '';
-        getSocket(displayName);
+        updateOnlineStatus(displayName);
+    } else if (!socket.connected) {
+        showToast('Connection lost. Trying to reconnect...', 'warning');
     }
 }
 
 function receiveMessage(msg) {
     console.log('Fonction receive Message appelée avec:', msg);
+    console.log('Blocked users:', Array.from(blockedUsers));
     
-    // Vérifier si l'expéditeur est bloqué
+    // Vérifier si l'expéditeur est bloqué en utilisant le display_name
     if (blockedUsers.has(msg.name)) {
         console.log(`Message ignoré de ${msg.name} car il est bloqué.`);
         return;
@@ -597,7 +594,7 @@ function receiveMessage(msg) {
 
     updateOnlineStatus(msg.name);
 
-    // saveMessage(msg.name, msg.message);
+    saveMessage(msg.name, msg.message);
 
     usernameElement.addEventListener('click', function (event) {
         event.preventDefault();
@@ -655,20 +652,25 @@ function handleEnterKey(event) {
     if (event.key === "Enter") {
         const offcanvas = document.querySelector('.offcanvas.offcanvas-end.show');
         if (offcanvas) {
-            const friendName = offcanvas.querySelector('.offcanvas-title').textContent.split(': ')[1];
-            const messageInput = document.getElementById(`message-input-${friendName}`);
-            if (messageInput && document.activeElement === messageInput) {
-                const sendButton = document.getElementById(`send-button-${friendName}`);
-                if (sendButton) {
-                    sendButton.click();
-                } else {
-                    sendPrivateMessage(friendName);
+            const chatboxLabel = offcanvas.querySelector('#chatboxLabel');
+            if (chatboxLabel) {
+                const friendName = chatboxLabel.textContent.replace('Message privé avec ', '');
+                const messageInput = document.getElementById(`message-input-${friendName}`);
+                
+                if (messageInput && document.activeElement === messageInput) {
+                    event.preventDefault(); // Empêcher le saut de ligne
+                    const sendButton = document.getElementById(`send-button-${friendName}`);
+                    if (sendButton) {
+                        sendButton.click();
+                    } else {
+                        sendPrivateMessage(friendName);
+                    }
                 }
-                messageInput.value = '';
             }
         } else {
             const messageInput = document.getElementById('message-input');
             if (messageInput && document.activeElement === messageInput) {
+                event.preventDefault(); // Empêcher le saut de ligne
                 sendMessage(event);
             }
         }
@@ -684,7 +686,6 @@ function addFriend(event) {
         return;
     }
 
-    // Vérifier le statut d'amitié avant d'envoyer une demande
     checkFriendshipStatus(friendName)
         .then(({ isFriend, requestSent }) => {
             if (isFriend) {
@@ -696,7 +697,6 @@ function addFriend(event) {
                 return;
             }
 
-            // Si pas amis et aucune demande en cours, envoyer une demande d'ami
             sendFriendRequest(friendName)
                 .then(response => {
                     if (!response.ok) {
@@ -709,6 +709,7 @@ function addFriend(event) {
                 .then(data => {
                     console.log('Friend request sent successfully', data);
                     showToast('Friend request sent successfully', 'success');
+                    sendFriendRequestSocket(friendName, data.request_id);
                 })
                 .catch(error => {
                     console.error('Error sending friend request:', error);
@@ -721,28 +722,6 @@ function addFriend(event) {
         });
 }
 
-function showFriendRequestSentToast(friendName) {
-    const toastHtml = `
-        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-            <div class="toast-header">
-                <strong class="me-auto">Friend Request Sent</strong>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                Friend request sent to ${friendName} successfully!
-            </div>
-        </div>
-    `;
-
-    const toastContainer = document.createElement('div');
-    toastContainer.className = 'toast-container position-fixed top-0 start-50 translate-middle-x p-3';
-    toastContainer.innerHTML = toastHtml;
-    document.body.appendChild(toastContainer);
-
-    const toastElement = toastContainer.querySelector('.toast');
-    const toast = new bootstrap.Toast(toastElement);
-    toast.show();
-}
 
 function blockUser(event) {
     event.preventDefault();
@@ -754,7 +733,7 @@ function blockUser(event) {
         return;
     }
 
-    fetch('https://localhost:8080/api/block-user/', {
+    fetch('/api/block-user/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -766,8 +745,24 @@ function blockUser(event) {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showToast('User blocked successfully', 'success');
+            // Ajouter au Set des utilisateurs bloqués
+            blockedUsers.add(username);
+            
+            // Nettoyer les messages existants de l'utilisateur bloqué
+            const chatLog = document.getElementById('chat-log');
+            if (chatLog) {
+                const messages = chatLog.getElementsByTagName('div');
+                Array.from(messages).forEach(message => {
+                    const usernameElement = message.querySelector('.username-link');
+                    if (usernameElement && usernameElement.dataset.friend === username) {
+                        message.remove();
+                    }
+                });
+            }
 
+            showToast('User blocked successfully', 'success');
+            
+            // Fermer le chat privé si ouvert
             if (privateChatLogs.has(username)) {
                 privateChatLogs.delete(username);
                 const chatbox = document.getElementById('chatbox');
@@ -778,6 +773,8 @@ function blockUser(event) {
                     }
                 }
             }
+            
+            fetchAndDisplayFriends();
         } else {
             showToast(data.message || 'Failed to block user', 'error');
         }
@@ -804,6 +801,8 @@ function saveMessage(friendName, message) {
     let messages = JSON.parse(sessionStorage.getItem('general_chat_messages')) || [];
 
     messages.push({ friendName, message, timestamp: new Date().toISOString() });
+    console.log('Message saved:', messages);
+    console.log('From:', friendName);
 
     if (messages.length > 15) {
         messages = messages.slice(-15);
@@ -819,37 +818,47 @@ function loadGeneralChatMessages() {
         return;
     }
 
-    const messages = JSON.parse(sessionStorage.getItem('general_chat_messages')) || [];
+    const messagesString = sessionStorage.getItem('general_chat_messages');
+    if (!messagesString) {
+        return;
+    }
 
-    chatLog.innerHTML = ''; // Effacer les messages précédents
+    try {
+        // Parse les messages correctement
+        const messages = JSON.parse(messagesString);
+        
+        chatLog.innerHTML = ''; // Effacer les messages précédents
 
-    messages.forEach(msg => {
-        const messageElement = document.createElement('div');
+        messages.forEach(msg => {
+            const messageElement = document.createElement('div');
 
-        const usernameElement = document.createElement('span');
-        usernameElement.classList.add('username-link');
-        usernameElement.dataset.friend = msg.name;
-        usernameElement.innerText = `[${msg.name}]`;
-        usernameElement.style.cursor = "pointer";
-        usernameElement.classList.add('bold-username');
+            const usernameElement = document.createElement('span');
+            usernameElement.classList.add('username-link');
+            usernameElement.dataset.friend = msg.friendName;
+            usernameElement.innerText = `[${msg.friendName}]`;
+            usernameElement.style.cursor = "pointer";
+            usernameElement.classList.add('bold-username');
 
-        // Ajouter l'écouteur d'événements pour le clic sur le nom d'utilisateur
-        usernameElement.addEventListener('click', function(event) {
-            event.preventDefault();
-            event.stopPropagation();
-            handleUsernameClick(event, msg.name);
+            // Ajouter l'écouteur d'événements pour le clic sur le nom d'utilisateur
+            usernameElement.addEventListener('click', function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                handleUsernameClick(event, msg.friendName);
+            });
+
+            const messageTextElement = document.createElement('span');
+            messageTextElement.innerText = ` : ${msg.message}`;
+
+            messageElement.appendChild(usernameElement);
+            messageElement.appendChild(messageTextElement);
+
+            chatLog.appendChild(messageElement);
         });
 
-        const messageTextElement = document.createElement('span');
-        messageTextElement.innerText = ` : ${msg.message}`;
-
-        messageElement.appendChild(usernameElement);
-        messageElement.appendChild(messageTextElement);
-
-        chatLog.appendChild(messageElement);
-    });
-
-    chatLog.scrollTop = chatLog.scrollHeight;
+        chatLog.scrollTop = chatLog.scrollHeight;
+    } catch (error) {
+        console.error('Erreur lors du chargement des messages:', error);
+    }
 }
 
 function handleUsernameClick(event, username) {
@@ -888,16 +897,6 @@ function handleUsernameClick(event, username) {
     }
 }
 
-function checkForFriendRequests() {
-    fetchFriendRequests()
-        .then(friendRequests => {
-            console.log('Données des demandes d\'ami:', friendRequests);
-            friendRequests.forEach(request => {
-                showFriendRequestToast(request.from_username, request.id);
-            });
-        })
-        .catch(error => console.error('Erreur lors de la récupération des demandes d\'ami:', error));
-}
 
 function showFriendRequestToast(fromUsername, requestId) {
     const toastHtml = `
@@ -943,14 +942,16 @@ function showFriendRequestToast(fromUsername, requestId) {
     });    toast.show();
 }
 
-async function fetchAndDisplayFriends() {
+export async function fetchAndDisplayFriends() {
     const onlineFriendsList = document.getElementById('online-friends');
     const pendingFriendsList = document.getElementById('pending-friends');
     const blockedFriendsList = document.getElementById('blocked-friends');
 
     if (onlineFriendsList && pendingFriendsList && blockedFriendsList) {
         try {
-            const [friendsResponse, pendingResponse] = await Promise.all([
+            console.log('=== Fetching Friends Data ===');
+            
+            const [friendsResponse, pendingResponse, blockedResponse] = await Promise.all([
                 fetch('/api/friends/', {
                     method: 'GET',
                     headers: {
@@ -958,7 +959,14 @@ async function fetchAndDisplayFriends() {
                         'Content-Type': 'application/json'
                     }
                 }),
-                fetch('/api/friends/pending/', {
+                fetch('/api/get-friend-requests/', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
+                        'Content-Type': 'application/json'
+                    }
+                }),
+                fetch('/api/blocked-users/', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
@@ -967,61 +975,71 @@ async function fetchAndDisplayFriends() {
                 })
             ]);
 
-            const [friendsData, pendingData] = await Promise.all([
+            const [friendsData, pendingData, blockedData] = await Promise.all([
                 friendsResponse.json(),
-                pendingResponse.json()
+                pendingResponse.json(),
+                blockedResponse.json()
             ]);
+
+            // Mettre à jour le Set des utilisateurs bloqués
+            blockedUsers.clear();
+            if (blockedData.success && blockedData.blocked_users) {
+                blockedData.blocked_users.forEach(displayName => {
+                    blockedUsers.add(displayName);
+                });
+            }
 
             // Clear all lists
             onlineFriendsList.innerHTML = '';
             pendingFriendsList.innerHTML = '';
             blockedFriendsList.innerHTML = '';
-            blockedUsers.clear();
 
-            // Display online friends
-            friendsData.friends
-                .filter(friend => friend.is_online && !friend.is_blocked)
-                .forEach(friend => {
-                    createFriendListItem(friend, onlineFriendsList);
-                });
-
-            // Display pending requests
-            pendingData.pending_requests.forEach(request => {
-                const li = document.createElement('li');
-                li.className = 'list-group-item d-flex justify-content-between align-items-center pending-request';
-                li.innerHTML = `
-                    <span>${request.from_username}</span>
-                    <div class="pending-actions">
-                        <button class="accept-btn" data-request-id="${request.id}">✓</button>
-                        <button class="reject-btn" data-request-id="${request.id}">✗</button>
-                    </div>
-                `;
-                pendingFriendsList.appendChild(li);
-
-                // Add event listeners for accept/reject buttons
-                li.querySelector('.accept-btn').addEventListener('click', () => acceptFriendRequest(request.id));
-                li.querySelector('.reject-btn').addEventListener('click', () => rejectFriendRequest(request.id));
+            // Display online friends (excluding blocked users)
+            const onlineFriends = friendsData.friends.filter(friend => 
+                friend.is_online && !blockedUsers.has(friend.display_name)
+            );
+            onlineFriends.forEach(friend => {
+                createFriendListItem(friend, onlineFriendsList);
             });
 
+            // Display pending requests
+            if (pendingData.success && pendingData.friend_requests) {
+                pendingData.friend_requests.forEach(request => {
+                    if (!blockedUsers.has(request.from_username)) {
+                        const li = document.createElement('li');
+                        li.className = 'list-group-item d-flex justify-content-between align-items-center pending-request';
+                        li.innerHTML = `
+                            <span>${request.from_username}</span>
+                            <div class="pending-actions">
+                                <button class="accept-btn" data-request-id="${request.id}">✓</button>
+                                <button class="reject-btn" data-request-id="${request.id}">✗</button>
+                            </div>
+                        `;
+                        pendingFriendsList.appendChild(li);
+
+                        li.querySelector('.accept-btn').addEventListener('click', () => acceptFriendRequest(request.id));
+                        li.querySelector('.reject-btn').addEventListener('click', () => rejectFriendRequest(request.id));
+                    }
+                });
+            }
+
             // Display blocked users
-            friendsData.friends
-                .filter(friend => friend.is_blocked)
-                .forEach(friend => {
+            if (blockedData.success && blockedData.blocked_users) {
+                blockedData.blocked_users.forEach(displayName => {
                     const li = document.createElement('li');
                     li.className = 'list-group-item d-flex justify-content-between align-items-center blocked-user';
                     li.innerHTML = `
-                        <span>${friend.display_name || friend.username}</span>
-                        <button class="unblock-btn" data-username="${friend.username}">Unblock</button>
+                        <span>${displayName}</span>
+                        <button class="unblock-btn" data-display-name="${displayName}">Unblock</button>
                     `;
                     blockedFriendsList.appendChild(li);
-                    blockedUsers.add(friend.username);
 
-                    // Add event listener for unblock button
-                    li.querySelector('.unblock-btn').addEventListener('click', () => unblockUser(friend.username));
+                    li.querySelector('.unblock-btn').addEventListener('click', () => unblockUser(displayName));
                 });
+            }
 
         } catch (error) {
-            console.error('Error fetching friends data:', error);
+            console.error('Error fetching data:', error);
         }
     }
 }
@@ -1030,13 +1048,13 @@ async function fetchAndDisplayFriends() {
 function createFriendListItem(friend, listElement) {
     const li = document.createElement('li');
     li.className = 'list-group-item d-flex justify-content-between align-items-center';
-    li.setAttribute('data-friend', friend.username);
+    li.setAttribute('data-friend', friend.display_name);
 
     const statusDot = document.createElement('span');
     statusDot.className = `status-dot ${friend.is_online ? 'online' : 'offline'}`;
 
     const usernameSpan = document.createElement('span');
-    usernameSpan.textContent = friend.display_name || friend.username;
+    usernameSpan.textContent = friend.display_name;
 
     li.appendChild(statusDot);
     li.appendChild(usernameSpan);
@@ -1078,34 +1096,6 @@ async function unblockUser(username) {
     }
 }
 
-function reinitializeSocket() {
-    const username = sessionStorage.getItem('username');
-    if (username && !socket) {
-        socket = initializeSocket(username);
-        setupChatListeners(socket);
-    }
-}
-
-// // Appelez reinitializeSocket au chargement de la page
-// window.addEventListener('load', reinitializeSocket);
-
-function showFriendDropdown(event, friendName) {
-    const dropdown = document.getElementById('friendDropdown');
-    dropdown.setAttribute('data-friend', friendName);
-    dropdown.style.display = 'block';
-    // Positionner le dropdown près du curseur
-    dropdown.style.left = `${event.clientX}px`;
-    dropdown.style.top = `${event.clientY}px`;
-}
-
-function updateFriendStatus(friendName, isOnline) {
-    const friendItem = document.querySelector(`#friends li[data-friend="${friendName}"]`);
-    if (friendItem) {
-        const statusDot = friendItem.querySelector('.status-dot');
-        statusDot.className = `status-dot ${isOnline ? 'online' : 'offline'}`;
-    }
-}
-
 // Ajouter un écouteur pour les mouvements de souris et les frappes au clavier
 document.addEventListener('mousemove', resetActivityTimer);
 document.addEventListener('keypress', resetActivityTimer);
@@ -1117,8 +1107,6 @@ function resetActivityTimer() {
     }
 }
 
-//quand je deconnecte, je veux que les event listener soit supprimer
-// document.addEventListener('click', logout);
 
 export function removeDashboardEventListeners() {
     // Remove logout listener
@@ -1147,7 +1135,7 @@ export function removeDashboardEventListeners() {
     clearInterval(window.fetchFriendsInterval);
     clearInterval(window.checkFriendRequestsInterval);
 
-    // Remove socket listeners
+    // Remove socket listeners and disconnect
     const displayName = sessionStorage.getItem('display_name');
     const socket = getSocket(displayName);
     if (socket) {
@@ -1155,8 +1143,36 @@ export function removeDashboardEventListeners() {
         socket.off('private message');
         socket.off('force_disconnect');
         socket.off('user_disconnected');
+        socket.disconnect();
     }
     console.log('removeDashboardEventListeners');
+
+    // Nettoyer l'intervalle de reconnexion
+    if (window.reconnectInterval) {
+        clearInterval(window.reconnectInterval);
+    }
+
+    // Arrêter les intervalles de vérification
+    if (window.fetchFriendsInterval) {
+        clearInterval(window.fetchFriendsInterval);
+    }
+    if (window.checkFriendRequestsInterval) {
+        clearInterval(window.checkFriendRequestsInterval);
+    }
+    if (window.reconnectInterval) {
+        clearInterval(window.reconnectInterval);
+    }
+
+    // Nettoyer les maps et sets
+    privateChatLogs.clear();
+    privateMessages.clear();
+    blockedUsers.clear();
+
+    // Supprimer les écouteurs d'événements de la souris et du clavier
+    document.removeEventListener('mousemove', resetActivityTimer);
+    document.removeEventListener('keypress', resetActivityTimer);
+
+    console.log('All dashboard event listeners and intervals removed');
 }
 
 // Modify the existing logout function
@@ -1168,6 +1184,7 @@ function handleLogout(event) {
         socket.disconnect();
     }
     removeDashboardEventListeners();
+    sessionStorage.removeItem('general_chat_messages');
     logout();
 }
 
@@ -1189,5 +1206,80 @@ function setupTabSystem() {
             const tabId = button.getAttribute('data-tab');
             document.getElementById(tabId).classList.add('active');
         });
+    });
+}
+
+// 1. Ajouter une fonction pour charger les utilisateurs bloqués
+async function loadBlockedUsers() {
+    try {
+        const response = await fetch('/api/blocked-users/', {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${sessionStorage.getItem('accessToken')}`,
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to fetch blocked users');
+        }
+
+        const data = await response.json();
+        if (data.success) {
+            // Mettre à jour le Set des utilisateurs bloqués
+            blockedUsers.clear();
+            data.blocked_users.forEach(displayName => {
+                blockedUsers.add(displayName);
+            });
+            console.log('All blocked users:', Array.from(blockedUsers));
+            console.log('Total number of blocked users:', blockedUsers.size);
+        }
+    } catch (error) {
+        console.error('Error loading blocked users:', error);
+    }
+}
+
+// Ajouter une fonction de reconnexion automatique
+function setupAutoReconnect() {
+    const displayName = sessionStorage.getItem('display_name');
+    let socket = getSocket(displayName);
+
+    // Vérifier la connexion toutes les 30 secondes
+    const reconnectInterval = setInterval(() => {
+        if (!socket || !socket.connected) {
+            console.log('Attempting to reconnect socket...');
+            socket = initializeSocket(displayName);
+            if (socket) {
+                setupChatListeners(socket);
+            }
+        }
+    }, 30000);
+
+    // Stocker l'intervalle pour le nettoyer plus tard
+    window.reconnectInterval = reconnectInterval;
+}
+
+// Ajouter dans setupDashboardEvents
+function setupAnimations() {
+    // Animation des halos
+    const container = document.querySelector('.dashboard-container');
+    if (container) {
+        container.style.opacity = '0';
+        setTimeout(() => {
+            container.style.transition = 'opacity 0.5s ease';
+            container.style.opacity = '1';
+        }, 100);
+    }
+
+    // Animation des éléments au chargement
+    const elements = document.querySelectorAll('.sidebar, .chat-container, .game-container');
+    elements.forEach((el, index) => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        setTimeout(() => {
+            el.style.transition = 'all 0.5s ease';
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        }, 200 + index * 100);
     });
 }
