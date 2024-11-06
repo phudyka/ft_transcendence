@@ -2,6 +2,8 @@ NAME = up
 
 PROJECT = "ft_transcendence"
 
+HOSTNAME ?= $(shell hostname -A | cut -d' ' -f1)
+
 IMAGES =	src-grafana\
 			src-prometheus\
 			src-alertmanager\
@@ -20,8 +22,17 @@ VOLUMES =	src_static_files\
 
 all: $(NAME)
 
-$(NAME):
+$(NAME): update-hostname
 	@docker compose --project-directory src up -d
+	@echo connect to https://$(HOSTNAME):8080
+
+update-hostname:
+	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/.env
+	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/requirements/django/src/pong/templates/js/utils/socketManager.js
+	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/requirements/django/src/pong/templates/js/views/dashboard.js
+	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/requirements/game_server/game/main.mjs
+	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/requirements/game_server/game/server.mjs
+	@echo "Hostname updated to $(HOSTNAME)"
 
 start: all
 
