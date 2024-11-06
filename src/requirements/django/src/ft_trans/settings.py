@@ -59,17 +59,17 @@ MIDDLEWARE = [
 ]
 
 CORS_ALLOWED_ORIGINS = [
-    "https://localhost:8080",
-    "https://game_server:443",
-
-    
+    os.getenv("FT_TRANSCENDENCE_HOST"),
+    "https://localhost:443",
+    "https://game_server:443",    
 ]
+
 CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://localhost:8080",
+    os.getenv("FT_TRANSCENDENCE_HOST"),
+    "https://localhost:443",
     "https://game_server:443",
-
 ]
 
 ROOT_URLCONF = 'ft_trans.urls'
