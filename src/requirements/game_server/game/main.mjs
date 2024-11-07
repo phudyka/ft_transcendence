@@ -35,7 +35,7 @@ let csrfToken;
 let avatar;
 
 window.addEventListener('message', function(event) {
-    if (event.origin === 'https://localhost:8080') {
+    if (event.origin === 'https://localhost:8080' && event.data.type == 'gameInvitation') {
         username = event.data.to;
         from = event.data.from;
         console.log('Nom emetteur recu:', username);
@@ -45,7 +45,7 @@ window.addEventListener('message', function(event) {
     }
 });
 
-window.addEventListener('invitation', function(event) {
+window.addEventListener('message', function(event) {
     if (event.origin === 'https://localhost:8080') {
         username = event.data.username;
         token = event.data.token;

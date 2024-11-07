@@ -536,7 +536,8 @@ function startGame(event) {
     const displayName = sessionStorage.getItem('display_name')
     const invitationData = {
         to: friendName,
-        from: displayName
+        from: displayName,
+        type: 'gameInvitation'
     };
    
     const iframe = document.getElementById('pong');
