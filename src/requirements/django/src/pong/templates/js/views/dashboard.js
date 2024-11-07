@@ -530,12 +530,25 @@ function displayPrivateMessage(friendName, sender, message, isSystem = false) {
 }
 
 function startGame(event) {
-	event.preventDefault();
-    // need api for check if friend is already in game or in tournament or in queue
-    // create a toast to display the error if friend is already in game or in tournament or in queue with showToast function
+    event.preventDefault()
     const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
-    showToast(`${friendName} is already in game or in tournament or in queue`, 'Impossible to start a game with this user');
-}
+    
+    const displayName = sessionStorage.getItem('display_name')
+    const invitationData = {
+        to: friendName,
+        from: displayName
+    };
+   
+    const iframe = document.getElementById('pong');
+    if (iframe && iframe.contentWindow) {
+        iframe.contentWindow.postMessage(invitationData, 'https://faperac-standardpc:8080/game_server');
+        
+        showToast(`Invite send to ${friendName}`, 'success'); 
+    } else {
+        console.error('Iframe cible non trouvée ou inaccessible.');
+        showToast('Imposible to send invite', 'error');
+    }
+} 
 
 function goTosettings(event) {
 	event.preventDefault();
