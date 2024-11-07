@@ -30,7 +30,6 @@ body {
     outline: none;
     border: none;
     overflow: hidden;
-	backdrop-filter: blur(10px);
 }
 
 #start-game-button::before {
@@ -247,12 +246,14 @@ body {
     border-radius: 20px;
     text-align: center;
     color: #000000;
+    font-family: 'Roboto', Arial, sans-serif;
+    font-size: 24px;
+    font-weight: bold;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
     flex-direction: column;
     align-items: center;
     z-index: 10;
 	transition: all 0.3s ease;
-    backdrop-filter: blur(8px);
 }
 
 .menu.show, .waiting.show, .multi.show, .tournament.show {
@@ -274,7 +275,6 @@ body {
 	font-family: 'Roboto', Arial, sans-serif;
     transition: background-color 0.3s, transform 0.3s;
 	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    backdrop-filter: blur(5px);
 }
 
 .button-tournament:hover {
@@ -298,7 +298,6 @@ body {
 	font-family: 'Roboto', Arial, sans-serif;
     transition: background-color 0.3s ease-in-out, transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-    backdrop-filter: blur(6px);
 }
 
 .menu-button:hover {
@@ -309,7 +308,7 @@ body {
 #spinner {
     margin: 30px auto 0;
     width: 70px;
-    height: 60px;
+    height: 70px;
     border: 8px solid rgba(255, 255, 255, 0.3);
     border-top-color: #0066ff;
     border-radius: 50%;

@@ -2,7 +2,7 @@ NAME = up
 
 PROJECT = "ft_transcendence"
 
-HOSTNAME ?= $(shell hostname -A | cut -d' ' -f1)
+HOSTNAME = localhost
 
 IMAGES =	src-grafana\
 			src-prometheus\
@@ -23,7 +23,7 @@ VOLUMES =	src_static_files\
 all: $(NAME)
 
 $(NAME): update-hostname
-	@docker compose --project-directory src up -d
+	@docker-compose --project-directory src up -d
 	@echo connect to https://$(HOSTNAME):8080
 
 update-hostname:
@@ -37,7 +37,7 @@ update-hostname:
 start: all
 
 down:
-	@docker compose --project-directory src down -t 0
+	@docker-compose --project-directory src down -t 0
 
 stop: down
 

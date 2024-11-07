@@ -24,7 +24,7 @@ import { hitPadEvent, initSocketEvent, SoundLobby } from './socketEvent.mjs';
 import Sound from './sounds.mjs';
 import { updateUserStats } from './api.mjs';
 
-const socket = io('https://c1r4p2.42nice.fr:8080', {
+const socket = io('https://localhost:8080', {
     transports: ['websocket'],
     path: '/g_socket.io'
 });
@@ -35,7 +35,7 @@ let csrfToken;
 let avatar;
 
 window.addEventListener('message', function(event) {
-    if (event.origin === 'https://c1r4p2.42nice.fr:8080') {
+    if (event.origin === 'https://localhost:8080') {
         username = event.data.username;
         token = event.data.token;
         csrfToken = event.data.csrfToken;

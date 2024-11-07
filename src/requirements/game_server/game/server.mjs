@@ -27,7 +27,7 @@ const options = {
 const app = express();
 
 app.use(cors({
-    origin: ["https://c1r4p2.42nice.fr:8080"],
+    origin: ["https://localhost:8080"],
     methods: ["GET", "POST"],
     credentials: true
 }));
