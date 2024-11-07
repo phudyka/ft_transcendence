@@ -2,7 +2,7 @@ NAME = up
 
 PROJECT = "ft_transcendence"
 
-HOSTNAME = localhost
+HOSTNAME ?= $(shell hostname -A | cut -d' ' -f1)
 
 IMAGES =	src-grafana\
 			src-prometheus\
@@ -23,8 +23,8 @@ VOLUMES =	src_static_files\
 all: $(NAME)
 
 $(NAME): update-hostname
-	@docker-compose --project-directory src up -d
-	@echo connect to https://$(HOSTNAME):8080
+	@docker compose --project-directory src up -d
+	@echo Project available at https://$(HOSTNAME):8080
 
 update-hostname:
 	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/.env
@@ -37,7 +37,7 @@ update-hostname:
 start: all
 
 down:
-	@docker-compose --project-directory src down -t 0
+	@docker compose --project-directory src down -t 0
 
 stop: down
 
