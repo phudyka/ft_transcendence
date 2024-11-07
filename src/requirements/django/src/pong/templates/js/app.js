@@ -1,11 +1,9 @@
-import { login, removeLoginEventListeners } from './views/login.js';
+import { login } from './views/login.js';
 import { register } from './views/register.js';
 import { dashboard } from './views/dashboard.js';
 import { profile } from './views/profile.js';
 import { settings } from './views/settingsv.js';
 import { notFound } from './views/notfound.js';
-import { initializeSocket, disconnectSocket } from './utils/socketManager.js';
-import { getCookie } from './views/settingsv.js';
 import { removeDashboardEventListeners } from './views/dashboard.js';
 
 // Déclaration de router comme une variable globale au module
