@@ -111,7 +111,8 @@ export function setupTournamentEvents(io, socket, padsMap) {
 
         if (room) {
             const index = rooms[room].indexOf(socket.id);
-            if (index !== -1) rooms[room].splice(index, 1);
+            if (index !== -1)
+                rooms[room].splice(index, 1);
             delete playerRoomMap[socket.id];
             playersName[room] = playersName[room].filter(name => name !== clients.get(socket.id).getName());
             socket.leave(room);
