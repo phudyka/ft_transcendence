@@ -46,6 +46,13 @@ export function initSocketEvent(socket){
         socket.emit('multi-2-online');
     });
     
+    document.getElementById('back').addEventListener('click', () => {
+        const multiMenu = document.getElementById('multi');
+        multiMenu.classList.remove('hidden');
+        document.getElementById('waiting').classList.add('hidden');
+        socket.emit('cancel');
+    });
+
     document.getElementById('solo-ia').addEventListener('click', () => {
         socket.emit('solo_vs_ia');
     });

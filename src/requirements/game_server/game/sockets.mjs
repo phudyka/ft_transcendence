@@ -165,6 +165,21 @@ export default function setupSockets(io) {
             setupSoloGame(io, rooms[room], room, socket, rooms, roomsTypes[room], keysPressedMap.get(room));
         });
 
+        socket.on('cancel', () => {
+            const room = client.getRoom();
+            client.delRoom(room);
+            socket.leave(room);
+            const index = rooms[room].indexOf(socket.id);
+            if (index !== -1)
+                rooms[room].splice(index, 1);
+            if (rooms[room].length == 0){
+                delete rooms[room];
+                delete roomsTypes[room];
+            }
+            console.log('Room actuel du joueur : ', client.getRoom());
+            console.log(rooms);
+        })
+
         socket.on('multi-2-online', () => {
             let room = findOrCreateRoom('multi-2-online');
             rooms[room].push(socket.id);
