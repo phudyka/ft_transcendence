@@ -36,6 +36,17 @@ let avatar;
 
 window.addEventListener('message', function(event) {
     if (event.origin === 'https://localhost:8080') {
+        username = event.data.to;
+        from = event.data.from;
+        console.log('Nom emetteur recu:', username);
+        console.log('from recu :', from);
+    } else {
+        console.warn('Origine non autorisée:', event.origin);
+    }
+});
+
+window.addEventListener('invitation', function(event) {
+    if (event.origin === 'https://localhost:8080') {
         username = event.data.username;
         token = event.data.token;
         csrfToken = event.data.csrfToken;
