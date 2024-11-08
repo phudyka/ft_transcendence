@@ -516,7 +516,7 @@ def auth_42_login(request):
     auth_url = 'https://api.intra.42.fr/oauth/authorize'
     params = {
         'client_id': settings.FT_CLIENT_ID,
-        'redirect_uri': 'http://localhost:8000/api/auth/42/callback/',
+        'redirect_uri': 'https://localhost:8080/api/auth/42/callback/',
         'response_type': 'code',
         'scope': 'public'
     }
@@ -534,7 +534,7 @@ def auth_42_callback(request):
         'client_id': settings.FT_CLIENT_ID,
         'client_secret': settings.FT_CLIENT_SECRET,
         'code': code,
-        'redirect_uri': 'http://localhost:8000/api/auth/42/callback/'
+        'redirect_uri': 'https://localhost:8080/api/auth/42/callback/'
     }
     
     response = requests.post(token_url, data=data)

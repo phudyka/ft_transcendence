@@ -91,7 +91,7 @@ export async function dashboard(player_name) {
             </div>
 
                 <div class="game-container">
-                    <iframe id="pong" title="Pong" src="https://localhost:8080/game_server"></iframe>
+                    <iframe id="pong" title="Pong" src="https://faperac-standardpc:8080/game_server"></iframe>
                 </div>
 
             <div class="chat-container">
@@ -138,7 +138,7 @@ export async function dashboard(player_name) {
         const csrfToken = getCookie('csrftoken');
         console.log(sessionStorage);
         const avatar = sessionStorage.getItem('avatar_url');
-        iframe.contentWindow.postMessage({ username: displayName, token: token, csrfToken: csrfToken, avatar: avatar }, 'https://localhost:8080/game_server');
+        iframe.contentWindow.postMessage({ username: displayName, token: token, csrfToken: csrfToken, avatar: avatar }, 'https://faperac-standardpc:8080/game_server');
     };
 
 	setupDashboardEvents(navigateTo, displayName);
@@ -573,7 +573,7 @@ function startGame(event) {
    
     const iframe = document.getElementById('pong');
     if (iframe && iframe.contentWindow) {
-        iframe.contentWindow.postMessage(invitationData, 'https://localhost:8080/game_server');
+        iframe.contentWindow.postMessage(invitationData, 'https://faperac-standardpc:8080/game_server');
         
         showToast(`Invite send to ${friendName}`, 'success'); 
     } else {
