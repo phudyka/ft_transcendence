@@ -36,17 +36,19 @@ let avatar;
 
 window.addEventListener('message', function(event) {
     if (event.origin === 'https://localhost:8080' && event.data.type == 'gameInvitation') {
-        username = event.data.to;
-        from = event.data.from;
-        console.log('Nom emetteur recu:', username);
+        console.log(event);
+        const to = event.data.to;
+        const from = event.data.from;
+        console.log('to recu:', to);
         console.log('from recu :', from);
+        socket.emit('invite', {to, from});
     } else {
         console.warn('Origine non autorisée:', event.origin);
     }
 });
 
 window.addEventListener('message', function(event) {
-    if (event.origin === 'https://localhost:8080') {
+    if (event.origin === 'https://localhost:8080' && event.data.type == undefined) {
         username = event.data.username;
         token = event.data.token;
         csrfToken = event.data.csrfToken;
@@ -220,6 +222,8 @@ socket.on('start-game', (rooms, roomsTypes) => {
     controls.update();
     controlledPad = 0;
     controlledPads = 0;
+    document.getElementById('menu').classList.add('hidden');
+    document.getElementById('multi').classList.add('hidden');
     document.getElementById('tournament-details').classList.add('hidden');
     document.getElementById('tournament-details').classList.remove('flex');
     document.getElementById('waiting').classList.add('hidden');

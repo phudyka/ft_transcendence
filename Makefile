@@ -53,4 +53,7 @@ re: clean all
 
 refclean: fclean all
 
-.PHONY: all up start down stop clean fclean re refclean update-hostname
+debug: $(NAME)
+	@docker compose --project-directory src logs -f
+
+.PHONY: all up start down stop clean fclean re refclean update-hostname debug

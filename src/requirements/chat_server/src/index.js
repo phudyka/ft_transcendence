@@ -89,17 +89,28 @@ io.on('connection', (socket) => {
     });
 
     socket.on('private message', ({ to, message }) => {
-        console.log(`${formatDate(new Date())} Message privé de ${socket.username} à ${to}: ${message}`);
+        console.log(`${formatDate(new Date())} Message privé de ${socket.displayName} à ${to}: ${message}`);
         const recipientSocketId = users.get(to);
         if (recipientSocketId) {
-            const roomName = [socket.username, to].sort().join('-');
-            console.log(`${formatDate(new Date())} Message privé de ${socket.username} à ${to} dans la salle ${roomName}: ${message}`);
-            io.to(roomName).emit('private message', {
-                from: socket.username,
-                message: message
+            // Send the message to the recipient and the sender
+            io.to(recipientSocketId).emit('private message', {
+                from: socket.username, // Ensure 'from' is included
+                message: message,
+                time: Date.now()
             });
+ 
+            // Send a confirmation to the sender
+            socket.emit('private message', {
+                from: socket.username, // Ensure 'from' is included
+                message: message,
+                time: Date.now(),
+                isSelf: true
+            });
+ 
+            console.log(`${formatDate(new Date())} Message privé envoyé à ${to} via socket ${recipientSocketId}`);
         } else {
             socket.emit('error', { message: `${to} n'est pas en ligne.` });
+            console.log(`${formatDate(new Date())} Tentative d'envoi à ${to} mais l'utilisateur n'est pas en ligne.`);
         }
     });
 

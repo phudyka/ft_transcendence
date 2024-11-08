@@ -73,6 +73,50 @@ export function initSocketEvent(socket){
         socket.emit('quit-tournament');
     });
 
+    socket.on('invite', (data) => {
+        const text = `Le joueur ${data.from} vous a invité a rejoindre une partie`;
+        document.getElementById('invite-text').textContent = text;
+        document.getElementById('invite').classList.remove('hidden');
+        document.getElementById('accept').addEventListener('click', () => {
+            socket.emit('accept', {from: data.from});
+            document.getElementById('invite').classList.add('hidden');
+        })
+        document.getElementById('cancel').addEventListener('click', () => {
+            socket.emit('refuse', {from: data.from, to: data.to});
+            document.getElementById('invite').classList.add('hidden');
+        })
+    })
+
+    socket.on('refuse-invit', (data) => {
+        const text = `Le joueur ${data.to} a refusé votre invitation`;
+        document.getElementById('not-ready-text').textContent = text;
+        document.getElementById('notReady').classList.remove('hidden');
+        let countdown = 3;
+        const countdownInterval = setInterval(() => {
+            countdown--;
+    
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                document.getElementById('notReady').classList.add('hidden');
+            }
+        }, 1000);
+    })
+
+    socket.on('not-ready', (data) => {
+        const text = `Le joueur ${data.from} n'est pas disponible pour le moment`;
+        document.getElementById('not-ready-text').textContent = text;
+        document.getElementById('notReady').classList.remove('hidden');
+        let countdown = 3;
+        const countdownInterval = setInterval(() => {
+            countdown--;
+    
+            if (countdown <= 0) {
+                clearInterval(countdownInterval);
+                document.getElementById('notReady').classList.add('hidden');
+            }
+        }, 1000);
+    })
+
     socket.on('tournament-list', (tournamentList) => {
         const tournamentMenu = document.getElementById('tournament-list');
         tournamentMenu.innerHTML = '';

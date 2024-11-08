@@ -27,6 +27,19 @@
         <button class="menu-button" id="tournament-back-button">Back</button>
     </div>
 
+    <div id="invite" class="cl_invite hidden">
+        <p id="invite-text"></p>
+        <div id="button-container">
+            <button class="invite-button accept" id="accept">Accept</button>
+            <button class="invite-button cancel" id="cancel">Refuse</button>
+        </div>
+    </div>
+
+    <div id="notReady" class="cl_invite hidden">
+        <p id="not-ready-text"></p>
+    </div>
+
+
     <div id="tournament-details" class="hidden">
         <div class="colonne">
             <span id="player-1"></span>
@@ -87,6 +100,9 @@
             const tournament = document.getElementById('tournament');
             const tournamentDetails = document.getElementById('tournament-details');
             const waiting = document.getElementById('waiting');
+            const invite = document.getElementById('invite')
+
+            invite.classList.add('hidden');
 
             // Afficher le bouton Start Game
             //startButton.classList.add('hidden');

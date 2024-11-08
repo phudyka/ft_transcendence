@@ -1,5 +1,6 @@
 export class Client {
-    constructor(socketId, playerName, accessToken) {
+    constructor(socket, socketId, playerName, accessToken) {
+        this.socket = socket;
         this.socketId = socketId;
         this.playerName = playerName;
         this.accessToken = accessToken;
@@ -34,6 +35,10 @@ export class Client {
 
     incrementScore() {
         this.score++;
+    }
+
+    getSocket() {
+        return this.socket;
     }
 
     getSocketId() {

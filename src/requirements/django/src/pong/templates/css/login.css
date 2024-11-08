@@ -1,249 +1,181 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-@keyframes gradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-
-@keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0px); }
-}
-
-@keyframes pulse {
-    0% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0.4); }
-    70% { box-shadow: 0 0 0 15px rgba(255, 87, 34, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(255, 87, 34, 0); }
-}
-
-@keyframes glowing {
-    0% { opacity: 0.15; }
-    50% { opacity: 0.25; }
-    100% { opacity: 0.15; }
-}
-
 /* CONTAINER */
+
 .container.login-container {
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    width: 100%;
-    background: radial-gradient(circle at center, #1a1a1a, #121212);
+    height: 100%;
     padding: 20px;
-    position: relative;
-    overflow: hidden;
+    background-color: #121212; /* Ajout de cette ligne */
+    box-shadow: none;
 }
 
-.container.login-container::before,
-.container.login-container::after {
-    content: '';
-    position: absolute;
-    width: 500px;
-    height: 500px;
-    border-radius: 50%;
-    filter: blur(100px);
-    animation: 
-        float 10s ease-in-out infinite,
-        glowing 5s ease-in-out infinite;
+/* LOGO */
+
+#logo_pong_login {
+    margin-bottom: 20px;
+    transition: transform 0.3s ease;
+    width: 150px;
+    height: auto;
 }
 
-.container.login-container::before {
-    background: #ff5722;
-    top: -300px;
-    left: -300px;
-    animation-delay: -2s, 0s;
-}
+/* FORM */
 
-.container.login-container::after {
-    background: #00babc;
-    bottom: -300px;
-    right: -300px;
-    animation-delay: 0s, -2.5s;
-}
-
-.login-wrapper {
+#loginForm {
     display: flex;
     flex-direction: column;
     align-items: center;
+    width: 600px;
+    padding: 20px;
+    background: rgba(34, 34, 34, 0.8);
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+}
+
+#loginForm p {
     width: 100%;
-    max-width: 400px;
-    z-index: 1;
+    text-align: center;
 }
 
-#logo_pong_login {
-    width: 100px;
-    height: auto;
-    margin-bottom: 20px;
-    filter: drop-shadow(0 0 10px rgba(255, 87, 34, 0.3));
-    transition: all 0.8s ease;
-}
-
-#logo_pong_login:hover {
-    transform: scale(1.05);
-    filter: drop-shadow(0 0 20px rgba(255, 87, 34, 0.5));
-}
-
-#loginForm {
-    width: 100%;
-    padding: 30px;
-    background: linear-gradient(145deg, 
-        rgba(40, 40, 40, 0.8), 
-        rgba(25, 25, 25, 0.9));
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-#loginForm:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
-}
-
-.input-group {
-    width: 100%;
-    margin-bottom: 15px;
-}
-
-.input-group label {
+#loginForm label {
     display: block;
-    color: #ff5722;
-    margin-bottom: 8px;
-    font-size: 0.9rem;
 }
 
-input[type="text"],
-input[type="password"] {
+#loginForm input[type="text"],
+#loginForm input[type="password"],
+.password-wrapper {
+    width: 80%;
+}
+
+.password-wrapper {
+    display: flex;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+}
+
+.password-wrapper input[type="password"],
+.password-wrapper input[type="text"] {
+    width: 100%;
+}
+
+/* TITLE */
+h1.login-title {
+    font-size: 2rem;
+    color: transparent;
+    background: linear-gradient(135deg, #ff5722, #ffcc80);
+    background-clip: text;
+    -webkit-background-clip: text;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* INPUTS */
+input[type="text"], input[type="password"] {
     width: 100%;
     padding: 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 2px solid rgba(255, 87, 34, 0.1);
-    border-radius: 8px;
+    margin: 10px 0;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #333;
+    border-radius: 5px;
     color: #e0e0e0;
-    font-size: 1rem;
-    transition: all 0.3s ease;
+    transition: border-color 0.3s ease;
 }
 
-input[type="text"]:focus,
-input[type="password"]:focus {
-    background: rgba(255, 255, 255, 0.07);
-    border-color: #ff5722;
-    box-shadow: 0 0 15px rgba(255, 87, 34, 0.2);
-    transform: translateY(-2px);
-}
-
-.buttons-group {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 20px;
-}
-
-/* Buttons */
+/* BUTTONS */
 .btn {
     width: 100%;
     padding: 12px;
     border-radius: 8px;
-    font-size: 1rem;
     border: none;
     cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-    overflow: hidden;
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-#login_button {
-    background: linear-gradient(45deg, #ff5722, #ff7043);
-    background-size: 200% 200%;
-    animation: gradient 5s ease infinite;
+.btn-primary {
+    background-color: #ff5722;
+    color: white;
+    margin-top: 10px;
+}
+
+.btn-primary:hover {
+    background-color: #e64a19;
+    transform: scale(1.05);
+}
+
+.btn-outline-light {
+    background-color: transparent;
+    border: 2px solid #ff5722;
+    color: #ff5722;
+}
+
+.btn-outline-light:hover {
+    background-color: #ff5722;
     color: white;
 }
 
-#login_button:hover {
-    background-size: 150% 150%;
-    animation: gradient 3s ease infinite, pulse 1.5s infinite;
-    transform: translateY(-3px);
+/* FOOTER */
+
+footer {
+    margin-top: 2px;
+    text-align: center;
+    color: #888888;
+    font-size: 0.9rem;
 }
 
-#login_with_42 {
-    background: linear-gradient(45deg, #00babc, #00d4d4);
-    background-size: 200% 200%;
-    animation: gradient 5s ease infinite;
+/* TOAST */
+.toast .toast-body {
     color: white;
 }
 
-#login_with_42:hover {
-    background-size: 150% 150%;
-    animation: gradient 3s ease infinite;
-    transform: translateY(-3px);
+.toast-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+#loginToast .toast-body {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+#successToast .toast-body {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+.unmask {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    background-color: #ff5722;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.unmask:hover {
+    background-color: #ff7043;
+}
+
+.unmask i {
+    font-size: 14px;
+}
+
+#loginForm input[type="text"],
+#loginForm
+
+#login_button, #login_with_42 {
+    max-width: 450px;
 }
 
 #create_account {
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    padding: 12px;
-    border-radius: 8px;
-    position: relative;
-    overflow: hidden;
-}
-
-#create_account::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        120deg,
-        transparent,
-        rgba(255, 255, 255, 0.2),
-        transparent
-    );
-    transition: 0.5s;
-}
-
-#create_account:hover::before {
-    left: 100%;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-footer {
-    position: fixed;
-    bottom: 20px;
-    width: 100%;
-    text-align: center;
-    color: rgba(255, 255, 255, 0.5);
-}
-
-.btn:focus {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(255, 87, 34, 0.3);
-}
-
-.input-group.error input {
-    animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
-}
-
-@keyframes shake {
-    10%, 90% { transform: translate3d(-1px, 0, 0); }
-    20%, 80% { transform: translate3d(2px, 0, 0); }
-    30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-    40%, 60% { transform: translate3d(4px, 0, 0); }
+    width: 450px;
 }

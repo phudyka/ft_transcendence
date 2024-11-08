@@ -1,6 +1,6 @@
 import { navigateTo } from '../app.js';
 import { logout } from '../utils/token.js';
-import { getSocket, initializeSocket } from '../utils/socketManager.js';
+import { getSocket, initializeSocket, isSocketConnected } from '../utils/socketManager.js';
 import { sendFriendRequest, fetchFriendRequests, acceptFriendRequest, rejectFriendRequest } from '../utils/friendManager.js';
 import { getCookie } from './settingsv.js';
 import { removeLoginEventListeners } from './login.js';
@@ -26,12 +26,10 @@ export async function dashboard(player_name) {
     const username = sessionStorage.getItem('username');
     const displayName = sessionStorage.getItem('display_name');
     let avatarUrl = sessionStorage.getItem('avatar_url');
-    socket = initializeSocket(displayName);
     
-    // Ajouter la configuration de reconnexion automatique
+    let socket = initializeSocket(displayName);
     setupAutoReconnect();
 
-    // Charger les utilisateurs bloqués avant de configurer les écouteurs de chat
     await loadBlockedUsers();
     setupChatListeners(socket);
 
@@ -168,8 +166,6 @@ function setupChatListeners(socket) {
             receiveMessage(msg);
         });
 
-        // Écoute des messages privés
-        socket.off('private message');
         socket.on('private message', (msg) => {
             console.log('Private message received:', msg);
             if (!msg.from || !msg.message) {
@@ -241,8 +237,16 @@ function setupChatListeners(socket) {
                 pendingFriendsList.appendChild(li);
 
                 // Add event listeners for accept/reject buttons
-                li.querySelector('.accept-btn').addEventListener('click', () => acceptFriendRequest(data.requestId));
-                li.querySelector('.reject-btn').addEventListener('click', () => rejectFriendRequest(data.requestId));
+                li.querySelector('.accept-btn').addEventListener('click', () => {
+                    acceptFriendRequest(data.requestId).then(() => {
+                        fetchAndDisplayFriends();
+                    });
+                });
+                li.querySelector('.reject-btn').addEventListener('click', () => {
+                    rejectFriendRequest(data.requestId).then(() => {
+                        fetchAndDisplayFriends();
+                    });
+                });
             }
         });
 
@@ -288,7 +292,7 @@ function openPrivateChat(friendName) {
 }
 
 function setupDashboardEvents(navigateTo, username) {
-    setupAnimations();
+    // setupAnimations();
     //Logout
 	document.getElementById('logoutLink').addEventListener('click', handleLogout);
 
@@ -455,7 +459,7 @@ function setupPrivateChat(friendName) {
         sendPrivateMessage(friendName);
     });
 
-    console.log(`Connexion privée créée entre ${friendName} et ${sessionStorage.getItem('display_name')}`);
+    console.log(`Setup private chat for ${friendName} and ${sessionStorage.getItem('display_name')}`);
 }
 
 function sendPrivateMessage(friendName) {
@@ -470,14 +474,13 @@ function sendPrivateMessage(friendName) {
     const socket = getSocket(currentUser);
 
     if (message && socket && socket.connected) {
-        // Assurons-nous que le chat est configuré avant d'envoyer
         if (!privateChatLogs.has(friendName)) {
             setupPrivateChat(friendName);
         }
 
         socket.emit('private message', {
             to: friendName,
-            from: currentUser, // Ajout explicite de l'expéditeur
+            from: currentUser,
             message: sanitizeHTML(message)
         });
         
@@ -549,6 +552,7 @@ function startGame(event) {
         console.error('Iframe cible non trouvée ou inaccessible.');
         showToast('Imposible to send invite', 'error');
     }
+    iframe.focus();
 } 
 
 function goTosettings(event) {
@@ -668,7 +672,7 @@ function handleEnterKey(event) {
         if (offcanvas) {
             const chatboxLabel = offcanvas.querySelector('#chatboxLabel');
             if (chatboxLabel) {
-                const friendName = chatboxLabel.textContent.replace('Message privé avec ', '');
+                const friendName = chatboxLabel.textContent.replace('Private message with ', '');
                 const messageInput = document.getElementById(`message-input-${friendName}`);
                 
                 if (messageInput && document.activeElement === messageInput) {
@@ -676,8 +680,6 @@ function handleEnterKey(event) {
                     const sendButton = document.getElementById(`send-button-${friendName}`);
                     if (sendButton) {
                         sendButton.click();
-                    } else {
-                        sendPrivateMessage(friendName);
                     }
                 }
             }

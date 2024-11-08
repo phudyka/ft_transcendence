@@ -22,7 +22,7 @@ export default function setupSockets(io) {
             console.log('username :', data.username);
             console.log('token :', data.token);
             console.log('avatar :', data.avatar);
-            const client = new Client(socket.id, data.username, data.token);
+            const client = new Client(socket, socket.id, data.username, data.token);
             clients.set(socket.id, client);
 
         
@@ -114,13 +114,21 @@ export default function setupSockets(io) {
             const room = findRoomForSocket(socket.id, rooms);
             if (room) {
                 io.in(room).emit('gameEnded');
+        
                 io.in(room).socketsLeave(room);
-                client.delRoom(room);
 
+                rooms[room].forEach((socketId) => {
+                    const client = clients.get(socketId);
+                    if (client) {
+                        client.delRoom(room);
+                    }
+                });
+        
                 delete rooms[room];
                 delete roomsTypes[room];
                 padsMap.delete(room);
                 keysPressedMap.delete(room);
+        
                 console.log(`La salle ${room} a été supprimée`);
             }
         });
@@ -164,6 +172,63 @@ export default function setupSockets(io) {
 
             setupSoloGame(io, rooms[room], room, socket, rooms, roomsTypes[room], keysPressedMap.get(room));
         });
+
+        socket.on('invite', (data) => {
+            let to = findClientByUsername(data.to);
+            if (to !== null && to.getRoom() === null){
+                io.to(to.getSocketId()).emit('invite', { from: data.from, to: data.to });
+            }
+            else{
+                io.to(socket.id).emit('not-ready', {from: to.getName()});
+            }
+            console.log(to);
+        })
+
+        socket.on('accept', (data) => {
+            let from = findClientByUsername(data.from);
+            if (client.getRoom() === null && from.getRoom() === null) {
+                let room = findOrCreateRoom(`private game ${client.getName()}`);
+                rooms[room].push(socket.id);
+                rooms[room].push(from.getSocketId());
+                roomsTypes[room] = 'multi-2-online';
+                socket.join(room);
+                from.getSocket().join(room);
+                const pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 3.59, 0);
+                const pad2 = new Pad(0xb3261a, 0.045, 0.50, 16, 2.10, 3.59, 0);
+                padsMap.set(room, { pad1, pad2 });
+                client.setRoom(room);
+                from.setRoom(room);
+                console.log(rooms[room]);
+    
+                if (rooms[room].length === 2) {
+                    io.in(room).emit('start-game', rooms[room]);
+                    console.log(`Démarrage du jeu dans ${room}`);
+                    
+                    keysPressedMap.set(room, {
+                        pad1MoveUp: false,
+                        pad1MoveDown: false,
+                        pad2MoveUp: false,
+                        pad2MoveDown: false,
+                    });
+    
+                    const ball = new Ball(0.07, 32);
+                    const { pad1, pad2 } = padsMap.get(room);
+    
+                    io.in(room).emit('initBall', {
+                        position: { x: ball.mesh.position.x, z: ball.mesh.position.z },
+                        direction: { x: ball.direction.x, z: ball.direction.z },
+                        speed: ball.speed,
+                    });
+    
+                    setupMultiGame(io, socket, rooms[room], room, ball, pad1, pad2, keysPressedMap.get(room), roomsTypes);
+                }
+            }
+        })
+
+        socket.on('refuse', (data) => {
+            let from = findClientByUsername(data.from);
+            io.to(from.getSocketId()).emit('refuse-invit', {to: data.to});
+        })
 
         socket.on('cancel', () => {
             const room = client.getRoom();
@@ -279,4 +344,14 @@ export default function setupSockets(io) {
         setupTournamentEvents(io, socket, padsMap);
     });
     });
+    
+    function findClientByUsername(username) {
+        for (const client of clients.values()) {
+            if (client.getName() === username) {
+                return client;
+            }
+        }
+        return null;
+    }
+
 }

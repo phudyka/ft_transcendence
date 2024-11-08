@@ -28,6 +28,7 @@ export function initializeSocket(displayName) {
 
     socket.on('connect', () => {
         console.log(`Connected to chat server for ${displayName}`);
+        console.log(`Socket ID: ${socket.id}`);
         socket.emit('register', displayName);
         resetActivityTimer(displayName);
     });
@@ -152,4 +153,9 @@ function showFriendRequestToast(fromUsername, requestId) {
         </div>
     `;
     document.body.innerHTML += toastHtml;
+}
+
+export function isSocketConnected(displayName) {
+    const socket = sockets.get(displayName);
+    return socket && socket.connected;
 }
