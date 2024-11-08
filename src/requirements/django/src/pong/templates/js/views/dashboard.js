@@ -13,6 +13,7 @@ let socket;
 const privateChatLogs = new Map();
 const privateMessages = new Map();
 let blockedUsers = new Set();
+let activePrivateChat = null;
 
 export async function dashboard(player_name) {
     const isAuthenticated = await checkAuthentication();
@@ -59,7 +60,7 @@ export async function dashboard(player_name) {
         <div class="content">
             <div class="sidebar">
                 <div class="friends-tabs">
-                    <button class="tab-button active" data-tab="online">Online Friends</button>
+                    <button class="tab-button active" data-tab="online">Friends</button>
                     <button class="tab-button" data-tab="pending">Pending Requests</button>
                     <button class="tab-button" data-tab="blocked">Blocked Users</button>
                 </div>
@@ -175,15 +176,12 @@ function setupChatListeners(socket) {
 
             const currentUser = sessionStorage.getItem('display_name');
             
-            // Correction de la détermination du chatPartner
+            // Nouvelle logique pour déterminer le chatPartner
             let chatPartner;
             if (msg.isSelf) {
-                // Si c'est notre propre message, le partenaire est stocké dans le privateChatLogs actuel
-                const chatbox = document.getElementById('chatbox');
-                const title = chatbox?.querySelector('#chatboxLabel')?.textContent;
-                chatPartner = title ? title.replace('Message privé avec ', '') : null;
+                chatPartner = activePrivateChat;
             } else {
-                chatPartner = msg.from; // Si c'est un message reçu, le partenaire est l'expéditeur
+                chatPartner = msg.from;
             }
 
             if (!chatPartner) {
@@ -223,10 +221,18 @@ function setupChatListeners(socket) {
 
         socket.on('friend_request_received', (data) => {
             console.log('Friend request received:', data);
+            // Vérifier si on a déjà traité cette requête
+            const existingRequest = document.querySelector(`[data-request-id="${data.requestId}"]`);
+            if (existingRequest) {
+                console.log('Request already displayed, skipping');
+                return;
+            }
+
             const pendingFriendsList = document.getElementById('pending-friends');
             if (pendingFriendsList) {
                 const li = document.createElement('li');
                 li.className = 'list-group-item d-flex justify-content-between align-items-center pending-request';
+                li.setAttribute('data-request-id', data.requestId);
                 li.innerHTML = `
                     <span>${data.from}</span>
                     <div class="pending-actions">
@@ -237,16 +243,36 @@ function setupChatListeners(socket) {
                 pendingFriendsList.appendChild(li);
 
                 // Add event listeners for accept/reject buttons
-                li.querySelector('.accept-btn').addEventListener('click', () => {
-                    acceptFriendRequest(data.requestId).then(() => {
+                const acceptBtn = li.querySelector('.accept-btn');
+                const rejectBtn = li.querySelector('.reject-btn');
+
+                acceptBtn.addEventListener('click', async () => {
+                    try {
+                        await acceptFriendRequest(data.requestId);
+                        li.remove();
                         fetchAndDisplayFriends();
-                    });
+                        // Activer l'onglet "Friends" après acceptation
+                        const friendsTab = document.querySelector('[data-tab="online"]');
+                        if (friendsTab) friendsTab.click();
+                    } catch (error) {
+                        console.error('Error accepting friend request:', error);
+                    }
                 });
-                li.querySelector('.reject-btn').addEventListener('click', () => {
-                    rejectFriendRequest(data.requestId).then(() => {
-                        fetchAndDisplayFriends();
-                    });
+
+                rejectBtn.addEventListener('click', async () => {
+                    try {
+                        await rejectFriendRequest(data.requestId);
+                        li.remove();
+                    } catch (error) {
+                        console.error('Error rejecting friend request:', error);
+                    }
                 });
+
+                // Activer automatiquement l'onglet "Pending"
+                const pendingTab = document.querySelector('[data-tab="pending"]');
+                if (pendingTab) {
+                    pendingTab.click();
+                }
             }
         });
 
@@ -417,6 +443,7 @@ function showChatbox(event) {
     } else {
         console.error('Dropdown not found');
     }
+    document.getElementById('friendDropdown').style.display = 'none';
 }
 
 function setupPrivateChat(friendName) {
@@ -426,18 +453,18 @@ function setupPrivateChat(friendName) {
     }
 
     if (privateChatLogs.has(friendName)) {
-        console.log(`Chat privé déjà configuré pour ${friendName}`);
+        console.log(`Private chat already configured for ${friendName}`);
         return;
     }
     
     const privateChatContainer = document.getElementById('private-chats-container');
     privateChatContainer.innerHTML = `
-        <h5 class="offcanvas-title" id="chatboxLabel">Message privé avec ${friendName}</h5>
+        <h5 class="offcanvas-title" id="chatboxLabel">Private message with ${friendName}</h5>
         <div class="chat-container2">
             <div class="chat-log2" id="chat-log-${friendName}"></div>
         </div>
         <div class="input-container2">
-            <input type="text" id="message-input-${friendName}" placeholder="Tapez votre message...">
+            <input type="text" id="message-input-${friendName}" placeholder="Type your message...">
             <button id="send-button-${friendName}">►</button>
         </div>
     `;
@@ -460,6 +487,7 @@ function setupPrivateChat(friendName) {
     });
 
     console.log(`Setup private chat for ${friendName} and ${sessionStorage.getItem('display_name')}`);
+    activePrivateChat = friendName;
 }
 
 function sendPrivateMessage(friendName) {
@@ -551,6 +579,7 @@ function startGame(event) {
         console.error('Iframe cible non trouvée ou inaccessible.');
         showToast('Imposible to send invite', 'error');
     }
+    document.getElementById('friendDropdown').style.display = 'none';
 } 
 
 function goTosettings(event) {
@@ -963,8 +992,6 @@ export async function fetchAndDisplayFriends() {
 
     if (onlineFriendsList && pendingFriendsList && blockedFriendsList) {
         try {
-            console.log('=== Fetching Friends Data ===');
-            
             const [friendsResponse, pendingResponse, blockedResponse] = await Promise.all([
                 fetch('/api/friends/', {
                     method: 'GET',
@@ -1008,12 +1035,11 @@ export async function fetchAndDisplayFriends() {
             pendingFriendsList.innerHTML = '';
             blockedFriendsList.innerHTML = '';
 
-            // Display online friends (excluding blocked users)
-            const onlineFriends = friendsData.friends.filter(friend => 
-                friend.is_online && !blockedUsers.has(friend.display_name)
-            );
-            onlineFriends.forEach(friend => {
-                createFriendListItem(friend, onlineFriendsList);
+            // Display ALL friends (not just online ones)
+            friendsData.friends.forEach(friend => {
+                if (!blockedUsers.has(friend.display_name)) {
+                    createFriendListItem(friend, onlineFriendsList);
+                }
             });
 
             // Display pending requests
@@ -1022,6 +1048,7 @@ export async function fetchAndDisplayFriends() {
                     if (!blockedUsers.has(request.from_username)) {
                         const li = document.createElement('li');
                         li.className = 'list-group-item d-flex justify-content-between align-items-center pending-request';
+                        li.setAttribute('data-request-id', request.id);
                         li.innerHTML = `
                             <span>${request.from_username}</span>
                             <div class="pending-actions">
@@ -1031,8 +1058,17 @@ export async function fetchAndDisplayFriends() {
                         `;
                         pendingFriendsList.appendChild(li);
 
-                        li.querySelector('.accept-btn').addEventListener('click', () => acceptFriendRequest(request.id));
-                        li.querySelector('.reject-btn').addEventListener('click', () => rejectFriendRequest(request.id));
+                        // Add event listeners with removal functionality
+                        li.querySelector('.accept-btn').addEventListener('click', async () => {
+                            await acceptFriendRequest(request.id);
+                            li.remove(); // Remove the request from the list
+                            fetchAndDisplayFriends(); // Refresh friends list
+                        });
+
+                        li.querySelector('.reject-btn').addEventListener('click', async () => {
+                            await rejectFriendRequest(request.id);
+                            li.remove(); // Remove the request from the list
+                        });
                     }
                 });
             }
@@ -1066,6 +1102,7 @@ function createFriendListItem(friend, listElement) {
 
     const statusDot = document.createElement('span');
     statusDot.className = `status-dot ${friend.is_online ? 'online' : 'offline'}`;
+    statusDot.style.backgroundColor = friend.is_online ? '#4CAF50' : '#f44336'; // Vert si en ligne, rouge si hors ligne
 
     const usernameSpan = document.createElement('span');
     usernameSpan.textContent = friend.display_name;
@@ -1077,10 +1114,8 @@ function createFriendListItem(friend, listElement) {
 
     listElement.appendChild(li);
 
-    if (friend.is_online) {
-        if (!privateChatLogs.has(friend.display_name)) {
-            setupPrivateChat(friend.display_name);
-        }
+    if (friend.is_online && !privateChatLogs.has(friend.display_name)) {
+        setupPrivateChat(friend.display_name);
     }
 }
 
@@ -1204,21 +1239,25 @@ function handleLogout(event) {
 
 function setupTabSystem() {
     const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
     
     tabButtons.forEach(button => {
-        button.addEventListener('click', () => {
-            // Retirer la classe active de tous les boutons et contenus
-            tabButtons.forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => {
-                content.classList.remove('active');
-            });
+        button.addEventListener('click', (e) => {
+            e.preventDefault();
             
-            // Ajouter la classe active au bouton cliqué
+            // Remove active class from all buttons and contents
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            
+            // Add active class to clicked button
             button.classList.add('active');
             
-            // Afficher le contenu correspondant
+            // Show corresponding content
             const tabId = button.getAttribute('data-tab');
-            document.getElementById(tabId).classList.add('active');
+            const content = document.getElementById(tabId);
+            if (content) {
+                content.classList.add('active');
+            }
         });
     });
 }
@@ -1296,4 +1335,10 @@ function setupAnimations() {
             el.style.transform = 'translateY(0)';
         }, 200 + index * 100);
     });
+}
+
+// Ajouter une fonction pour nettoyer lors de la fermeture du chat
+function closePrivateChat() {
+    activePrivateChat = null;
+    // Autre logique de nettoyage si nécessaire
 }

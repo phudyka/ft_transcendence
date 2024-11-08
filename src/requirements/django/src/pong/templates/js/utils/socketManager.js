@@ -21,7 +21,10 @@ export function initializeSocket(displayName) {
     const socket = io('https://faperac-standardpc:8080', {
         transports: ['websocket'],
         path: '/c_socket.io',
-        query: { username: displayName }
+        query: { 
+            username: displayName,
+            token: sessionStorage.getItem('accessToken')
+        }
     });
 
     socket.displayName = displayName;
@@ -42,11 +45,6 @@ export function initializeSocket(displayName) {
 
     socket.on('connect_error', (error) => {
         console.error(`Connection error for ${displayName}:`, error);
-    });
-
-    socket.on('friend_request_received', (data) => {
-        console.log('Friend request received:', data);
-        showFriendRequestToast(data.from, data.requestId);
     });
 
     socket.on('friend_request_updated', (data) => {
