@@ -481,6 +481,10 @@ body {
     color: #0066ff;
 }
 
+#Gagnant-Finale {
+    color: #ffffff;
+}
+
 #quit-tournament {
     position: absolute;
     bottom: 0px;

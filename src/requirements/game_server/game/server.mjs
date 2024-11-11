@@ -27,7 +27,7 @@ const options = {
 const app = express();
 
 app.use(cors({
-    origin: ["https://faperac-standardpc:8080"],
+    origin: ["https://localhost:8080"],
     methods: ["GET", "POST"],
     credentials: true
 }));

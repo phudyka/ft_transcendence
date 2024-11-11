@@ -27,6 +27,7 @@ export function setupTournamentEvents(io, socket, padsMap) {
             console.log(`Le gagnant final est : ${playersName[data.room][0]}`);
             io.to(roomMain).emit('update tournament', finalPlayersName);
             finalPlayers.length = 0;
+            finalPlayersName.length = 0;
             
             for (const room in rooms) {
                 if (room !== roomMain) {
@@ -180,7 +181,7 @@ function createQuarterRooms(io, socket, mainRoom, roomsTypes, padsMap) {
 
         const quarterRoom = quarterRooms[index];
         const names = playersName[quarterRoom];
-        const opponentMessage = `Vous allez jouer contre : ${names[0]} et ${names[1]}`;
+        const opponentMessage = `${names[0]} vs ${names[1]}`;
     
         io.in(quarterRoom).emit('match-info', { message: opponentMessage, countdown: 5 });
 
@@ -231,7 +232,7 @@ function finalGame(io, rooms, finalPlayers, padsMap) {
 
     console.log(`Players ${playersName[finalRoom].join(' et ')} joined the final room: ${finalRoom}`);
 
-    const opponentMessage = `Bienvenue en finale! Vous allez jouer contre : ${playersName[finalRoom][1]}`;
+    const opponentMessage = `Finale : ${playersName[finalRoom][0]} vs ${playersName[finalRoom][1]}`;
     io.in(finalRoom).emit('match-info', { message: opponentMessage, countdown: 5 });
 
     setTimeout(() => {
