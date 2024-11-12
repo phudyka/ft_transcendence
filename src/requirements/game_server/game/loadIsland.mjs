@@ -17,7 +17,7 @@ export default async function loadModel(scene, onLoad) {
     const loader = new GLTFLoader();
 
     try {
-        const gltf = await loader.loadAsync('/game_server/scenes/pongScene_V4.glb');
+        const gltf = await loader.loadAsync('/game_server/scenes/pongScene_V5.glb');
         const model = gltf.scene;
 
         model.traverse((child) => {
@@ -40,7 +40,7 @@ export default async function loadModel(scene, onLoad) {
         const actions = {};
 
         gltf.animations.forEach((clip) => {
-            if (clip.name === 'Palmier' || clip.name === 'Palmier2' || clip.name === 'Drapeau') {
+            if (clip.name === 'Palmier' || clip.name === 'Palmier2' || clip.name === 'Drapeau' || clip.name === 'Sketchfab_modelAction' || clip.name === 'Swim') {
                 const action = mixer.clipAction(clip);
                 actions[clip.name] = action;
                 action.play();

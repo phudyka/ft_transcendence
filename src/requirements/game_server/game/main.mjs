@@ -98,12 +98,13 @@ function initGame() {
     
     fadeOutLogoAndStartAnimation(logo, scene, camera, renderer);
     
+    
     sounds = new Sound(camera);
     
-    pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.10, 3.59, 0);
+    pad1 = new Pad(0xFF6600, 0.045, 0.50, 16, -2.10, 3.59, 0);
     pad1.addToScene(scene);
     
-    pad2 = new Pad(0x2040df, 0.045, 0.50, 16, 2.10, 3.59, 0);
+    pad2 = new Pad(0x00A9FF, 0.045, 0.50, 16, 2.10, 3.59, 0);
     pad2.addToScene(scene);
     
     ball = new Ball(0.07, 32);
@@ -354,7 +355,7 @@ function cleanUpGameObjects() {
     pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.10, 3.59, 0);
     pad1.addToScene(scene);
 
-    pad2 = new Pad(0x2040df, 0.045, 0.50, 16, 2.10, 3.59, 0);
+    pad2 = new Pad(0x2FA4FF, 0.045, 0.50, 16, 2.10, 3.59, 0);
     pad2.addToScene(scene);
 
     ball = new Ball(0.07, 32);
