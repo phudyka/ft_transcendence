@@ -28,10 +28,7 @@ export async function fadeOutLogoAndStartAnimation(logo, scene, camera, renderer
 }
 
 function startCameraAnimation(scene, camera, renderer) {
-    const loader = new THREE.TextureLoader();
-    loader.load('/game_server/png/skybox.png', function(texture) {
-        scene.background = texture;
-    });
+    scene.background = new THREE.Color(0x00BFFF);
 
     const clouds = new Clouds(scene);
 

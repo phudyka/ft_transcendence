@@ -353,15 +353,15 @@ body {
 }
 
 #scoreLeft {
-    color: #FFCC00;
-    border-color: #FFCC00;
+    color: #FF6600;
+    border-color: #FF6600;
     margin-right: 2vw;
     transform: rotate(-1deg);
 }
 
 #scoreRight {
-    color: #0066ff;
-    border-color: #0066ff;
+    color: #00A9FF;
+    border-color: #00A9FF;
     margin-left: 2vw;
     transform: rotate(1deg);
 }
@@ -479,6 +479,10 @@ body {
 
 #Gagnant-2 {
     color: #0066ff;
+}
+
+#Gagnant-Finale {
+    color: #ffffff;
 }
 
 #quit-tournament {

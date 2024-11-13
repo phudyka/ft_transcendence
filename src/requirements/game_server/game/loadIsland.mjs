@@ -15,9 +15,10 @@ import { GLTFLoader } from '/game_server/node_modules/three/examples/jsm/loaders
 
 export default async function loadModel(scene, onLoad) {
     const loader = new GLTFLoader();
+    let ocean;
 
     try {
-        const gltf = await loader.loadAsync('/game_server/scenes/pongScene_V4.glb');
+        const gltf = await loader.loadAsync('/game_server/scenes/pongScene_V6.glb');
         const model = gltf.scene;
 
         model.traverse((child) => {
@@ -35,12 +36,29 @@ export default async function loadModel(scene, onLoad) {
             }
         });
 
+        const waterGeometry = new THREE.BoxGeometry(500, 500, 2);
+
+        const waterMaterial = new THREE.MeshStandardMaterial({
+            color: 0x007F99,
+            transparent: true,
+            opacity: 0.7,
+            roughness: 0.3,
+            metalness: 0.2,
+            depthWrite: false,
+        });
+
+        ocean = new THREE.Mesh(waterGeometry, waterMaterial);
+        ocean.receiveShadow = true;
+        ocean.rotation.x = - Math.PI / 2;
+
+        scene.add(ocean);
+
         const mixer = new THREE.AnimationMixer(model);
 
         const actions = {};
 
         gltf.animations.forEach((clip) => {
-            if (clip.name === 'Palmier' || clip.name === 'Palmier2' || clip.name === 'Drapeau') {
+            if (clip.name === 'Palmier' || clip.name === 'Palmier2' || clip.name === 'Drapeau' || clip.name === 'Sketchfab_modelAction' || clip.name === 'Swim') {
                 const action = mixer.clipAction(clip);
                 actions[clip.name] = action;
                 action.play();

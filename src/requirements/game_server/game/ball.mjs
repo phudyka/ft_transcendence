@@ -21,9 +21,9 @@ export class Ball {
 
         const ballGeometry = new THREE.SphereGeometry(radius, segments, segments);
         const ballMaterial = new THREE.MeshStandardMaterial({
-            color: 0xff8f00,
-            metalness: 0.3,
-            roughness: 0.3,
+            color: 0xffffff,
+            metalness: 0.1,
+            roughness: 0.2
         });
 
         this.mesh = new THREE.Mesh(ballGeometry, ballMaterial);

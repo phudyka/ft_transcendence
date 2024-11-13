@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.mjs                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phudyka <phudyka@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fabperei <fabperei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 16:25:09 by phudyka           #+#    #+#             */
-/*   Updated: 2024/09/30 15:17:42 by phudyka          ###   ########.fr       */
+/*   Updated: 2024/11/13 09:00:32 by fabperei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,12 +98,13 @@ function initGame() {
     
     fadeOutLogoAndStartAnimation(logo, scene, camera, renderer);
     
+    
     sounds = new Sound(camera);
     
-    pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.10, 3.59, 0);
+    pad1 = new Pad(0xFF6600, 0.045, 0.50, 16, -2.10, 3.59, 0);
     pad1.addToScene(scene);
     
-    pad2 = new Pad(0x2040df, 0.045, 0.50, 16, 2.10, 3.59, 0);
+    pad2 = new Pad(0x00A9FF, 0.045, 0.50, 16, 2.10, 3.59, 0);
     pad2.addToScene(scene);
     
     ball = new Ball(0.07, 32);
@@ -217,7 +218,7 @@ socket.on('start-game', (rooms, roomsTypes) => {
     sounds.stop('lobby');
     sounds.play('ambient');
 	sounds.playMusic();
-    camera.animCam(0, 8.4, 6.2);
+    camera.animCam(0, 8, 6.2);
     controls.autoRotate = false;
     controls.update();
     controlledPad = 0;
@@ -354,7 +355,7 @@ function cleanUpGameObjects() {
     pad1 = new Pad(0xcc7700, 0.045, 0.50, 16, -2.10, 3.59, 0);
     pad1.addToScene(scene);
 
-    pad2 = new Pad(0x2040df, 0.045, 0.50, 16, 2.10, 3.59, 0);
+    pad2 = new Pad(0x2FA4FF, 0.045, 0.50, 16, 2.10, 3.59, 0);
     pad2.addToScene(scene);
 
     ball = new Ball(0.07, 32);

@@ -230,6 +230,7 @@ export function initSocketEvent(socket){
         document.getElementById('match-info').classList.remove('hidden');
         const gagnantFinale = document.getElementById('Gagnant-Finale');
         gagnantFinale.textContent = winner;
+        console.log('que contient winner : ', winner);
         const message = `Le gagnant du tournois est ${winner}`;
         let countdown = 5;
         matchInfoDiv.innerHTML = `<p>${message}</p><p>Retour au menu dans <span id="countdown">${countdown}</span> secondes...</p>`;
