@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   main.mjs                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phudyka <phudyka@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fabperei <fabperei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 16:25:09 by phudyka           #+#    #+#             */
-/*   Updated: 2024/09/30 15:17:42 by phudyka          ###   ########.fr       */
+/*   Updated: 2024/11/13 09:00:32 by fabperei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ import { hitPadEvent, initSocketEvent, SoundLobby } from './socketEvent.mjs';
 import Sound from './sounds.mjs';
 import { updateUserStats } from './api.mjs';
 
-const socket = io('https://localhost:8080', {
+const socket = io('https://c1r4p6.42nice.fr:8080', {
     transports: ['websocket'],
     path: '/g_socket.io'
 });
@@ -35,7 +35,7 @@ let csrfToken;
 let avatar;
 
 window.addEventListener('message', function(event) {
-    if (event.origin === 'https://localhost:8080' && event.data.type == 'gameInvitation') {
+    if (event.origin === 'https://c1r4p6.42nice.fr:8080' && event.data.type == 'gameInvitation') {
         console.log(event);
         const to = event.data.to;
         const from = event.data.from;
@@ -48,7 +48,7 @@ window.addEventListener('message', function(event) {
 });
 
 window.addEventListener('message', function(event) {
-    if (event.origin === 'https://localhost:8080' && event.data.type == undefined) {
+    if (event.origin === 'https://c1r4p6.42nice.fr:8080' && event.data.type == undefined) {
         username = event.data.username;
         token = event.data.token;
         csrfToken = event.data.csrfToken;

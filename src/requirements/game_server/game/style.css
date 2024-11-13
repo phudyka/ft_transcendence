@@ -9,6 +9,8 @@ body {
     height: 100vh;
     overflow: hidden;
     position: relative;
+    -webkit-user-select: none;
+    user-select: none;
 }
 
 #start-game-button {

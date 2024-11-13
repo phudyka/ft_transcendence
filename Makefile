@@ -32,6 +32,7 @@ update-hostname:
 	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/requirements/django/src/pong/templates/js/views/dashboard.js
 	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/requirements/game_server/game/main.mjs
 	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/requirements/game_server/game/server.mjs
+	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/requirements/django/src/pong/views.py
 	@echo "Hostname updated to $(HOSTNAME)"
 
 start: all

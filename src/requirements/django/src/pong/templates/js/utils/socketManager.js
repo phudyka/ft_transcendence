@@ -18,7 +18,7 @@ export function initializeSocket(displayName) {
         return null;
     }
 
-    const socket = io('https://localhost:8080', {
+    const socket = io('https://c1r4p6.42nice.fr:8080', {
         transports: ['websocket'],
         path: '/c_socket.io',
         query: { 
