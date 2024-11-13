@@ -48,22 +48,23 @@ export default function setupSockets(io) {
                         roomTeams.delete(room);
                         console.log(`La salle ${room} a été supprimée`);
                     } else if (rooms[room].length === 1 && roomsTypes[room] === 'multi-2-online') {
-                        io.to(rooms[room][0]).emit('gameOver', { winner: rooms[room][0] });
+                        const winner = clients.get(rooms[room][0]).getName();
+                        io.to(rooms[room][0]).emit('gameOver', { winner: winner });
                     } else if (roomsTypes[room] === 'semi-tournament' || roomsTypes[room] === 'final-tournament') {
-                        io.to(rooms[room]).emit('matchOver', { winner: rooms[room][0], roomName: room, roomType: roomsTypes[room]});
+                        const winner = clients.get(rooms[room][0]).getName();
+                        io.to(rooms[room]).emit('matchOver', { winner: winner, roomName: room, roomType: roomsTypes[room]});
                         console.log('matchOver bien envoyé');
                     } else if (rooms[room].length > 0 && roomsTypes[room] === 'multi-four') {
                         let winningTeam;
-                        
                             const teams = roomTeams.get(room);
                             if (teams.team1[0] === socket.id || teams.team1[1] === socket.id) {
-                                winningTeam = teams.team2;
+                                winningTeam = [clients.get(teams.team2[0]).getName(), clients.get(teams.team2[1]).getName()];
                             } else if (teams.team2[0] === socket.id || teams.team2[1] === socket.id) {
-                                winningTeam = teams.team1;
+                                winningTeam = [clients.get(teams.team1[0]).getName(), clients.get(teams.team1[1]).getName()];
                         }
         
                         if (winningTeam) {
-                            io.to(room).emit('gameOver', { winner: winningTeam });
+                            io.to(room).emit('gameOver', { winner: winningTeam, roomType: roomsTypes[room]});
                         } else {
                             console.error(`Impossible de déterminer l'équipe gagnante pour la salle ${room}`);
                         }
@@ -76,6 +77,7 @@ export default function setupSockets(io) {
 
         socket.on('lobby ready', () => {
             socket.emit('lobby');
+            client.setReady();
         });
 
         socket.on('padMove', (data) => {
@@ -131,46 +133,53 @@ export default function setupSockets(io) {
         
                 console.log(`La salle ${room} a été supprimée`);
             }
+            else {
+                io.in(room).emit('gameEnded');
+            }
         });
 
         socket.on('solo_vs_ia', () => {
-            let room = findOrCreateRoom('solo_vs_ia');
-            rooms[room].push(socket.id);
-            roomsTypes[room] = 'solo_vs_ia';
-            socket.join(room);
-
-            client.setRoom(room);
-
-            keysPressedMap.set(room, {
-                pad1MoveUp: false,
-                pad1MoveDown: false,
-            });
-
-            io.in(room).emit('start-game', rooms[room], roomsTypes[room]);
-            console.log(`Démarrage du jeu dans ${room}`);
-
-            setupSoloGame(io, rooms[room], room, socket, rooms, roomsTypes[room], keysPressedMap.get(room));
+            if (client.getRoom() === null){
+                let room = findOrCreateRoom('solo_vs_ia');
+                rooms[room].push(socket.id);
+                roomsTypes[room] = 'solo_vs_ia';
+                socket.join(room);
+    
+                client.setRoom(room);
+    
+                keysPressedMap.set(room, {
+                    pad1MoveUp: false,
+                    pad1MoveDown: false,
+                });
+    
+                io.in(room).emit('start-game', rooms[room], roomsTypes[room]);
+                console.log(`Démarrage du jeu dans ${room}`);
+    
+                setupSoloGame(io, rooms[room], room, socket, rooms, roomsTypes[room], keysPressedMap.get(room));
+            }
         });
 
         socket.on('multi-2-local', () => {
-            let room = findOrCreateRoom('multi-2-local');
-            rooms[room].push(socket.id);
-            roomsTypes[room] = 'multi-2-local';
-            socket.join(room);
-
-            client.setRoom(room);
-
-            keysPressedMap.set(room, {
-                pad1MoveUp: false,
-                pad1MoveDown: false,
-                pad2MoveUp: false,
-                pad2MoveDown: false,
-            });
-
-            io.in(room).emit('start-game', rooms[room], roomsTypes[room]);
-            console.log(`Démarrage du jeu dans ${room}`);
-
-            setupSoloGame(io, rooms[room], room, socket, rooms, roomsTypes[room], keysPressedMap.get(room));
+            if (client.getRoom() === null){
+                let room = findOrCreateRoom('multi-2-local');
+                rooms[room].push(socket.id);
+                roomsTypes[room] = 'multi-2-local';
+                socket.join(room);
+    
+                client.setRoom(room);
+    
+                keysPressedMap.set(room, {
+                    pad1MoveUp: false,
+                    pad1MoveDown: false,
+                    pad2MoveUp: false,
+                    pad2MoveDown: false,
+                });
+    
+                io.in(room).emit('start-game', rooms[room], roomsTypes[room]);
+                console.log(`Démarrage du jeu dans ${room}`);
+    
+                setupSoloGame(io, rooms[room], room, socket, rooms, roomsTypes[room], keysPressedMap.get(room));
+            }
         });
 
         socket.on('invite', (data) => {
@@ -246,93 +255,99 @@ export default function setupSockets(io) {
         })
 
         socket.on('multi-2-online', () => {
-            let room = findOrCreateRoom('multi-2-online');
-            rooms[room].push(socket.id);
-            roomsTypes[room] = 'multi-2-online';
-            socket.join(room);
+            if (client.getRoom() === null) {
 
-            if (rooms[room].length === 1) {
-                const pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 3.59, 0);
-                const pad2 = new Pad(0xb3261a, 0.045, 0.50, 16, 2.10, 3.59, 0);
-                padsMap.set(room, { pad1, pad2 });
-
-            }
-
-            client.setRoom(room);
-            
-            console.log(`Joueur ${socket.id} a rejoint ${room}`);
-            
-            if (rooms[room].length === 2) {
-                io.in(room).emit('start-game', rooms[room]);
-                console.log(`Démarrage du jeu dans ${room}`);
+                let room = findOrCreateRoom('multi-2-online');
+                rooms[room].push(socket.id);
+                roomsTypes[room] = 'multi-2-online';
+                socket.join(room);
+    
+                if (rooms[room].length === 1) {
+                    const pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 3.59, 0);
+                    const pad2 = new Pad(0xb3261a, 0.045, 0.50, 16, 2.10, 3.59, 0);
+                    padsMap.set(room, { pad1, pad2 });
+    
+                }
+    
+                client.setRoom(room);
                 
-                keysPressedMap.set(room, {
-                    pad1MoveUp: false,
-                    pad1MoveDown: false,
-                    pad2MoveUp: false,
-                    pad2MoveDown: false,
-                });
-
-                const ball = new Ball(0.07, 32);
-                const { pad1, pad2 } = padsMap.get(room);
-
-                io.in(room).emit('initBall', {
-                    position: { x: ball.mesh.position.x, z: ball.mesh.position.z },
-                    direction: { x: ball.direction.x, z: ball.direction.z },
-                    speed: ball.speed,
-                });
-
-                setupMultiGame(io, socket, rooms[room], room, ball, pad1, pad2, keysPressedMap.get(room), roomsTypes);
+                console.log(`Joueur ${socket.id} a rejoint ${room}`);
+                
+                if (rooms[room].length === 2) {
+                    io.in(room).emit('start-game', rooms[room]);
+                    console.log(`Démarrage du jeu dans ${room}`);
+                    
+                    keysPressedMap.set(room, {
+                        pad1MoveUp: false,
+                        pad1MoveDown: false,
+                        pad2MoveUp: false,
+                        pad2MoveDown: false,
+                    });
+    
+                    const ball = new Ball(0.07, 32);
+                    const { pad1, pad2 } = padsMap.get(room);
+    
+                    io.in(room).emit('initBall', {
+                        position: { x: ball.mesh.position.x, z: ball.mesh.position.z },
+                        direction: { x: ball.direction.x, z: ball.direction.z },
+                        speed: ball.speed,
+                    });
+    
+                    setupMultiGame(io, socket, rooms[room], room, ball, pad1, pad2, keysPressedMap.get(room), roomsTypes);
+                }
             }
         });
 
         socket.on('multi-four', () => {
-            let room = findOrCreateRoom('multi-four');
-            rooms[room].push(socket.id);
-            socket.join(room);
+            if (client.getRoom() === null) {
 
-            if (rooms[room].length === 1) {
-                const pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 3.59, 0);
-                const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 3.59, 0);
-                const pad3 = new Pad(0xfa00ff, 0.045, 0.50, 16, -0.5, 3.59, 0);
-                const pad4 = new Pad(0xfa00ff, 0.045, 0.50, 16, 0.5, 3.59, 0);
-                padsMap.set(room, { pad1, pad2, pad3, pad4 });
-
-            }
-            
-            client.setRoom(room);
-
-            console.log(`Joueur ${socket.id} a rejoint ${room}`);
-            
-            if (rooms[room].length === 4) {
-                roomTeams.set(room, {
-                    team1: [rooms[room][0], rooms[room][2]],
-                    team2: [rooms[room][1], rooms[room][3]]
-                });
-                io.in(room).emit('start-game', rooms[room], roomsTypes[room]);
-                console.log(`Démarrage du jeu dans ${room}`);
+                let room = findOrCreateRoom('multi-four');
+                rooms[room].push(socket.id);
+                socket.join(room);
+    
+                if (rooms[room].length === 1) {
+                    const pad1 = new Pad(0xc4d418, 0.045, 0.50, 16, -2.13, 3.59, 0);
+                    const pad2 = new Pad(0xfa00ff, 0.045, 0.50, 16, 2.10, 3.59, 0);
+                    const pad3 = new Pad(0xfa00ff, 0.045, 0.50, 16, -0.5, 3.59, 0);
+                    const pad4 = new Pad(0xfa00ff, 0.045, 0.50, 16, 0.5, 3.59, 0);
+                    padsMap.set(room, { pad1, pad2, pad3, pad4 });
+    
+                }
                 
-                keysPressedMap.set(room, {
-                    pad1MoveUp: false,
-                    pad1MoveDown: false,
-                    pad2MoveUp: false,
-                    pad2MoveDown: false,
-                    pad3MoveUp: false,
-                    pad3MoveDown: false,
-                    pad4MoveUp: false,
-                    pad4MoveDown: false,
-                });
-
-                const ball = new Ball(0.07, 32);
-                const { pad1, pad2, pad3, pad4 } = padsMap.get(room);
-
-                io.in(room).emit('initBall', {
-                    position: { x: ball.mesh.position.x, z: ball.mesh.position.z },
-                    direction: { x: ball.direction.x, z: ball.direction.z },
-                    speed: ball.speed,
-                });
-
-                setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, keysPressedMap.get(room), rooms[room]);
+                client.setRoom(room);
+    
+                console.log(`Joueur ${socket.id} a rejoint ${room}`);
+                
+                if (rooms[room].length === 4) {
+                    roomTeams.set(room, {
+                        team1: [rooms[room][0], rooms[room][2]],
+                        team2: [rooms[room][1], rooms[room][3]]
+                    });
+                    io.in(room).emit('start-game', rooms[room], roomsTypes[room]);
+                    console.log(`Démarrage du jeu dans ${room}`);
+                    
+                    keysPressedMap.set(room, {
+                        pad1MoveUp: false,
+                        pad1MoveDown: false,
+                        pad2MoveUp: false,
+                        pad2MoveDown: false,
+                        pad3MoveUp: false,
+                        pad3MoveDown: false,
+                        pad4MoveUp: false,
+                        pad4MoveDown: false,
+                    });
+    
+                    const ball = new Ball(0.07, 32);
+                    const { pad1, pad2, pad3, pad4 } = padsMap.get(room);
+    
+                    io.in(room).emit('initBall', {
+                        position: { x: ball.mesh.position.x, z: ball.mesh.position.z },
+                        direction: { x: ball.direction.x, z: ball.direction.z },
+                        speed: ball.speed,
+                    });
+    
+                    setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, keysPressedMap.get(room), rooms[room]);
+                }
             }
         });
 

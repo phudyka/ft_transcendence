@@ -6,6 +6,11 @@ export class Client {
         this.accessToken = accessToken;
         this.score = 0;
         this.room = null;
+        this.initGame = false;
+    }
+
+    setReady(){
+        this.initGame = true;
     }
 
     setRoom(room) {

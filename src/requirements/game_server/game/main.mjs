@@ -24,7 +24,7 @@ import { hitPadEvent, initSocketEvent, SoundLobby } from './socketEvent.mjs';
 import Sound from './sounds.mjs';
 import { updateUserStats } from './api.mjs';
 
-const socket = io('https://c1r4p6.42nice.fr:8080', {
+const socket = io('https://localhost:8080', {
     transports: ['websocket'],
     path: '/g_socket.io'
 });
@@ -35,7 +35,7 @@ let csrfToken;
 let avatar;
 
 window.addEventListener('message', function(event) {
-    if (event.origin === 'https://c1r4p6.42nice.fr:8080' && event.data.type == 'gameInvitation') {
+    if (event.origin === 'https://localhost:8080' && event.data.type == 'gameInvitation') {
         console.log(event);
         const to = event.data.to;
         const from = event.data.from;
@@ -48,7 +48,7 @@ window.addEventListener('message', function(event) {
 });
 
 window.addEventListener('message', function(event) {
-    if (event.origin === 'https://c1r4p6.42nice.fr:8080' && event.data.type == undefined) {
+    if (event.origin === 'https://localhost:8080' && event.data.type == undefined) {
         username = event.data.username;
         token = event.data.token;
         csrfToken = event.data.csrfToken;
@@ -309,16 +309,16 @@ socket.on('gameOver', (data) => {
         winnerMessage.textContent = `YOU WIN !`;
         updateUserStats(username, token, true);
     }
-	else if (data.winner !== username && data.roomType !== 'multi-2-local') {
+	else if (data.winner !== username && data.roomType !== 'multi-2-local' && data.roomType !== 'multi-four') {
         sounds.play('loose');
         winnerMessage.textContent = `YOU LOOSE ! ${winner} is the winner`;
         updateUserStats(username, token, false);
     }
-    else if (data.winner.length === 2){
-        winnerMessage.textContent = `the winners is : ${winner} !`;
+    else if (data.winner.length === 2 && data.winner[0] === username || data.winner[1] === username){
+        winnerMessage.textContent = `YOU WIN ${winner}`;
     }
     else {
-        winnerMessage.textContent = `The winner is ${winner}`;
+        winnerMessage.textContent = `YOU LOOSE the winners is ${winner}`;
         sounds.play('win');
     }
     gameOverSection.style.display = 'flex';
