@@ -39,7 +39,7 @@ export default async function loadModel(scene, onLoad) {
         const waterGeometry = new THREE.BoxGeometry(500, 500, 2);
 
         const waterMaterial = new THREE.MeshStandardMaterial({
-            color: 0x007F99,
+            color: 0x1e90ff,
             transparent: true,
             opacity: 0.7,
             roughness: 0.3,

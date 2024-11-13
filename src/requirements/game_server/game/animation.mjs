@@ -28,7 +28,7 @@ export async function fadeOutLogoAndStartAnimation(logo, scene, camera, renderer
 }
 
 function startCameraAnimation(scene, camera, renderer) {
-    scene.background = new THREE.Color(0x00BFFF);
+    scene.background = new THREE.Color(0x00ffff);
 
     const clouds = new Clouds(scene);
 
