@@ -7,24 +7,28 @@ let sockets = new Map();
 let activityTimers = new Map();
 
 export function initializeSocket(displayName) {
-    if (sockets.has(displayName) && sockets.get(displayName).connected) {
-        console.log('Socket déjà initialisé pour cet utilisateur:', displayName);
-        resetActivityTimer(displayName);
-        return sockets.get(displayName);
+    const existingSocket = sockets.get(displayName);
+    if (existingSocket && existingSocket.connected) {
+        console.log(`Socket existant trouvé pour ${displayName}`);
+        return existingSocket;
     }
 
-    if (!displayName) {
-        console.error('Nom d\'utilisateur non trouvé');
+    disconnectSocket(displayName);
+
+    const token = sessionStorage.getItem('accessToken');
+    if (!displayName || !token) {
+        console.error('Nom d\'utilisateur ou token non trouvé');
         return null;
     }
 
-    const socket = io('https://localhost:8080', {
+    const socket = io('https://fabgame:8080', {
         transports: ['websocket'],
         path: '/c_socket.io',
-        query: { 
+        query: {
             username: displayName,
-            token: sessionStorage.getItem('accessToken')
-        }
+            token: token
+        },
+        reconnection: false
     });
 
     socket.displayName = displayName;
@@ -32,7 +36,11 @@ export function initializeSocket(displayName) {
     socket.on('connect', () => {
         console.log(`Connected to chat server for ${displayName}`);
         console.log(`Socket ID: ${socket.id}`);
-        socket.emit('register', displayName);
+        socket.emit('register', {
+            username: displayName,
+            token: token
+        });
+        updateOnlineStatus(displayName, true);
         resetActivityTimer(displayName);
     });
 
@@ -40,7 +48,6 @@ export function initializeSocket(displayName) {
         console.log(`Disconnected from chat server for ${displayName}`);
         sockets.delete(displayName);
         clearActivityTimer(displayName);
-        updateOnlineStatus(displayName, false);
     });
 
     socket.on('connect_error', (error) => {
@@ -49,11 +56,18 @@ export function initializeSocket(displayName) {
 
     socket.on('friend_request_updated', (data) => {
         console.log('Friend request updated:', data);
-        const message = data.response === 'accepted' 
-            ? `${data.from} a accepté votre demande d'ami!` 
+        const message = data.response === 'accepted'
+            ? `${data.from} a accepté votre demande d'ami!`
             : `${data.from} a refusé votre demande d'ami.`;
         showToast(message, data.response === 'accepted' ? 'success' : 'info');
         fetchAndDisplayFriends(); // Rafraîchir la liste des amis
+    });
+
+    socket.on('session_expired', (data) => {
+        console.log('Session expirée:', data.message);
+        showToast(data.message, 'warning');
+        disconnectSocket(displayName);
+        logout();
     });
 
     sockets.set(displayName, socket);
@@ -64,10 +78,11 @@ export function initializeSocket(displayName) {
 
 function resetActivityTimer(username) {
     clearActivityTimer(username);
-    activityTimers.set(username, setTimeout(() => {
-        console.log(`Inactivity detected for ${username}`);
-        updateOnlineStatus(username, false);
-    }, 120000)); // 2 minutes
+    activityTimers.set(username, setTimeout(async () => {
+        console.log(`Inactivité détectée pour ${username}`);
+        await updateOnlineStatus(username, false);
+        disconnectSocket(username);
+    }, 180000)); // 3 minutes au lieu de 2
 }
 
 function clearActivityTimer(username) {
@@ -84,9 +99,9 @@ export async function updateOnlineStatus(username, isOnline) {
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ 
+            body: JSON.stringify({
                 is_online: isOnline,
-                display_name: username 
+                display_name: username
             }),
         });
         if (!response.ok) {
@@ -108,6 +123,8 @@ export function disconnectSocket(username) {
     if (socket) {
         socket.disconnect();
         sockets.delete(username);
+        clearActivityTimer(username);
+        updateOnlineStatus(username, false);
     }
 }
 
@@ -156,4 +173,22 @@ function showFriendRequestToast(fromUsername, requestId) {
 export function isSocketConnected(displayName) {
     const socket = sockets.get(displayName);
     return socket && socket.connected;
+}
+
+export function handleDashboardPresence(username) {
+    updateOnlineStatus(username, true);
+    resetActivityTimer(username);
+
+    const activityEvents = ['mousedown', 'keydown', 'mousemove', 'touchstart'];
+
+    activityEvents.forEach(eventType => {
+        document.addEventListener(eventType, () => {
+            resetActivityTimer(username);
+        });
+    });
+
+    window.addEventListener('beforeunload', () => {
+        updateOnlineStatus(username, false);
+        disconnectSocket(username);
+    });
 }

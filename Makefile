@@ -2,7 +2,7 @@ NAME = up
 
 PROJECT = "ft_transcendence"
 
-HOSTNAME ?= $(shell hostname -A | cut -d' ' -f1)
+HOSTNAME ?= $(shell hostname -a | cut -d' ' -f1)
 
 IMAGES =	src-grafana\
 			src-prometheus\
@@ -15,7 +15,7 @@ IMAGES =	src-grafana\
 			src-postgresql\
 			src-game_server\
 			src-chat_server\
-			
+
 
 VOLUMES =	src_static_files\
 			src_postgres_data\

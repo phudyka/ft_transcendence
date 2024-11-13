@@ -88,12 +88,13 @@ class MatchHistory(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='match_history')
     result = models.CharField(max_length=4, choices=[('win', 'Win'), ('loss', 'Loss')])
     date = models.DateTimeField(auto_now_add=True)
+    opponent = models.CharField(max_length=50, default='AI')
 
     class Meta:
         ordering = ['-date']
 
     def __str__(self):
-        return f"{self.user.username} - {self.result} - {self.date}"
+        return f"{self.user.username} - {self.result} vs {self.opponent} - {self.date}"
 
 class BlockedUser(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='blocking', on_delete=models.CASCADE)

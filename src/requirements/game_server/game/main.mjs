@@ -24,7 +24,7 @@ import { hitPadEvent, initSocketEvent, SoundLobby } from './socketEvent.mjs';
 import Sound from './sounds.mjs';
 import { updateUserStats } from './api.mjs';
 
-const socket = io('https://localhost:8080', {
+const socket = io('https://fabgame:8080', {
     transports: ['websocket'],
     path: '/g_socket.io'
 });
@@ -35,7 +35,7 @@ let csrfToken;
 let avatar;
 
 window.addEventListener('message', function(event) {
-    if (event.origin === 'https://localhost:8080' && event.data.type == 'gameInvitation') {
+    if (event.origin === 'https://fabgame:8080' && event.data.type == 'gameInvitation') {
         console.log(event);
         const to = event.data.to;
         const from = event.data.from;
@@ -48,7 +48,7 @@ window.addEventListener('message', function(event) {
 });
 
 window.addEventListener('message', function(event) {
-    if (event.origin === 'https://localhost:8080' && event.data.type == undefined) {
+    if (event.origin === 'https://fabgame:8080' && event.data.type == undefined) {
         username = event.data.username;
         token = event.data.token;
         csrfToken = event.data.csrfToken;
@@ -82,35 +82,35 @@ function initGame() {
     scene = new THREE.Scene();
     camera = new Camera();
     renderer = new Graphic(scene, camera);
-    
+
     controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = false;
     controls.screenSpacePanning = false;
     controls.enableRotate = false;
     controls.enableZoom = false;
-    controls.enablePan = false; 
+    controls.enablePan = false;
     controls.autoRotateSpeed = 0.7;
     controls.autoRotate = true;
 
     new Light(scene);
-    
+
     logo = new Logo(scene);
-    
+
     fadeOutLogoAndStartAnimation(logo, scene, camera, renderer);
-    
-    
+
+
     sounds = new Sound(camera);
-    
+
     pad1 = new Pad(0xFF6600, 0.045, 0.50, 16, -2.10, 3.59, 0);
     pad1.addToScene(scene);
-    
+
     pad2 = new Pad(0x00A9FF, 0.045, 0.50, 16, 2.10, 3.59, 0);
     pad2.addToScene(scene);
-    
+
     ball = new Ball(0.07, 32);
     ball.addToScene(scene);
-    
-    
+
+
     document.addEventListener('keydown', (event) => {
         const { key } = event;
         if (controlledPads) {
@@ -134,7 +134,7 @@ function initGame() {
             }
         }
     });
-    
+
     document.addEventListener('keyup', (event) => {
         const { key } = event;
         if (controlledPads) {
@@ -322,13 +322,13 @@ socket.on('gameOver', (data) => {
         sounds.play('win');
     }
     gameOverSection.style.display = 'flex';
-    
+
     document.getElementById('score').classList.add('hidden');
     document.getElementById('score').classList.remove('score-container');
     document.getElementById('scoreLeft').textContent = 0;
     document.getElementById('scoreRight').textContent = 0;
     document.getElementById('tournament').classList.remove('active');
-    
+
     document.getElementById('back-to-menu-button').addEventListener('click', () => {
         gameOverSection.style.display = 'none';
         document.getElementById('menu').classList.remove('hidden');

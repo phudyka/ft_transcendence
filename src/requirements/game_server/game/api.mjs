@@ -1,4 +1,3 @@
-
 async function getUserByDisplayName(displayName, token) {
   const response = await fetch(`/api/user/${displayName}/`, {
     method: 'GET',
@@ -14,7 +13,7 @@ async function getUserByDisplayName(displayName, token) {
   }
 }
 
-export async function updateUserStats(displayName, token, hasWon) {
+export async function updateUserStats(displayName, token, hasWon, opponent) {
   try {
     const userData = await getUserByDisplayName(displayName, token);
     let currentWins = userData.user.wins;
@@ -42,7 +41,8 @@ export async function updateUserStats(displayName, token, hasWon) {
         is_online: true
       })
     });
-    
+
+    await saveMatchResult(token, hasWon, opponent);
 
     // Vérifie si la requête a réussi
     if (response.ok) {
@@ -54,5 +54,34 @@ export async function updateUserStats(displayName, token, hasWon) {
 
   } catch (error) {
     console.error('Erreur :', error.message);
+  }
+}
+
+export async function saveMatchResult(token, hasWon, opponent) {
+  try {
+    const response = await fetch(`/api/save-match-result/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        result: hasWon ? 'win' : 'loss',
+        opponent: opponent
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Erreur de sauvegarde:', errorText);
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log('Match result saved:', data);
+    return data;
+  } catch (error) {
+    console.error('Error saving match result:', error);
+    throw error;
   }
 }

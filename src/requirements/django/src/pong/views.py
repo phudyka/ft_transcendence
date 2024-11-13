@@ -35,6 +35,7 @@ import base64
 import os
 from django.core.files.base import ContentFile
 from django.http import HttpResponse
+# from rest_framework.authentication import JWTAuthentication
 
 
 User = get_user_model()
@@ -42,6 +43,7 @@ User = get_user_model()
 def create_user(request):
 	if request.method == 'POST':
 		data = json.loads(request.body)
+
 		user = User.create_user(data['username'], data=data['password'])
 		return JsonResponse({'message': 'user created with id ' + str(user.id)}, status=201)
 	else:
@@ -284,27 +286,27 @@ def update_user_settings(request):
     try:
         user = request.user
         avatar_file = request.FILES.get('avatar')
-        
+
         if avatar_file:
             content_dir = os.path.join('ft_trans', 'pong', 'templates', 'content', 'avatars')
             os.makedirs(content_dir, exist_ok=True)
-            
+
             file_extension = os.path.splitext(avatar_file.name)[1]
             filename = f'avatar_{user.username}_{timezone.now().timestamp()}{file_extension}'
             filepath = os.path.join(content_dir, filename)
-            
+
             with open(filepath, 'wb+') as destination:
                 for chunk in avatar_file.chunks():
                     destination.write(chunk)
-            
+
             avatar_url = f'url("/content/avatars/{filename}")'
             user.avatar_url = avatar_url
-        
+
         if 'display_name' in request.data:
             user.display_name = request.data['display_name']
-        
+
         user.save()
-        
+
         return JsonResponse({
             'success': True,
             'message': 'Settings updated successfully',
@@ -423,25 +425,59 @@ def update_user_stats(request, display_name):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def save_match_result(request):
-    result = request.data.get('result')
-    if result not in ['win', 'loss']:
-        return Response({'error': 'Invalid result'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        result = request.data.get('result')
+        opponent = request.data.get('opponent', 'AI')
 
-    MatchHistory.objects.create(user=request.user, result=result)
-    return Response({'success': True}, status=status.HTTP_201_CREATED)
+        # Validation des données
+        if result not in ['win', 'loss']:
+            return Response({
+                'status': 'error',
+                'message': 'Invalid result value. Must be "win" or "loss".'
+            }, status=400)
+
+        match = MatchHistory.objects.create(
+            user=request.user,
+            result=result,
+            opponent=opponent
+        )
+
+        return Response({
+            'status': 'success',
+            'message': 'Match result saved successfully',
+            'match': {
+                'result': match.result,
+                'opponent': match.opponent,
+                'date': match.date.isoformat()
+            }
+        })
+    except Exception as e:
+        return Response({
+            'status': 'error',
+            'message': str(e)
+        }, status=400)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def get_recent_matches(request, username):
     try:
         user = CustomUser.objects.get(username=username)
-        recent_matches = MatchHistory.objects.filter(user=user).order_by('-date')[:3]
-        matches_data = [{'result': match.result, 'date': match.date.strftime('%Y-%m-%d')} for match in recent_matches]
-        return Response({'matches': matches_data})
+        matches = MatchHistory.objects.filter(user=user).order_by('-date')[:10]
+
+        matches_data = [{
+            'result': match.result,
+            'opponent': match.opponent,
+            'date': match.date
+        } for match in matches]
+
+        return Response({
+            'status': 'success',
+            'matches': matches_data
+        })
     except CustomUser.DoesNotExist:
-        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({
+            'status': 'error',
+            'message': 'User not found'
+        }, status=404)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -449,7 +485,7 @@ def block_user(request):
     blocked_username = request.data.get('display_name')
     try:
         blocked_user = CustomUser.objects.get(display_name=blocked_username)
-        
+
         # Vérifier si l'utilisateur essaie de se bloquer lui-même
         if blocked_user == request.user:
             return JsonResponse({
@@ -484,13 +520,13 @@ def unblock_user(request):
             user=request.user,
             blocked_user=blocked_user
         ).first()
-        
+
         if not block:
             return JsonResponse({
                 'success': False,
                 'message': 'You cannot unblock this user as you are not the one who blocked them'
             }, status=403)
-            
+
         block.delete()
         return JsonResponse({
             'success': True,
@@ -516,7 +552,7 @@ def auth_42_login(request):
     auth_url = 'https://api.intra.42.fr/oauth/authorize'
     params = {
         'client_id': settings.FT_CLIENT_ID,
-        'redirect_uri': 'https://localhost:8080/api/auth/42/callback/',
+        'redirect_uri': 'https://fabgame:8080/api/auth/42/callback/',
         'response_type': 'code',
         'scope': 'public'
     }
@@ -534,9 +570,9 @@ def auth_42_callback(request):
         'client_id': settings.FT_CLIENT_ID,
         'client_secret': settings.FT_CLIENT_SECRET,
         'code': code,
-        'redirect_uri': 'https://localhost:8080/api/auth/42/callback/'
+        'redirect_uri': 'https://fabgame:8080/api/auth/42/callback/'
     }
-    
+
     response = requests.post(token_url, data=data)
     if response.status_code != 200:
         return redirect('/register?error=auth_failed')
@@ -547,12 +583,12 @@ def auth_42_callback(request):
     user_url = 'https://api.intra.42.fr/v2/me'
     headers = {'Authorization': f'Bearer {access_token}'}
     user_response = requests.get(user_url, headers=headers)
-    
+
     if user_response.status_code != 200:
         return redirect('/register?error=profile_fetch_failed')
 
     user_data = user_response.json()
-    
+
     try:
         user = User.objects.get(email=user_data['email'])
         refresh = RefreshToken.for_user(user)
@@ -567,7 +603,7 @@ def auth_42_callback(request):
     except User.DoesNotExist:
         # Formater l'URL de l'avatar comme les autres
         avatar_url = f'url("{user_data["image"]["versions"]["small"]}")'
-        
+
         user = User.objects.create_user(
             username=user_data['login'],
             email=user_data['email'],
@@ -575,7 +611,7 @@ def auth_42_callback(request):
             avatar_url=avatar_url,
             password=None
         )
-        
+
         refresh = RefreshToken.for_user(user)
         response_data = {
             'access': str(refresh.access_token),
@@ -590,10 +626,10 @@ def save_avatar_image(image_url, username):
     # Créer le dossier content s'il n'existe pas
     content_dir = os.path.join('ft_trans', 'pong', 'templates', 'content', 'avatars')
     os.makedirs(content_dir, exist_ok=True)
-    
+
     # Nettoyer l'URL de l'image
     image_url = image_url.replace('url("', '').replace('")', '')
-    
+
     try:
         # Télécharger l'image
         response = requests.get(image_url)
@@ -604,11 +640,11 @@ def save_avatar_image(image_url, username):
                 file_extension = '.png'
             filename = f'avatar_{username}{file_extension}'
             filepath = os.path.join(content_dir, filename)
-            
+
             # Sauvegarder l'image
             with open(filepath, 'wb') as f:
                 f.write(response.content)
-            
+
             # Retourner l'URL relative pour l'accès via le serveur
             return f'url("/content/avatars/{filename}")'
     except Exception as e:

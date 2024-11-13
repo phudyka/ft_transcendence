@@ -45,7 +45,7 @@ export async function profile(displayName) {
     try {
         console.log(`Attempting to retrieve profile for ${displayName}`);
         const response = await fetchWithToken(`/api/user/${displayName}/`);
-        
+
         // Vérifier le type de contenu de la réponse
         const contentType = response.headers.get("content-type");
         if (contentType && contentType.indexOf("application/json") !== -1) {
@@ -71,7 +71,8 @@ export async function profile(displayName) {
 
             const matchHistory = recentMatches.length > 0 ? recentMatches.map(match => ({
                 result: match.result.charAt(0).toUpperCase() + match.result.slice(1),
-                date: match.date
+                date: match.date,
+                opponent: match.opponent
             })) : [];
 
             document.getElementById('ft_transcendence').innerHTML = `
@@ -120,7 +121,7 @@ export async function profile(displayName) {
                                     ${matchHistory.map(match => `
                                         <li class="list-group-item d-flex justify-content-between align-items-center ${match.result.toLowerCase() === 'win' ? 'win' : 'loss'}">
                                             <span class="match-result ${match.result.toLowerCase()}">${match.result}</span>
-                                            <span class="badge rounded-pill">${match.date}</span>
+                                            <span class="badge rounded-pill">vs ${match.opponent}</span>
                                         </li>
                                     `).join('')}
                                 </ul>

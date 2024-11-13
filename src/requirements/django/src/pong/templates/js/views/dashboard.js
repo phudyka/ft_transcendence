@@ -7,7 +7,7 @@ import { removeLoginEventListeners } from './login.js';
 import { checkAuthentication } from '../utils/auth.js';
 import { showToast } from '../utils/unmask.js';
 import { checkFriendshipStatus } from './profile.js';
-import { updateOnlineStatus, sendFriendRequestSocket } from '../utils/socketManager.js';
+import { sendFriendRequestSocket } from '../utils/socketManager.js';
 
 let socket;
 const privateChatLogs = new Map();
@@ -24,15 +24,18 @@ export async function dashboard(player_name) {
 
     removeLoginEventListeners();
 
-    const username = sessionStorage.getItem('username');
     const displayName = sessionStorage.getItem('display_name');
     let avatarUrl = sessionStorage.getItem('avatar_url');
-    
-    let socket = initializeSocket(displayName);
-    setupAutoReconnect();
+
+    let existingSocket = getSocket(displayName);
+    if (!existingSocket || !existingSocket.connected) {
+        socket = initializeSocket(displayName);
+        if (socket) {
+            setupChatListeners(socket);
+        }
+    }
 
     await loadBlockedUsers();
-    setupChatListeners(socket);
 
     if (!displayName) {
         navigateTo('/login');
@@ -91,7 +94,7 @@ export async function dashboard(player_name) {
             </div>
 
                 <div class="game-container">
-                    <iframe id="pong" title="Pong" src="https://localhost:8080/game_server"></iframe>
+                    <iframe id="pong" title="Pong" src="https://fabgame:8080/game_server"></iframe>
                 </div>
 
             <div class="chat-container">
@@ -138,7 +141,7 @@ export async function dashboard(player_name) {
         const csrfToken = getCookie('csrftoken');
         console.log(sessionStorage);
         const avatar = sessionStorage.getItem('avatar_url');
-        iframe.contentWindow.postMessage({ username: displayName, token: token, csrfToken: csrfToken, avatar: avatar }, 'https://localhost:8080/game_server');
+        iframe.contentWindow.postMessage({ username: displayName, token: token, csrfToken: csrfToken, avatar: avatar }, 'https://fabgame:8080/game_server');
     };
 
 	setupDashboardEvents(navigateTo, displayName);
@@ -150,7 +153,6 @@ export async function dashboard(player_name) {
 function setupChatListeners(socket) {
     if (socket) {
         const displayName = sessionStorage.getItem('display_name');
-        updateOnlineStatus(displayName, true);
         console.log('=== Setting up chat listeners ===');
         console.log('Socket state:', {
             id: socket.id,
@@ -175,7 +177,7 @@ function setupChatListeners(socket) {
             }
 
             const currentUser = sessionStorage.getItem('display_name');
-            
+
             // Nouvelle logique pour déterminer le chatPartner
             let chatPartner;
             if (msg.isSelf) {
@@ -278,8 +280,8 @@ function setupChatListeners(socket) {
 
         socket.on('friend_request_updated', (data) => {
             console.log('Friend request updated:', data);
-            const message = data.response === 'accepted' 
-                ? `${data.from} a accepté votre demande d'ami!` 
+            const message = data.response === 'accepted'
+                ? `${data.from} a accepté votre demande d'ami!`
                 : `${data.from} a refusé votre demande d'ami.`;
             showToast(message, data.response === 'accepted' ? 'success' : 'info');
             fetchAndDisplayFriends();
@@ -362,7 +364,7 @@ function setupDashboardEvents(navigateTo, username) {
 	// Ajouter un intervalle pour rafraîchir périodiquement la liste d'amis
 	window.fetchFriendsInterval = setInterval(() => {
 		fetchAndDisplayFriends();
-	}, 30000); // Rafraîchir toutes les 30 secondes
+	}, 3000); // Rafraîchir toutes les 30 secondes
 }
 
 function handleProfilePictureClick(event) {
@@ -456,7 +458,7 @@ function setupPrivateChat(friendName) {
         console.log(`Private chat already configured for ${friendName}`);
         return;
     }
-    
+
     const privateChatContainer = document.getElementById('private-chats-container');
     privateChatContainer.innerHTML = `
         <h5 class="offcanvas-title" id="chatboxLabel">Private message with ${friendName}</h5>
@@ -511,7 +513,7 @@ function sendPrivateMessage(friendName) {
             from: currentUser,
             message: sanitizeHTML(message)
         });
-        
+
         input.value = '';
     } else {
         console.error('Cannot send message:', {
@@ -544,7 +546,12 @@ function displayPrivateMessage(friendName, sender, message, isSystem = false) {
         } else {
             const usernameElement = document.createElement('span');
             usernameElement.classList.add('username-link');
-            usernameElement.textContent = sender === 'Vous' ? `[Me] ` : `[${sanitizeHTML(friendName)}]`;
+            if (sender === 'Vous') {
+                usernameElement.style.color = '#ff7043';
+                usernameElement.textContent = '[Me] ';
+            } else {
+                usernameElement.textContent = `[${sanitizeHTML(friendName)}]`;
+            }
 
             const messageTextElement = document.createElement('span');
             messageTextElement.classList.add('message-text');
@@ -563,26 +570,26 @@ function displayPrivateMessage(friendName, sender, message, isSystem = false) {
 function startGame(event) {
     event.preventDefault()
     const friendName = document.getElementById('friendDropdown').getAttribute('data-friend');
-    
+
     const displayName = sessionStorage.getItem('display_name')
     const invitationData = {
         to: friendName,
         from: displayName,
         type: 'gameInvitation'
     };
-   
+
     const iframe = document.getElementById('pong');
     if (iframe && iframe.contentWindow) {
-        iframe.contentWindow.postMessage(invitationData, 'https://localhost:8080/game_server');
-        
-        showToast(`Invite send to ${friendName}`, 'success'); 
+        iframe.contentWindow.postMessage(invitationData, 'https://fabgame:8080/game_server');
+
+        showToast(`Invite send to ${friendName}`, 'success');
     } else {
         console.error('Iframe cible non trouvée ou inaccessible.');
         showToast('Imposible to send invite', 'error');
     }
     document.getElementById('friendDropdown').style.display = 'none';
     iframe.focus();
-} 
+}
 
 function goTosettings(event) {
 	event.preventDefault();
@@ -610,7 +617,6 @@ function sendMessage(event) {
     if (message !== '' && socket.connected) {
         socket.emit('chat message', { name: displayName, message: message });
         messageInput.value = '';
-        updateOnlineStatus(displayName);
     } else if (!socket.connected) {
         showToast('Connection lost. Trying to reconnect...', 'warning');
     }
@@ -619,7 +625,7 @@ function sendMessage(event) {
 function receiveMessage(msg) {
     console.log('Fonction receive Message appelée avec:', msg);
     console.log('Blocked users:', Array.from(blockedUsers));
-    
+
     // Vérifier si l'expéditeur est bloqué en utilisant le display_name
     if (blockedUsers.has(msg.name)) {
         console.log(`Message ignoré de ${msg.name} car il est bloqué.`);
@@ -636,17 +642,22 @@ function receiveMessage(msg) {
     const usernameElement = document.createElement('span');
     usernameElement.classList.add('username-link');
     usernameElement.dataset.friend = msg.name;
-    usernameElement.innerText = `[${msg.name}]`;
-    usernameElement.style = "cursor: pointer;";
 
-    updateOnlineStatus(msg.name);
+    const currentUsername = sessionStorage.getItem('display_name');
+    if (msg.name === currentUsername) {
+        usernameElement.style.color = '#ff7043';
+        usernameElement.innerText = `[${msg.name}]`;
+    } else {
+        usernameElement.innerText = `[${msg.name}]`;
+    }
+
+    usernameElement.style.cursor = 'pointer';
 
     saveMessage(msg.name, msg.message);
 
     usernameElement.addEventListener('click', function (event) {
         event.preventDefault();
         event.stopPropagation();
-        const currentUsername = sessionStorage.getItem('display_name');
         const isOwnUsername = msg.name === currentUsername;
         const dropdown = isOwnUsername ? document.getElementById('profileDropdown') : document.getElementById('friendDropdown_chat');
         const friendName = this.dataset.friend;
@@ -703,7 +714,7 @@ function handleEnterKey(event) {
             if (chatboxLabel) {
                 const friendName = chatboxLabel.textContent.replace('Private message with ', '');
                 const messageInput = document.getElementById(`message-input-${friendName}`);
-                
+
                 if (messageInput && document.activeElement === messageInput) {
                     event.preventDefault(); // Empêcher le saut de ligne
                     const sendButton = document.getElementById(`send-button-${friendName}`);
@@ -772,7 +783,7 @@ function blockUser(event) {
     event.preventDefault();
     const dropdown = event.target.closest('.dropdown-menu_chat');
     const username = dropdown.getAttribute('data-friend');
-    
+
     if (!username) {
         console.error("Username not found");
         return;
@@ -792,7 +803,7 @@ function blockUser(event) {
         if (data.success) {
             // Ajouter au Set des utilisateurs bloqués
             blockedUsers.add(username);
-            
+
             // Nettoyer les messages existants de l'utilisateur bloqué
             const chatLog = document.getElementById('chat-log');
             if (chatLog) {
@@ -806,7 +817,7 @@ function blockUser(event) {
             }
 
             showToast('User blocked successfully', 'success');
-            
+
             // Fermer le chat privé si ouvert
             if (privateChatLogs.has(username)) {
                 privateChatLogs.delete(username);
@@ -818,7 +829,7 @@ function blockUser(event) {
                     }
                 }
             }
-            
+
             fetchAndDisplayFriends();
         } else {
             showToast(data.message || 'Failed to block user', 'error');
@@ -871,7 +882,7 @@ function loadGeneralChatMessages() {
     try {
         // Parse les messages correctement
         const messages = JSON.parse(messagesString);
-        
+
         chatLog.innerHTML = ''; // Effacer les messages précédents
 
         messages.forEach(msg => {
@@ -1242,18 +1253,18 @@ function handleLogout(event) {
 function setupTabSystem() {
     const tabButtons = document.querySelectorAll('.tab-button');
     const tabContents = document.querySelectorAll('.tab-content');
-    
+
     tabButtons.forEach(button => {
         button.addEventListener('click', (e) => {
             e.preventDefault();
-            
+
             // Remove active class from all buttons and contents
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabContents.forEach(content => content.classList.remove('active'));
-            
+
             // Add active class to clicked button
             button.classList.add('active');
-            
+
             // Show corresponding content
             const tabId = button.getAttribute('data-tab');
             const content = document.getElementById(tabId);
@@ -1274,7 +1285,7 @@ async function loadBlockedUsers() {
                 'Content-Type': 'application/json'
             }
         });
-        
+
         if (!response.ok) {
             throw new Error('Failed to fetch blocked users');
         }
@@ -1294,24 +1305,25 @@ async function loadBlockedUsers() {
     }
 }
 
-// Ajouter une fonction de reconnexion automatique
+// Modifier la fonction setupAutoReconnect pour éviter les reconnexions inutiles
 function setupAutoReconnect() {
     const displayName = sessionStorage.getItem('display_name');
-    let socket = getSocket(displayName);
 
-    // Vérifier la connexion toutes les 30 secondes
-    const reconnectInterval = setInterval(() => {
+    // Nettoyer l'intervalle existant s'il y en a un
+    if (window.reconnectInterval) {
+        clearInterval(window.reconnectInterval);
+    }
+
+    window.reconnectInterval = setInterval(() => {
+        const socket = getSocket(displayName);
         if (!socket || !socket.connected) {
-            console.log('Attempting to reconnect socket...');
-            socket = initializeSocket(displayName);
-            if (socket) {
-                setupChatListeners(socket);
+            console.log('Socket déconnecté, tentative de reconnexion...');
+            const newSocket = initializeSocket(displayName);
+            if (newSocket) {
+                setupChatListeners(newSocket);
             }
         }
-    }, 30000);
-
-    // Stocker l'intervalle pour le nettoyer plus tard
-    window.reconnectInterval = reconnectInterval;
+    }, 30000); // Vérification toutes les 30 secondes
 }
 
 // Ajouter dans setupDashboardEvents

@@ -18,6 +18,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('result', models.CharField(choices=[('win', 'Win'), ('loss', 'Loss')], max_length=4)),
                 ('date', models.DateTimeField(auto_now_add=True)),
+                ('opponent', models.CharField(max_length=50, default='AI')),
                 ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='match_history', to=settings.AUTH_USER_MODEL)),
             ],
             options={
