@@ -6,7 +6,7 @@
 /*   By: fabperei <fabperei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 16:25:31 by phudyka           #+#    #+#             */
-/*   Updated: 2024/11/13 09:01:08 by fabperei         ###   ########.fr       */
+/*   Updated: 2024/11/14 09:54:34 by fabperei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ const options = {
 const app = express();
 
 app.use(cors({
-    origin: ["https://localhost:8080"],
+    origin: ["https://c1r4p8.42nice.fr:8080"],
     methods: ["GET", "POST"],
     credentials: true
 }));

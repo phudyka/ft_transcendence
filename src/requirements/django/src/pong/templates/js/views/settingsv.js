@@ -93,6 +93,8 @@ function attachEventSettingsPage(navigateTo, player_name) {
     const pongonlineLink = document.getElementById('pongonlineLink');
     const backToDashboard = document.getElementById('backToDashboard');
     const settingsForm = document.getElementById('settingsForm');
+    const displayNameInput = document.getElementById('displayName').value;
+    const emailInput = document.getElementById('email').value;
     const changePasswordForm = document.getElementById('changePasswordForm');
     const avatarInput = document.getElementById('avatar');
 
@@ -105,7 +107,18 @@ function attachEventSettingsPage(navigateTo, player_name) {
 
     settingsForm.addEventListener('submit', async (event) => {
         event.preventDefault();
-        const formData = new FormData(settingsForm);
+        const formData = new FormData();
+
+        const displayName = document.getElementById('displayName').value;
+        const email = document.getElementById('email').value;
+
+        formData.append('display_name', displayName);
+        formData.append('email', email);
+
+        const avatarInput = document.getElementById('avatar');
+        if (avatarInput && avatarInput.files[0]) {
+            formData.append('avatar', avatarInput.files[0]);
+        }
 
         try {
             const csrftoken = getCookie('csrftoken');
@@ -120,6 +133,7 @@ function attachEventSettingsPage(navigateTo, player_name) {
 
             if (response.ok) {
                 const data = await response.json();
+                console.log('Settings updated:', data);
                 showUpdateProfileToast();
                 
                 if (data.avatar_url) {

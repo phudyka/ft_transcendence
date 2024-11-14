@@ -2,6 +2,7 @@ import { fetchWithToken } from './api.js';
 import { fetchAndDisplayFriends } from '../views/dashboard.js';
 import { showToast } from './unmask.js';
 import { acceptFriendRequest, rejectFriendRequest } from '../utils/friendManager.js';
+import { logout } from '../utils/token.js';
 
 let sockets = new Map();
 let activityTimers = new Map();
@@ -21,7 +22,7 @@ export function initializeSocket(displayName) {
         return null;
     }
 
-    const socket = io('https://localhost:8080', {
+    const socket = io('https://c1r4p8.42nice.fr:8080', {
         transports: ['websocket'],
         path: '/c_socket.io',
         query: {
@@ -65,6 +66,13 @@ export function initializeSocket(displayName) {
 
     socket.on('session_expired', (data) => {
         console.log('Session expirée:', data.message);
+        showToast(data.message, 'warning');
+        disconnectSocket(displayName);
+        logout();
+    });
+
+    socket.on('force_disconnect', (data) => {
+        console.log('Forced disconnect:', data.message);
         showToast(data.message, 'warning');
         disconnectSocket(displayName);
         logout();
@@ -121,6 +129,8 @@ export function getSocket(username) {
 export function disconnectSocket(username) {
     const socket = sockets.get(username);
     if (socket) {
+        socket.off('force_disconnect');
+        socket.off('registration_success');
         socket.disconnect();
         sockets.delete(username);
         clearActivityTimer(username);

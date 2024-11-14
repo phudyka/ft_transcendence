@@ -46,10 +46,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         return self.username
 
     def set_password(self, raw_password):
-        self.password = make_password(raw_password)  # Utilisez self.password au lieu de self.password_hash
+        self.password = make_password(raw_password)
 
     def check_password(self, raw_password):
-        return check_password(raw_password, self.password)  # Utilisez self.password au lieu de self.password_hash
+        return check_password(raw_password, self.password)
 
 class UserToken(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tokens')

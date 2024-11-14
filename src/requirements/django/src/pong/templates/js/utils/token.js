@@ -68,16 +68,13 @@ export function generateToken() {
 }
 
 export async function logout() {
-    // Supprimer d'abord les event listeners du dashboard
     removeDashboardEventListeners();
     
-    // Déconnecter le socket si il existe
     if (globalSocket && globalSocket.connected) {
         globalSocket.disconnect();
         console.log('Utilisateur déconnecté du socket');
     }
 
-    // Mettre à jour le statut en ligne seulement si l'utilisateur est connecté
     const accessToken = sessionStorage.getItem('accessToken');
     if (accessToken) {
         try {
@@ -94,11 +91,9 @@ export async function logout() {
         }
     }
 
-    // Nettoyer la session et les cookies
     sessionStorage.clear();
     document.cookie = '';
     
-    // Rediriger vers la page de login
     navigateTo('/login');
 }
 

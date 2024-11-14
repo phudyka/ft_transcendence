@@ -232,6 +232,9 @@ def send_friend_request(request):
     try:
         to_user = CustomUser.objects.get(display_name=to_username)
 
+        if request.user == to_user:
+            return JsonResponse({ 'success': False,  'message': 'You cannot send a friend request to yourself.'}, status=400)
+
         if Friendship.objects.filter(user=request.user, friend=to_user).exists():
             return JsonResponse({'success': False, 'message': 'You are already friends with this user.'}, status=400)
 
@@ -305,13 +308,17 @@ def update_user_settings(request):
         if 'display_name' in request.data:
             user.display_name = request.data['display_name']
 
+        if 'email' in request.data:
+            user.email = request.data['email']
+
         user.save()
 
         return JsonResponse({
             'success': True,
             'message': 'Settings updated successfully',
             'avatar_url': user.avatar_url,
-            'display_name': user.display_name
+            'display_name': user.display_name,
+            'email': user.email
         })
     except Exception as e:
         return JsonResponse({
@@ -552,7 +559,7 @@ def auth_42_login(request):
     auth_url = 'https://api.intra.42.fr/oauth/authorize'
     params = {
         'client_id': settings.FT_CLIENT_ID,
-        'redirect_uri': 'https://localhost:8080/api/auth/42/callback/',
+        'redirect_uri': 'https://c1r4p8.42nice.fr:8080/api/auth/42/callback/',
         'response_type': 'code',
         'scope': 'public'
     }
@@ -570,7 +577,7 @@ def auth_42_callback(request):
         'client_id': settings.FT_CLIENT_ID,
         'client_secret': settings.FT_CLIENT_SECRET,
         'code': code,
-        'redirect_uri': 'https://localhost:8080/api/auth/42/callback/'
+        'redirect_uri': 'https://c1r4p8.42nice.fr:8080/api/auth/42/callback/'
     }
 
     response = requests.post(token_url, data=data)
