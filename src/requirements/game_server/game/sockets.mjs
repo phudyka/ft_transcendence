@@ -184,7 +184,8 @@ export default function setupSockets(io) {
 
         socket.on('invite', (data) => {
             let to = findClientByUsername(data.to);
-            if (to !== null && to.getRoom() === null){
+            let from = findClientByUsername(data.from)
+            if (to !== null && to.getRoom() === null && to.getReady() === true && from.getReady() === true){
                 io.to(to.getSocketId()).emit('invite', { from: data.from, to: data.to });
             }
             else{
