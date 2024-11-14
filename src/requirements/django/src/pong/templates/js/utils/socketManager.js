@@ -21,7 +21,7 @@ export function initializeSocket(displayName) {
         return null;
     }
 
-    const socket = io('https://fabgame:8080', {
+    const socket = io('https://localhost:8080', {
         transports: ['websocket'],
         path: '/c_socket.io',
         query: {

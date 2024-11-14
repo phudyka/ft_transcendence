@@ -24,7 +24,7 @@ import { hitPadEvent, initSocketEvent, SoundLobby } from './socketEvent.mjs';
 import Sound from './sounds.mjs';
 import { updateUserStats } from './api.mjs';
 
-const socket = io('https://fabgame:8080', {
+const socket = io('https://localhost:8080', {
     transports: ['websocket'],
     path: '/g_socket.io'
 });
@@ -35,7 +35,7 @@ let csrfToken;
 let avatar;
 
 window.addEventListener('message', function(event) {
-    if (event.origin === 'https://fabgame:8080' && event.data.type == 'gameInvitation') {
+    if (event.origin === 'https://localhost:8080' && event.data.type == 'gameInvitation') {
         console.log(event);
         const to = event.data.to;
         const from = event.data.from;
@@ -48,7 +48,7 @@ window.addEventListener('message', function(event) {
 });
 
 window.addEventListener('message', function(event) {
-    if (event.origin === 'https://fabgame:8080' && event.data.type == undefined) {
+    if (event.origin === 'https://localhost:8080' && event.data.type == undefined) {
         username = event.data.username;
         token = event.data.token;
         csrfToken = event.data.csrfToken;
@@ -307,12 +307,12 @@ socket.on('gameOver', (data) => {
 	if (data.winner === username && data.roomType !== 'multi-2-local'){
 		sounds.play('win');
         winnerMessage.textContent = `YOU WIN !`;
-        updateUserStats(username, token, true);
+        updateUserStats(username, token, true, data.looser);
     }
 	else if (data.winner !== username && data.roomType !== 'multi-2-local' && data.roomType !== 'multi-four') {
         sounds.play('loose');
         winnerMessage.textContent = `YOU LOOSE ! ${winner} is the winner`;
-        updateUserStats(username, token, false);
+        updateUserStats(username, token, false, data.winner);
     }
     else if (data.winner.length === 2 && data.winner[0] === username || data.winner[1] === username){
         winnerMessage.textContent = `YOU WIN ${winner}`;

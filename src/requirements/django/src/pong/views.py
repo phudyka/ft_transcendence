@@ -427,7 +427,7 @@ def update_user_stats(request, display_name):
 def save_match_result(request):
     try:
         result = request.data.get('result')
-        opponent = request.data.get('opponent', 'AI')
+        opponent = request.data.get('opponent')
 
         # Validation des données
         if result not in ['win', 'loss']:
@@ -552,7 +552,7 @@ def auth_42_login(request):
     auth_url = 'https://api.intra.42.fr/oauth/authorize'
     params = {
         'client_id': settings.FT_CLIENT_ID,
-        'redirect_uri': 'https://fabgame:8080/api/auth/42/callback/',
+        'redirect_uri': 'https://localhost:8080/api/auth/42/callback/',
         'response_type': 'code',
         'scope': 'public'
     }
@@ -570,7 +570,7 @@ def auth_42_callback(request):
         'client_id': settings.FT_CLIENT_ID,
         'client_secret': settings.FT_CLIENT_SECRET,
         'code': code,
-        'redirect_uri': 'https://fabgame:8080/api/auth/42/callback/'
+        'redirect_uri': 'https://localhost:8080/api/auth/42/callback/'
     }
 
     response = requests.post(token_url, data=data)
