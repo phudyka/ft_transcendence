@@ -2,7 +2,7 @@ NAME = up
 
 PROJECT = "ft_transcendence"
 
-HOSTNAME ?= $(shell hostname -a | cut -d' ' -f1)
+HOSTNAME ?= $(shell hostname -A | cut -d' ' -f1)
 
 IMAGES =	src-grafana\
 			src-prometheus\
