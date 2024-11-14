@@ -202,5 +202,5 @@ setInterval(() => {
 }, 60000); // Vérifier chaque minute
 
 server.listen(443, () => {
-    console.log(`${formatDate(new Date())} Serveur en écoute sur le port 3000`);
+    console.log(`${formatDate(new Date())} Serveur en écoute sur le port 443`);
 });
