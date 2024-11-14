@@ -117,7 +117,7 @@ io.on('connection', (socket) => {
         if (username) {
             const token = userTokens.get(username);
             try {
-                const response = await fetch('http://web:8000/api/update-online-status/', {
+                const response = await fetch('/api/update-online-status/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -199,5 +199,5 @@ setInterval(() => {
 }, 60000); // Vérifier chaque minute
 
 server.listen(443, () => {
-    console.log(`${formatDate(new Date())} Serveur en écoute sur le port 3000`);
+    console.log(`${formatDate(new Date())} Serveur en écoute sur le port 443`);
 });
