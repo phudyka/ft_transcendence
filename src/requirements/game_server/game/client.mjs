@@ -22,6 +22,10 @@ export class Client {
             this.room = null;
     }
 
+    getReady(){
+        return this.initGame;
+    }
+
     getName() {
         return this.playerName;
     }
