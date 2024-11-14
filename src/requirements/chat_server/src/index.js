@@ -50,24 +50,27 @@ io.on('connection', (socket) => {
     socket.on('register', (data) => {
         const { username, token } = data;
         if (username) {
+            const existingConnection = userConnections.get(username);
+            if (existingConnection && existingConnection.socketId !== socket.id) {
+                const existingSocket = io.sockets.sockets.get(existingConnection.socketId);
+                if (existingSocket) {
+                    console.log(`${formatDate(new Date())} Forçage de la déconnexion de l'ancienne session pour ${username}`);
+                    existingSocket.emit('force_disconnect', {
+                        message: 'Your account has been connected from another location'
+                    });
+                    existingSocket.disconnect(true);
+                }
+            }
+
             userTokens.set(username, token);
             userConnections.set(username, { socketId: socket.id, lastActivity: Date.now() });
-            if (!users.has(username)) {
-                socket.username = username;
-                users.set(username, socket.id);
-                console.log(`${formatDate(new Date())} Utilisateur enregistré: ${username}`);
-            } else {
-                console.log(`${formatDate(new Date())} L'utilisateur ${username} est déjà connecté`);
-                // Déconnecter l'ancien socket si nécessaire
-                const existingSocketId = users.get(username);
-                const existingSocket = io.sockets.sockets.get(existingSocketId);
-                if (existingSocket) {
-                    existingSocket.disconnect();
-                }
-                socket.username = username;
-                users.set(username, socket.id);
-                console.log(`${formatDate(new Date())} Utilisateur ${username} reconnecté avec le nouveau socket ${socket.id}`);
-            }
+            socket.username = username;
+            users.set(username, socket.id);
+            console.log(`${formatDate(new Date())} Utilisateur enregistré: ${username}`);
+
+            socket.emit('registration_success', {
+                message: 'Successfully connected to chat server'
+            });
         } else {
             console.error(`${formatDate(new Date())} Tentative d'enregistrement avec un nom d'utilisateur invalide`);
         }
@@ -117,7 +120,7 @@ io.on('connection', (socket) => {
         if (username) {
             const token = userTokens.get(username);
             try {
-                const response = await fetch('http://web:8000/api/update-online-status/', {
+                const response = await fetch('/api/update-online-status/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

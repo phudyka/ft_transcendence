@@ -174,6 +174,8 @@ export async function profile(displayName) {
 
             document.getElementById('backToDashboard').addEventListener('click', () => {
                 navigateTo('/dashboard');
+                //refresh page
+                window.location.reload;
             });
 
         } else {
