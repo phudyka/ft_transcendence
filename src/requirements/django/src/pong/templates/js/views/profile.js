@@ -75,6 +75,28 @@ export async function profile(displayName) {
                 opponent: match.opponent
             })) : [];
 
+            const winRate = totalGames > 0 ? ((userProfile.wins / totalGames) * 100).toFixed(1) : 0;
+
+            let currentStreak = 0;
+            let streakType = 'None';
+            if (recentMatches.length > 0) {
+                const firstResult = recentMatches[0].result;
+                streakType = firstResult.charAt(0).toUpperCase() + firstResult.slice(1);
+                
+                for (let match of recentMatches) {
+                    if (match.result === firstResult) {
+                        currentStreak++;
+                    } else {
+                        break;
+                    }
+                }
+            }
+
+            const aiGames = recentMatches.filter(match => match.opponent === 'AI');
+            const aiWins = aiGames.filter(match => match.result === 'win').length;
+            const aiLosses = aiGames.filter(match => match.result === 'loss').length;
+            const aiWinRate = aiGames.length > 0 ? ((aiWins / aiGames.length) * 100).toFixed(1) : 0;
+
             document.getElementById('ft_transcendence').innerHTML = `
             <div class="dashboard-container">
 
@@ -99,6 +121,10 @@ export async function profile(displayName) {
                                     <strong>Wins:</strong> ${userProfile.wins}<br>
                                     <strong>Losses:</strong> ${userProfile.losses}<br>
                                     <strong>Total games:</strong> ${totalGames}<br>
+                                    <strong>Win Rate:</strong> ${winRate}%<br>
+                                    <strong>Current Streak:</strong> ${currentStreak} ${streakType}<br>
+                                    <strong>VS AI Win Rate:</strong> ${aiWinRate}%<br>
+                                    <strong>VS AI Record:</strong> ${aiWins}W - ${aiLosses}L<br>
                                 </p>
                             </div>
                         </div>

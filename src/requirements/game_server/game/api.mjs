@@ -18,6 +18,7 @@ export async function updateUserStats(displayName, token, hasWon, opponent) {
     const userData = await getUserByDisplayName(displayName, token);
     let currentWins = userData.user.wins;
     let currentLosses = userData.user.losses;
+    console.log('opponent contient : ', opponent);
 
     console.log('user data :', userData);
 

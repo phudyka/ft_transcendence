@@ -427,7 +427,7 @@ def update_user_stats(request, display_name):
 def save_match_result(request):
     try:
         result = request.data.get('result')
-        opponent = request.data.get('opponent', 'AI')
+        opponent = request.data.get('opponent')
 
         # Validation des données
         if result not in ['win', 'loss']:

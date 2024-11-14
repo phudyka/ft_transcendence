@@ -6,7 +6,7 @@
 /*   By: fabperei <fabperei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 16:25:09 by phudyka           #+#    #+#             */
-/*   Updated: 2024/11/13 09:00:32 by fabperei         ###   ########.fr       */
+/*   Updated: 2024/11/14 09:55:11 by fabperei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -307,12 +307,12 @@ socket.on('gameOver', (data) => {
 	if (data.winner === username && data.roomType !== 'multi-2-local'){
 		sounds.play('win');
         winnerMessage.textContent = `YOU WIN !`;
-        updateUserStats(username, token, true);
+        updateUserStats(username, token, true, data.looser);
     }
 	else if (data.winner !== username && data.roomType !== 'multi-2-local' && data.roomType !== 'multi-four') {
         sounds.play('loose');
         winnerMessage.textContent = `YOU LOOSE ! ${winner} is the winner`;
-        updateUserStats(username, token, false);
+        updateUserStats(username, token, false, data.winner);
     }
     else if (data.winner.length === 2 && data.winner[0] === username || data.winner[1] === username){
         winnerMessage.textContent = `YOU WIN ${winner}`;
