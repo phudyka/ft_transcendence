@@ -53,8 +53,11 @@ function IApad(pad2, ball) {
     }
 }
 
-function checkWallCollision(ball, pad1, pad2, io, room, roomsTypes, players) {
-
+function checkWallCollision(ball, pad1, pad2, io, room, roomsTypes, players, roomTeams = null) {
+        let teams;
+        if (roomTeams !== null && roomsTypes === 'multi-four'){
+            teams = roomTeams.get(room);
+        }
         let client1 = clients.get(players[0]);
         let client2 = 'Player 2';
         if (roomsTypes !== "solo_vs_ia" && roomsTypes !== "multi-2-local")
@@ -77,6 +80,9 @@ function checkWallCollision(ball, pad1, pad2, io, room, roomsTypes, players) {
             if (roomsTypes === "semi-tournament" || roomsTypes === "final-tournament"){
                 io.in(room).emit('matchOver', { winner: client1.getSocketId(), roomName: room, roomType: roomsTypes});
             }
+            else if (roomsTypes === 'multi-four'){
+                io.in(room).emit('gameOver', {winner: [clients.get(teams.team1[0]).getName(), clients.get(teams.team1[1]).getName()], roomType: roomsTypes})
+            }
             else {
                     if (client2 === 'Player 2' || client2 === 'AI')
                         io.in(room).emit('gameOver', { winner: client1.getName(), looser: client2, score1: pad1.score, score2: pad2.score, roomType : roomsTypes });
@@ -95,6 +101,9 @@ function checkWallCollision(ball, pad1, pad2, io, room, roomsTypes, players) {
         if (pad2.score >= maxScore) { 
             if (roomsTypes === "semi-tournament" || roomsTypes === "final-tournament"){
                 io.in(room).emit('matchOver', { winner: client2.getSocketId(), roomName: room, roomType: roomsTypes});
+            }
+            else if (roomsTypes === 'multi-four'){
+                io.in(room).emit('gameOver', {winner: [clients.get(teams.team2[0]).getName(), clients.get(teams.team2[1]).getName()], roomType: roomsTypes})
             }
             else {
                 if (roomsTypes === "multi-2-local" || roomsTypes === "solo_vs_ia")
@@ -165,9 +174,9 @@ export function setupSoloGame(io, players, room, socket, rooms, roomsTypes, keys
 }
 
 
-function updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room, keysPressed, players) {
+function updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room, keysPressed, players, roomTeams) {
         ball.updatePosition();
-        if (checkWallCollision(ball, pad1, pad2, io, room, "multi-four", players) === true)
+        if (checkWallCollision(ball, pad1, pad2, io, room, "multi-four", players, roomTeams) === true)
             return true;
         if (ball.checkCollision(pad1))
             io.in(room).emit('hitPad');
@@ -198,9 +207,9 @@ export function setupMultiGame(io, socket, players, room, ball, pad1, pad2, keys
 
 }
 
-export function setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, keysPressed, players) {
+export function setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, keysPressed, players, roomTeams) {
     const interval = setInterval(() => {
-        if (updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room, keysPressed, players) === true){
+        if (updateBallPositionFourPlayers(ball, pad1, pad2, pad3, pad4, io, room, keysPressed, players, roomTeams) === true){
             clearInterval(interval);
         }
         if (!rooms[room]) {

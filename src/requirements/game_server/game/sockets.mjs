@@ -347,7 +347,7 @@ export default function setupSockets(io) {
                         speed: ball.speed,
                     });
     
-                    setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, keysPressedMap.get(room), rooms[room]);
+                    setupMultiGameFour(io, room, ball, pad1, pad2, pad3, pad4, keysPressedMap.get(room), rooms[room], roomTeams);
                 }
             }
         });
