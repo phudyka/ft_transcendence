@@ -176,13 +176,6 @@ document.getElementById('start-game-button').addEventListener('click', () => {
     }, 2000);
 });
 
-window.addEventListener("resize", () => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-});
-
-
 function updateAnimation() {
     const delta = clock.getDelta();
     if (mixer) mixer.update(delta);
