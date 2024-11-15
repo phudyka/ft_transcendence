@@ -94,11 +94,7 @@ export async function dashboard(player_name) {
             </div>
 
                 <div class="game-container">
-<<<<<<< HEAD
                     <iframe id="pong" title="Pong" src="https://localhost:8080/game_server"></iframe>
-=======
-                    <iframe id="pong" title="Pong" src="https://c1r4p6.42nice.fr:8080/game_server"></iframe>
->>>>>>> 95fd27148ee32851734349d751ffb1ab440842fa
                 </div>
 
             <div class="chat-container">
@@ -145,11 +141,7 @@ export async function dashboard(player_name) {
         const csrfToken = getCookie('csrftoken');
         console.log(sessionStorage);
         const avatar = sessionStorage.getItem('avatar_url');
-<<<<<<< HEAD
         iframe.contentWindow.postMessage({ username: displayName, token: token, csrfToken: csrfToken, avatar: avatar }, 'https://localhost:8080/game_server');
-=======
-        iframe.contentWindow.postMessage({ username: displayName, token: token, csrfToken: csrfToken, avatar: avatar }, 'https://c1r4p6.42nice.fr:8080/game_server');
->>>>>>> 95fd27148ee32851734349d751ffb1ab440842fa
     };
 
 	setupDashboardEvents(navigateTo, displayName);
@@ -591,11 +583,7 @@ function startGame(event) {
 
     const iframe = document.getElementById('pong');
     if (iframe && iframe.contentWindow) {
-<<<<<<< HEAD
         iframe.contentWindow.postMessage(invitationData, 'https://localhost:8080/game_server');
-=======
-        iframe.contentWindow.postMessage(invitationData, 'https://c1r4p6.42nice.fr:8080/game_server');
->>>>>>> 95fd27148ee32851734349d751ffb1ab440842fa
 
         showToast(`Invite send to ${friendName}`, 'success');
     } else {
