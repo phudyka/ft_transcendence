@@ -8,6 +8,9 @@ let sockets = new Map();
 let activityTimers = new Map();
 
 export function initializeSocket(displayName) {
+
+    cleanupAllSockets();
+
     const existingSocket = sockets.get(displayName);
     if (existingSocket && existingSocket.connected) {
         console.log(`Socket existant trouvé pour ${displayName}`);
@@ -22,7 +25,7 @@ export function initializeSocket(displayName) {
         return null;
     }
 
-    const socket = io('https://localhost:8080', {
+    const socket = io('https://c1r4p6.42nice.fr:8080', {
         transports: ['websocket'],
         path: '/c_socket.io',
         query: {
@@ -201,4 +204,25 @@ export function handleDashboardPresence(username) {
         updateOnlineStatus(username, false);
         disconnectSocket(username);
     });
+}
+
+export function cleanupAllSockets() {
+    console.log('Cleaning up all sockets...');
+    for (let [username, socket] of sockets) {
+        console.log(`Cleaning up socket for ${username}`);
+        if (socket) {
+            socket.off('chat message');
+            socket.off('private message');
+            socket.off('friend_request_received');
+            socket.off('friend_request_updated');
+            socket.off('friend_status_change');
+            socket.off('session_expired');
+            socket.off('force_disconnect');
+            socket.disconnect();
+            updateOnlineStatus(username, false);
+        }
+    }
+    sockets.clear();
+    activityTimers.forEach((timer) => clearTimeout(timer));
+    activityTimers.clear();
 }
