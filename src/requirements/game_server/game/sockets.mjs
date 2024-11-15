@@ -185,10 +185,10 @@ export default function setupSockets(io) {
         socket.on('invite', (data) => {
             let to = findClientByUsername(data.to);
             let from = findClientByUsername(data.from)
-            if (to !== null && to.getRoom() === null && to.getReady() === true && from.getReady() === true){
+            if (to !== null && to.getRoom() === null && to.getReady() === true && from !== null && from.getReady() === true){
                 io.to(to.getSocketId()).emit('invite', { from: data.from, to: data.to });
             }
-            else{
+            else if (to !== null){
                 io.to(socket.id).emit('not-ready', {from: to.getName()});
             }
             console.log(to);
