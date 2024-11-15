@@ -22,7 +22,7 @@ class Migration(migrations.Migration):
                 ('to_user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='friend_requests_received', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'unique_together': {('from_user', 'to_user')},
+                # 'unique_together': {('from_user', 'to_user')},
             },
         ),
     ]

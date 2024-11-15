@@ -196,7 +196,7 @@ setInterval(() => {
             userConnections.delete(username);
             io.emit('user_disconnected', username);
             console.log(`${formatDate(new Date())} Mise à jour du statut de ${username} à offline`);
-            // updateOnlineStatus(username, false);
+            updateOnlineStatus(username, false);
         }
     });
 }, 60000); // Vérifier chaque minute

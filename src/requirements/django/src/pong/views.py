@@ -223,7 +223,7 @@ def user_profile(request, display_name):
         }
         return JsonResponse({'success': True, 'profile': profile_data})
     except User.DoesNotExist:
-        return JsonResponse({'success': False, 'error': 'Utilisateur non trouvé'}, status=404)
+        return JsonResponse({'success': False, 'error': 'User not found'}, status=404)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -267,7 +267,7 @@ def reject_friend_request(request):
     try:
         friend_request = FriendRequest.objects.get(id=request_id, to_user=request.user, status='pending')
         friend_request.status = 'rejected'
-        friend_request.save()
+        friend_request.delete()
         return JsonResponse({'success': True, 'message': 'Friend request rejected'})
     except FriendRequest.DoesNotExist:
         return JsonResponse({'success': False, 'message': 'Friend request not found'}, status=404)
@@ -343,7 +343,7 @@ def check_friendship_status(request, username):
             'request_sent': request_sent
         })
     except CustomUser.DoesNotExist:
-        return JsonResponse({'error': 'Utilisateur non trouvé'}, status=404)
+        return JsonResponse({'error': 'User not found'}, status=404)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -393,7 +393,7 @@ def check_friend_request(request, username):
             'request_sent': request_sent
         })
     except CustomUser.DoesNotExist:
-        return JsonResponse({'error': 'Utilisateur non trouv'}, status=404)
+        return JsonResponse({'error': 'User not found'}, status=404)
 
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
@@ -559,7 +559,11 @@ def auth_42_login(request):
     auth_url = 'https://api.intra.42.fr/oauth/authorize'
     params = {
         'client_id': settings.FT_CLIENT_ID,
+<<<<<<< HEAD
         'redirect_uri': 'https://localhost:8080/api/auth/42/callback/',
+=======
+        'redirect_uri': 'https://c1r4p6.42nice.fr:8080/api/auth/42/callback/',
+>>>>>>> 95fd27148ee32851734349d751ffb1ab440842fa
         'response_type': 'code',
         'scope': 'public'
     }
@@ -577,7 +581,11 @@ def auth_42_callback(request):
         'client_id': settings.FT_CLIENT_ID,
         'client_secret': settings.FT_CLIENT_SECRET,
         'code': code,
+<<<<<<< HEAD
         'redirect_uri': 'https://localhost:8080/api/auth/42/callback/'
+=======
+        'redirect_uri': 'https://c1r4p6.42nice.fr:8080/api/auth/42/callback/'
+>>>>>>> 95fd27148ee32851734349d751ffb1ab440842fa
     }
 
     response = requests.post(token_url, data=data)
