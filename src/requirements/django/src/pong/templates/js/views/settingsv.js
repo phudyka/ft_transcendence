@@ -48,7 +48,7 @@ export function settings() {
                     </div>
                     <small class="form-text text-muted">
                         <ul>
-                            <li><i style="color: #ff5722;">Accepted formats: JPG, PNG, GIF</i></li>
+                            <li><i style="cdjangoolor: #ff5722;">Accepted formats: JPG, PNG, GIF</i></li>
                             <li><i style="color: #ff5722;">Maximum size: 5 MB</i></li>
                             <li><i style="color: #ff5722;">Dimensions: between 100x100 and 1000x1000 pixels</i></li>
                         </ul>
@@ -115,6 +115,12 @@ function attachEventSettingsPage(navigateTo, player_name) {
         formData.append('display_name', displayName);
         formData.append('email', email);
 
+        const currentDisplayName = sessionStorage.getItem('display_name');
+        if (currentDisplayName !== displayName) {
+            const { cleanupAllSockets } = await import('../utils/socketManager.js');
+            cleanupAllSockets();
+        }
+
         const avatarInput = document.getElementById('avatar');
         if (avatarInput && avatarInput.files[0]) {
             formData.append('avatar', avatarInput.files[0]);
@@ -169,7 +175,7 @@ function attachEventSettingsPage(navigateTo, player_name) {
                 showToast('File type not accepted. Please choose a JPG, PNG or GIF image.', 'error');
                 avatarInput.value = '';
                 return;
-            }
+            }click
 
             const reader = new FileReader();
             reader.onload = (e) => {
