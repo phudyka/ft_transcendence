@@ -93,7 +93,7 @@ function resetActivityTimer(username) {
         console.log(`Inactivité détectée pour ${username}`);
         await updateOnlineStatus(username, false);
         disconnectSocket(username);
-    }, 180000)); // 3 minutes au lieu de 2
+    }, 600000)); //10 minutes in milliseconds (600000)
 }
 
 function clearActivityTimer(username) {

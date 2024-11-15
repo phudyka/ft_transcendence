@@ -10,7 +10,7 @@ const userTokens = new Map();
 
 const options = {
     key: fs.readFileSync('/app/ssl_certificates/chat_server.key'),
-    cert: fs.readFileSync('/app/ssl_certificates/chat_server.crt')
+    cert: fs.readFileSync('/app/ssl_certificates/chat_server.crt'),
 };
 
 const app = express();
@@ -118,29 +118,10 @@ io.on('connection', (socket) => {
         console.log(`${formatDate(new Date())} Un utilisateur s'est déconnecté: ${socket.id}`);
         const username = [...userConnections.entries()].find(([_, value]) => value.socketId === socket.id)?.[0];
         if (username) {
-            const token = userTokens.get(username);
-            try {
-                const response = await fetch('/api/update-online-status/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`
-                    },
-                    body: JSON.stringify({ 
-                        is_online: false,
-                        display_name: username
-                    })
-                });
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                console.log(`${formatDate(new Date())} Statut mis à jour pour ${username}: offline`);
-            } catch (error) {
-                console.error(`${formatDate(new Date())} Erreur lors de la mise à jour du statut pour ${username}:`, error.message);
-            }
-            userTokens.delete(username);
             userConnections.delete(username);
             users.delete(username);
+            console.log(`${formatDate(new Date())} Mise à jour du statut de ${username} à offline`);
+            updateOnlineStatus(username, false);
         }
         updateLastActivity(socket.username);
     });
@@ -204,3 +185,45 @@ setInterval(() => {
 server.listen(443, () => {
     console.log(`${formatDate(new Date())} Serveur en écoute sur le port 443`);
 });
+
+const httpsAgent = new https.Agent({
+    cert: fs.readFileSync('/app/ssl_certificates/chat_server.crt'),
+    key: fs.readFileSync('/app/ssl_certificates/chat_server.key'),
+    rejectUnauthorized: false
+});
+
+async function updateOnlineStatus(username, isOnline) {
+    if (!username) {
+        console.log(`${formatDate(new Date())} Error: Missing username for status update`);
+        return;
+    }
+
+    const token = userTokens.get(username);
+    if (!token) {
+        console.log(`${formatDate(new Date())} Error: Missing token for user ${username}`);
+        return;
+    }
+
+    try {
+        console.log(`${formatDate(new Date())} Updating status for ${username}: ${isOnline ? 'online' : 'offline'}`);
+        const response = await fetch('https://django:443/api/update-online-status/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ 
+                is_online: isOnline,
+                display_name: username
+            }),
+            agent: httpsAgent
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+    } catch (error) {
+        console.error(`${formatDate(new Date())} Error updating status for ${username}:`, error.message);
+    }
+}

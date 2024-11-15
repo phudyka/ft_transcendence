@@ -6,7 +6,7 @@
 /*   By: fabperei <fabperei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 16:25:09 by phudyka           #+#    #+#             */
-/*   Updated: 2024/11/14 09:55:11 by fabperei         ###   ########.fr       */
+/*   Updated: 2024/11/15 11:37:52 by fabperei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -175,13 +175,6 @@ document.getElementById('start-game-button').addEventListener('click', () => {
         socket.emit('lobby ready');
     }, 2000);
 });
-
-window.addEventListener("resize", () => {
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-});
-
 
 function updateAnimation() {
     const delta = clock.getDelta();

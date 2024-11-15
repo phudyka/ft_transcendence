@@ -253,7 +253,6 @@ function setupChatListeners(socket) {
                         await acceptFriendRequest(data.requestId);
                         li.remove();
                         fetchAndDisplayFriends();
-                        // Activer l'onglet "Friends" après acceptation
                         const friendsTab = document.querySelector('[data-tab="online"]');
                         if (friendsTab) friendsTab.click();
                     } catch (error) {
@@ -524,7 +523,7 @@ function sendPrivateMessage(friendName) {
             hasSocket: !!socket,
             socketConnected: socket?.connected
         });
-        displayPrivateMessage(friendName, 'System', 'Impossible d\'envoyer le message : problème de connexion', true);
+        displayPrivateMessage(friendName, 'System', 'Friend is disconnected', true);
     }
 }
 
@@ -1079,11 +1078,15 @@ export async function fetchAndDisplayFriends() {
                             await acceptFriendRequest(request.id);
                             li.remove(); // Remove the request from the list
                             fetchAndDisplayFriends(); // Refresh friends list
+                            const friendsTab = document.querySelector('[data-tab="online"]');
+                            if (friendsTab) friendsTab.click();
                         });
 
                         li.querySelector('.reject-btn').addEventListener('click', async () => {
                             await rejectFriendRequest(request.id);
                             li.remove(); // Remove the request from the list
+                            const friendsTab = document.querySelector('[data-tab="online"]');
+                            if (friendsTab) friendsTab.click();
                         });
                     }
                 });
