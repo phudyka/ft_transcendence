@@ -56,18 +56,21 @@ export default function setupSockets(io) {
                         console.log('matchOver bien envoyé');
                     } else if (rooms[room].length > 0 && roomsTypes[room] === 'multi-four') {
                         let winningTeam;
-                            const teams = roomTeams.get(room);
+                            if (roomTeams !== null){
+                                const teams = roomTeams.get(room);
                             if (teams.team1[0] === socket.id || teams.team1[1] === socket.id) {
                                 winningTeam = [clients.get(teams.team2[0]).getName(), clients.get(teams.team2[1]).getName()];
                             } else if (teams.team2[0] === socket.id || teams.team2[1] === socket.id) {
                                 winningTeam = [clients.get(teams.team1[0]).getName(), clients.get(teams.team1[1]).getName()];
-                        }
+                            }
+                            if (winningTeam) {
+                                io.to(room).emit('gameOver', { winner: winningTeam, roomType: roomsTypes[room]});
+                            } else {
+                                console.error(`Impossible de déterminer l'équipe gagnante pour la salle ${room}`);
+                            }
+
+                            }
         
-                        if (winningTeam) {
-                            io.to(room).emit('gameOver', { winner: winningTeam, roomType: roomsTypes[room]});
-                        } else {
-                            console.error(`Impossible de déterminer l'équipe gagnante pour la salle ${room}`);
-                        }
                     }
 
                     //break;

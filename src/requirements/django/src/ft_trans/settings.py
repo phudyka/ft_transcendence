@@ -25,11 +25,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 APPEND_SLASH=False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = [ '*' ]
 
 # Application definition
 
@@ -188,5 +188,5 @@ LOGGING = {
 }
 
 # a securiser avec import os et os.getenv('FT_CLIENT_ID') et os.getenv('FT_CLIENT_SECRET')
-FT_CLIENT_ID = 'u-s4t2ud-0bdec356ea53d09b3992d0f90a9e4b9cdf8d0659d321388f9ba8ee3a41448165'
-FT_CLIENT_SECRET = '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'
+FT_CLIENT_ID = os.getenv("FT_CLIENT_ID")
+FT_CLIENT_SECRET = os.getenv("FT_CLIENT_SECRET")
