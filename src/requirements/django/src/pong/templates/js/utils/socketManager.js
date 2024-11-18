@@ -25,7 +25,7 @@ export function initializeSocket(displayName) {
         return null;
     }
 
-    const socket = io('https://c1r4p8.42nice.fr:8080', {
+    const socket = io('https://c1r4p6.42nice.fr:8080', {
         transports: ['websocket'],
         path: '/c_socket.io',
         query: {
@@ -83,7 +83,7 @@ export function initializeSocket(displayName) {
 
     sockets.set(displayName, socket);
     console.log(`Socket: ${socket.id} linked to ${displayName}`);
-    resetActivityTimer(displayName);
+    // resetActivityTimer(displayName);
     return socket;
 }
 
@@ -125,7 +125,7 @@ export async function updateOnlineStatus(username, isOnline) {
 }
 
 export function getSocket(username) {
-    resetActivityTimer(username);
+    // resetActivityTimer(username);
     return sockets.get(username);
 }
 
@@ -189,8 +189,8 @@ export function isSocketConnected(displayName) {
 }
 
 export function handleDashboardPresence(username) {
-    updateOnlineStatus(username, true);
-    resetActivityTimer(username);
+    // updateOnlineStatus(username, true);
+    // resetActivityTimer(username);
 
     const activityEvents = ['mousedown', 'keydown', 'mousemove', 'touchstart'];
 

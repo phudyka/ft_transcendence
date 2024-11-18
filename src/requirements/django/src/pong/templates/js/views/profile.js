@@ -59,7 +59,9 @@ export async function profile(displayName) {
                 throw new Error(data.error || 'Une erreur est survenue lors de la récupération du profil');
             }
 
+
             const userProfile = data.user;
+            const currentUser = sessionStorage.getItem('username');
             if (userProfile.avatar_url && userProfile.avatar_url.startsWith('url(')) {
                 userProfile.avatar_url = userProfile.avatar_url.replace(/^url\(["']?/, '').replace(/["']?\)$/, '');
             }
@@ -97,6 +99,9 @@ export async function profile(displayName) {
             const aiLosses = aiGames.filter(match => match.result === 'loss').length;
             const aiWinRate = aiGames.length > 0 ? ((aiWins / aiGames.length) * 100).toFixed(1) : 0;
 
+            const isCurrentUser = userProfile.username === currentUser;
+            const displayOnlineStatus = isCurrentUser ? true : userProfile.is_online;
+
             document.getElementById('ft_transcendence').innerHTML = `
             <div class="dashboard-container">
 
@@ -107,8 +112,8 @@ export async function profile(displayName) {
                     <img src="${userProfile.avatar_url}" class="img-thumbnail rounded-circle d-flex justify-content-center" alt="Profile picture">
                 </div>
                 <div class="status-indicator text-center mt-2">
-                    <span class="status-dot ${userProfile.is_online ? 'online' : 'offline'}"></span>
-                    <span class="status-text">${userProfile.is_online ? 'Online' : 'Offline'}</span>
+                    <span class="status-dot ${displayOnlineStatus ? 'online' : 'offline'}"></span>
+                    <span class="status-text">${displayOnlineStatus ? 'Online' : 'Offline'}</span>
                 </div>
                 <button type="button" id="friendButton" class="btn-dark">Add as friend</button>
 

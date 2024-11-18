@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   game.mjs                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: phudyka <phudyka@student.42.fr>            +#+  +:+       +#+        */
+/*   By: fabperei <fabperei@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/07/26 16:25:17 by phudyka           #+#    #+#             */
-/*   Updated: 2024/07/26 16:25:18 by phudyka          ###   ########.fr       */
+/*   Updated: 2024/11/18 11:06:07 by fabperei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,7 +15,7 @@ import { Ball } from './ball.mjs';
 import { Pad } from './pad.mjs';
 import { clients, rooms } from './sockets.mjs';
 
-let maxScore = 3; // (11 points to win)
+let maxScore = process.env.WIN_SCORE; // (11 points to win)
 
 function IApad(pad2, ball) {
     const speed = 0.1;

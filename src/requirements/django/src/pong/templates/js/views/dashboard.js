@@ -94,7 +94,7 @@ export async function dashboard(player_name) {
             </div>
 
                 <div class="game-container">
-                    <iframe id="pong" title="Pong" src="https://c1r4p8.42nice.fr:8080/game_server"></iframe>
+                    <iframe id="pong" title="Pong" src="https://c1r4p6.42nice.fr:8080/game_server"></iframe>
                 </div>
 
             <div class="chat-container">
@@ -141,7 +141,7 @@ export async function dashboard(player_name) {
         const csrfToken = getCookie('csrftoken');
         console.log(sessionStorage);
         const avatar = sessionStorage.getItem('avatar_url');
-        iframe.contentWindow.postMessage({ username: displayName, token: token, csrfToken: csrfToken, avatar: avatar }, 'https://c1r4p8.42nice.fr:8080/game_server');
+        iframe.contentWindow.postMessage({ username: displayName, token: token, csrfToken: csrfToken, avatar: avatar }, 'https://c1r4p6.42nice.fr:8080/game_server');
     };
 
 	setupDashboardEvents(navigateTo, displayName);
@@ -436,9 +436,43 @@ function showChatbox(event) {
     if (dropdown) {
         const friendName = dropdown.getAttribute('data-friend');
         if (friendName) {
-            if (!privateChatLogs.has(friendName)) {
+            const chatContainer = document.getElementById('private-chats-container');
+            
+            // Vérifier si un chat existe déjà pour cet ami
+            if (privateChatLogs.has(friendName)) {
+                // Réutiliser le chat existant
+                chatContainer.innerHTML = `
+                    <h5 class="offcanvas-title" id="chatboxLabel">Private message with ${friendName}</h5>
+                    <div class="chat-container2">
+                        <div class="chat-log2" id="chat-log-${friendName}"></div>
+                    </div>
+                    <div class="input-container2">
+                        <input type="text" id="message-input-${friendName}" placeholder="Type your message...">
+                        <button id="send-button-${friendName}">►</button>
+                    </div>
+                `;
+                
+                // Restaurer les messages précédents
+                const chatLog = document.getElementById(`chat-log-${friendName}`);
+                if (privateMessages.has(friendName)) {
+                    const messages = privateMessages.get(friendName);
+                    messages.forEach(msg => {
+                        const senderDisplay = msg.isSelf ? 'Vous' : msg.sender;
+                        displayPrivateMessage(friendName, senderDisplay, msg.content);
+                    });
+                }
+                
+                // Réattacher l'événement d'envoi
+                const sendButton = document.getElementById(`send-button-${friendName}`);
+                if (sendButton) {
+                    sendButton.addEventListener('click', () => sendPrivateMessage(friendName));
+                }
+            } else {
+                // Créer un nouveau chat
                 setupPrivateChat(friendName);
             }
+            
+            activePrivateChat = friendName;
             var chatbox = new bootstrap.Offcanvas(document.getElementById('chatbox'));
             chatbox.show();
         } else {
@@ -582,7 +616,7 @@ function startGame(event) {
 
     const iframe = document.getElementById('pong');
     if (iframe && iframe.contentWindow) {
-        iframe.contentWindow.postMessage(invitationData, 'https://c1r4p8.42nice.fr:8080/game_server');
+        iframe.contentWindow.postMessage(invitationData, 'https://c1r4p6.42nice.fr:8080/game_server');
 
         showToast(`Invite send to ${friendName}`, 'success');
     } else {

@@ -128,6 +128,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    environment:
+      - WIN_SCORE=${WIN_SCORE}
     depends_on:
       postgresql:
        condition: service_healthy
