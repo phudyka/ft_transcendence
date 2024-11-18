@@ -8,17 +8,33 @@ networks:
   
 volumes:
   postgres_data:
+    # driver: local
+    # driver_opts:
+    #   type: none
+    #   o: bind
+    #   device: ~/ftt_data/postgres_data
   static_files:
+    # driver: local
+    # driver_opts:
+    #   type: none
+    #   o: bind
+    #   device: ~/ftt_data/static_files
+  prometheus_data:
+    # driver: local
+    # driver_opts:
+    #   type: none
+    #   o: bind
+    #   device: ~/ftt_data/prometheus_data
 
 services:
 ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ## DEBUG UTILS ##
-  adminer:
-    image: adminer:latest
-    container_name: "adminer"
-    networks:
-      - db_network
-    ports:
-      - "8081:8080"
+  # adminer:
+  #   image: adminer:latest
+  #   container_name: "adminer"
+  #   networks:
+  #     - db_network
+  #   ports:
+  #     - "8081:8080"
   # postman:
   #   ## Username: kasm_user
   #   ## Password: password
@@ -45,8 +61,8 @@ services:
     depends_on:
       django:
         condition: service_healthy
-      # grafana:
-      #   condition: service_healthy
+      grafana:
+        condition: service_healthy
     restart: no
     volumes:
       - static_files:/static
@@ -123,8 +139,6 @@ services:
     # ports:
     #   - "8081:443"
 
-
-  ## MicroServices ## MicroServices ## MicroServices ## MicroServices ##
   chat_server:
     build: requirements/chat_server
     container_name: "chat_server"
@@ -178,6 +192,8 @@ services:
       node-exporter:
         condition: service_healthy
     restart: unless-stopped
+    volumes:
+      - prometheus_data:/prometheus/data
     networks:
       - monitoring_network
     # ports:
@@ -210,7 +226,7 @@ services:
       - /proc:/host/proc:ro
       - /sys:/host/sys:ro
       - /:/rootfs:ro
-      - /:/host:ro #,rslave
+      - /:/host:ro,rslave
     networks:
       - monitoring_network
     # ports:
