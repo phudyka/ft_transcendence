@@ -29,7 +29,7 @@ ft_transcendence est une application web de jeu de Pong en temps réel avec fonc
 
 ```bash
 # Cloner le dépôt
-git clone https://github.com/votre-username/ft_transcendence.git
+git clone https://github.com/phudyka/ft_transcendence.git
 
 # Se déplacer dans le dossier
 cd ft_transcendence
