@@ -1,4 +1,5 @@
 import json
+import re
 import logging
 import requests
 from django.http import JsonResponse
@@ -38,7 +39,31 @@ from django.http import HttpResponse
 # from rest_framework.authentication import JWTAuthentication
 
 
+from .tokens import tokens_for_user
+
 User = get_user_model()
+
+# Ni `create_user()` ni `save()` ne déclenchent les validateurs de champs Django :
+# sans ce contrôle explicite, `username` et `display_name` acceptent n'importe
+# quoi, y compris du balisage. L'échappement côté client ferme la faille, ceci
+# est la seconde barrière, à la frontière de confiance.
+ALLOWED_AVATAR_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+MAX_AVATAR_BYTES = 2 * 1024 * 1024
+
+DISPLAY_NAME_RE = re.compile(r'^[\w .\-]{3,50}$', re.UNICODE)
+
+
+def clean_display_name(value):
+    """Renvoie le nom nettoyé, ou lève ValueError avec un message affichable."""
+    value = (value or '').strip()
+    if not DISPLAY_NAME_RE.match(value):
+        raise ValueError(
+            'Display name must be 3 to 50 characters, letters, digits, '
+            'spaces, dots, dashes and underscores only.'
+        )
+    return value
+
+
 
 def create_user(request):
 	if request.method == 'POST':
@@ -48,9 +73,6 @@ def create_user(request):
 		return JsonResponse({'message': 'user created with id ' + str(user.id)}, status=201)
 	else:
 		return JsonResponse({'error': 'invalid request'}, status=400)
-
-def index(request, path=''):
-	return render(request, 'index.html')
 
 @permission_classes([IsAuthenticated])
 class CustomUserViewSet(viewsets.ModelViewSet):
@@ -82,7 +104,7 @@ def login_view(request):
 			if user is not None:
 				login(request, user)
 
-				refresh = RefreshToken.for_user(user)
+				refresh = tokens_for_user(user)
 
 				return JsonResponse({
 					'success': True,
@@ -117,6 +139,11 @@ def register_view(request):
             avatar_url = data.get('avatar_url')
 
 
+            try:
+                username = clean_display_name(username)
+            except ValueError as exc:
+                return JsonResponse({'success': False, 'error': str(exc)}, status=400)
+
             if User.objects.filter(username=username).exists():
                 return JsonResponse({'success': False, 'error': 'This username is already taken.'}, status=400)
             if User.objects.filter(email=email).exists():
@@ -133,7 +160,7 @@ def register_view(request):
                 is_online=False,
             )
 
-            refresh = RefreshToken.for_user(user)
+            refresh = tokens_for_user(user)
 
             return JsonResponse({
                 'success': True,
@@ -291,22 +318,39 @@ def update_user_settings(request):
         avatar_file = request.FILES.get('avatar')
 
         if avatar_file:
-            content_dir = os.path.join('ft_trans', 'pong', 'templates', 'content', 'avatars')
-            os.makedirs(content_dir, exist_ok=True)
+            # Écrivait dans pong/templates/content/avatars, dossier supprimé avec
+            # le passage du frontend sous Vite. Les fichiers vont désormais dans
+            # MEDIA_ROOT et sont servis par la route /media/.
+            extension = os.path.splitext(avatar_file.name)[1].lower()
+            if extension not in ALLOWED_AVATAR_EXTENSIONS:
+                return JsonResponse({
+                    'success': False,
+                    'error': f'Unsupported image type: {extension or "unknown"}'
+                }, status=400)
+            if avatar_file.size > MAX_AVATAR_BYTES:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Avatar must be 2 MB or smaller.'
+                }, status=400)
 
-            file_extension = os.path.splitext(avatar_file.name)[1]
-            filename = f'avatar_{user.username}_{timezone.now().timestamp()}{file_extension}'
-            filepath = os.path.join(content_dir, filename)
+            avatars_dir = os.path.join(settings.MEDIA_ROOT, 'avatars')
+            os.makedirs(avatars_dir, exist_ok=True)
 
-            with open(filepath, 'wb+') as destination:
+            # Le nom vient de la base, pas du fichier envoyé : un nom de fichier
+            # attaquant ne doit pas pouvoir sortir du dossier.
+            filename = f'avatar_{user.pk}_{int(timezone.now().timestamp())}{extension}'
+
+            with open(os.path.join(avatars_dir, filename), 'wb+') as destination:
                 for chunk in avatar_file.chunks():
                     destination.write(chunk)
 
-            avatar_url = f'url("/content/avatars/{filename}")'
-            user.avatar_url = avatar_url
+            user.avatar_url = f'/media/avatars/{filename}'
 
         if 'display_name' in request.data:
-            user.display_name = request.data['display_name']
+            try:
+                user.display_name = clean_display_name(request.data['display_name'])
+            except ValueError as exc:
+                return JsonResponse({'success': False, 'error': str(exc)}, status=400)
 
         if 'email' in request.data:
             user.email = request.data['email']
@@ -559,7 +603,7 @@ def auth_42_login(request):
     auth_url = 'https://api.intra.42.fr/oauth/authorize'
     params = {
         'client_id': settings.FT_CLIENT_ID,
-        'redirect_uri': 'https://c1r4p6.42nice.fr:8080/api/auth/42/callback/',
+        'redirect_uri': f'{settings.PUBLIC_API_URL}/api/auth/42/callback/',
         'response_type': 'code',
         'scope': 'public'
     }
@@ -577,12 +621,12 @@ def auth_42_callback(request):
         'client_id': settings.FT_CLIENT_ID,
         'client_secret': settings.FT_CLIENT_SECRET,
         'code': code,
-        'redirect_uri': 'https://c1r4p6.42nice.fr:8080/api/auth/42/callback/'
+        'redirect_uri': f'{settings.PUBLIC_API_URL}/api/auth/42/callback/'
     }
 
     response = requests.post(token_url, data=data)
     if response.status_code != 200:
-        return redirect('/register?error=auth_failed')
+        return redirect(f'{settings.FRONTEND_URL}/register?error=auth_failed')
 
     token_data = response.json()
     access_token = token_data.get('access_token')
@@ -592,13 +636,13 @@ def auth_42_callback(request):
     user_response = requests.get(user_url, headers=headers)
 
     if user_response.status_code != 200:
-        return redirect('/register?error=profile_fetch_failed')
+        return redirect(f'{settings.FRONTEND_URL}/register?error=profile_fetch_failed')
 
     user_data = user_response.json()
 
     try:
         user = User.objects.get(email=user_data['email'])
-        refresh = RefreshToken.for_user(user)
+        refresh = tokens_for_user(user)
         response_data = {
             'access': str(refresh.access_token),
             'refresh': str(refresh),
@@ -606,7 +650,7 @@ def auth_42_callback(request):
             'display_name': user.display_name,
             'avatar_url': user.avatar_url
         }
-        return redirect(f'/login?auth_success=true&' + '&'.join(f'{k}={v}' for k, v in response_data.items()))
+        return redirect(f'{settings.FRONTEND_URL}/login?auth_success=true&' + '&'.join(f'{k}={v}' for k, v in response_data.items()))
     except User.DoesNotExist:
         # Formater l'URL de l'avatar comme les autres
         avatar_url = f'url("{user_data["image"]["versions"]["small"]}")'
@@ -619,7 +663,7 @@ def auth_42_callback(request):
             password=None
         )
 
-        refresh = RefreshToken.for_user(user)
+        refresh = tokens_for_user(user)
         response_data = {
             'access': str(refresh.access_token),
             'refresh': str(refresh),
@@ -627,42 +671,4 @@ def auth_42_callback(request):
             'display_name': user.display_name,
             'avatar_url': avatar_url
         }
-        return redirect(f'/login?auth_success=true&' + '&'.join(f'{k}={v}' for k, v in response_data.items()))
-
-def save_avatar_image(image_url, username):
-    # Créer le dossier content s'il n'existe pas
-    content_dir = os.path.join('ft_trans', 'pong', 'templates', 'content', 'avatars')
-    os.makedirs(content_dir, exist_ok=True)
-
-    # Nettoyer l'URL de l'image
-    image_url = image_url.replace('url("', '').replace('")', '')
-
-    try:
-        # Télécharger l'image
-        response = requests.get(image_url)
-        if response.status_code == 200:
-            # Créer un nom de fichier unique
-            file_extension = os.path.splitext(image_url.split('/')[-1])[1]
-            if not file_extension:
-                file_extension = '.png'
-            filename = f'avatar_{username}{file_extension}'
-            filepath = os.path.join(content_dir, filename)
-
-            # Sauvegarder l'image
-            with open(filepath, 'wb') as f:
-                f.write(response.content)
-
-            # Retourner l'URL relative pour l'accès via le serveur
-            return f'url("/content/avatars/{filename}")'
-    except Exception as e:
-        logger.error(f"Error saving avatar image: {str(e)}")
-        return image_url
-
-def serve_content(request, path):
-    content_path = os.path.join('ft_trans', 'pong', 'templates', 'content', path)
-    try:
-        with open(content_path, 'rb') as f:
-            return HttpResponse(f.read(), content_type='image/png')
-    except FileNotFoundError:
-        return HttpResponse(status=404)
-
+        return redirect(f'{settings.FRONTEND_URL}/login?auth_success=true&' + '&'.join(f'{k}={v}' for k, v in response_data.items()))

@@ -1,15 +1,15 @@
-from django.urls import path, include
+from django.urls import path, include, re_path
+from django.conf import settings
+from django.views.static import serve
 from . import views
 from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-from django.conf.urls.static import static
-from django.conf import settings
-import os
+from rest_framework_simplejwt.views import TokenRefreshView
+from .tokens import DisplayNameTokenObtainPairView
 
 urlpatterns = [
 	path('api/content/', views.content, name='content'),
 	path('api/set-csrf-token/', views.set_csrf_token, name='set_csrf_token'),
-	path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+	path('api/token/', DisplayNameTokenObtainPairView.as_view(), name='token_obtain_pair'),
 	path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 	path('api/verify-token/', views.verify_token, name='verify_token'),
 	path('api/create_user/', views.create_user, name='create_user'),
@@ -35,7 +35,10 @@ urlpatterns = [
 	path('api/blocked-users/', views.get_blocked_users, name='get_blocked_users'),
 	path('api/auth/42/login/', views.auth_42_login, name='auth_42_login'),
 	path('api/auth/42/callback/', views.auth_42_callback, name='auth_42_callback'),
-	path('content/<path:path>', views.serve_content, name='serve_content'),
-	path('<path:path>', views.index, name='catch_all'),
-	path('', views.index, name='index'),
-] + static('/content/', document_root=os.path.join('ft_trans', 'pong', 'templates', 'content'))
+	# Avatars envoyés par les utilisateurs. django.views.static.serve gère les
+	# types MIME et refuse les remontées de chemin, mais lit le fichier depuis le
+	# processus applicatif.
+	# ponytail: suffisant pour quelques avatars ; passer par un stockage objet ou
+	# un CDN si le volume grimpe.
+	re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
+]

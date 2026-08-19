@@ -4,22 +4,14 @@ PROJECT = "ft_transcendence"
 
 HOSTNAME ?= $(shell hostname -A | cut -d' ' -f1)
 
-IMAGES =	src-grafana\
-			src-prometheus\
-			src-alertmanager\
-			src-node-exporter\
-			src-cadvisor\
-			\
-			src-nginx\
+IMAGES =	src-nginx\
 			src-django\
 			src-postgresql\
-			src-game_server\
-			src-chat_server\
+			src-realtime\
 
 
 VOLUMES =	src_static_files\
-			src_postgres_data\
-			src_prometheus_data
+			src_postgres_data
 
 all: $(NAME)
 
@@ -27,13 +19,10 @@ $(NAME): update-hostname
 	@docker compose --project-directory src up -d
 	@echo Project available at https://$(HOSTNAME):8080
 
+# Les adresses ne sont plus en dur dans le code : seul src/.env, non versionné,
+# porte encore l'hôte. Les URL du frontend viennent de frontend/.env.
 update-hostname:
 	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/.env
-	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/requirements/django/src/pong/templates/js/utils/socketManager.js
-	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/requirements/django/src/pong/templates/js/views/dashboard.js
-	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/requirements/game_server/game/main.mjs
-	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/requirements/game_server/game/server.mjs
-	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/requirements/django/src/pong/views.py
 	@echo "Hostname updated to $(HOSTNAME)"
 
 start: all
@@ -55,7 +44,17 @@ re: clean all
 
 refclean: fclean all
 
+# Contrôles rapides, sans conteneur. Node 22+ et les dépendances de
+# frontend/ et src/requirements/realtime/ doivent être installés ; check_django
+# demande celles de src/requirements/django/conf/requirements.txt.
+check:
+	@node scripts/check-assets.mjs
+	@node scripts/check-escaping.mjs
+	@node scripts/check-physics.mjs
+	@node scripts/check-realtime.mjs
+	@python3 scripts/check_django.py
+
 debug: $(NAME)
 	@docker compose --project-directory src logs -f
 
-.PHONY: all up start down stop clean fclean re refclean update-hostname debug
+.PHONY: all up start down stop clean fclean re refclean update-hostname check debug

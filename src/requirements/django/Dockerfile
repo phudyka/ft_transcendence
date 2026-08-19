@@ -4,16 +4,10 @@ WORKDIR /app
 
 COPY conf/requirements.txt /app
 
+# Plus de certificat auto-signé : le TLS est terminé par le proxy en amont
+# (nginx en local, la plateforme en production).
 RUN apk update &&\
-    apk add --no-cache python3 openssl curl &&\
-    mkdir -p /app/ssl_certificates &&\
-    openssl \
-    req \
-    -x509 \
-    -nodes \
-    -out /app/ssl_certificates/gunicorn.crt \
-    -keyout /app/ssl_certificates/gunicorn.key \
-    -subj "/C=FR/ST=PACA/L=Nice/O=42/OU=42Nice/CN=ft_transcendence.42nice.fr/UID=efirmino" &&\
+    apk add --no-cache python3 curl &&\
     python3 -m venv /app/.env &&\
     source /app/.env/bin/activate &&\
     pip install --upgrade pip &&\
@@ -21,7 +15,7 @@ RUN apk update &&\
 
 COPY src/ /app
 
-EXPOSE 443
+EXPOSE 8000
 
 COPY conf/entrypoint.sh /
 

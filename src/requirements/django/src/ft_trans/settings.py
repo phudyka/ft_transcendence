@@ -14,6 +14,13 @@ from pathlib import Path
 from datetime import timedelta
 import os
 
+import dj_database_url
+
+
+def env_list(name):
+    """Liste séparée par des virgules, vide si la variable est absente."""
+    return [item.strip() for item in os.getenv(name, '').split(',') if item.strip()]
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -23,13 +30,20 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("DJANGO_SECRET_KEY manquant. Voir src/.env.example.")
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = os.getenv("DJANGO_DEBUG", "").lower() in ("1", "true", "yes")
 
 APPEND_SLASH=False
 
-ALLOWED_HOSTS = [ '*' ]
+# `*` acceptait n'importe quel Host, ce qui ouvre la porte au poisoning d'en-tête
+# Host (liens de réinitialisation forgés, empoisonnement de cache).
+ALLOWED_HOSTS = env_list("DJANGO_ALLOWED_HOSTS") or (["*"] if DEBUG else [])
+
+# Derrière nginx en local et derrière le routeur de la plateforme en production :
+# sans cela Django croit toutes les requêtes en HTTP et fabrique de mauvaises URL.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 
 # Application definition
 
@@ -58,19 +72,13 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOWED_ORIGINS = [
-    os.getenv("FT_TRANSCENDENCE_HOST"),
-    "https://localhost:443",
-    "https://game_server:443",    
-]
+# Le frontend est servi par un hôte distinct en production : les origines
+# autorisées sont déclarées explicitement plutôt qu'en dur.
+CORS_ALLOWED_ORIGINS = env_list("ALLOWED_ORIGINS")
 
 CORS_ALLOW_CREDENTIALS = True
 
-CSRF_TRUSTED_ORIGINS = [
-    os.getenv("FT_TRANSCENDENCE_HOST"),
-    "https://localhost:443",
-    "https://game_server:443",
-]
+CSRF_TRUSTED_ORIGINS = env_list("ALLOWED_ORIGINS")
 
 ROOT_URLCONF = 'ft_trans.urls'
 
@@ -96,16 +104,30 @@ WSGI_APPLICATION = 'ft_trans.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME' : os.getenv("DJANGO_DB_NAME"),
-        'USER' : os.getenv("POSTGRES_USER"),
-        'PASSWORD' : os.getenv("POSTGRES_PASSWORD"),
-        'HOST' : os.getenv("POSTGRES_HOST"),
-        'PORT' : os.getenv("POSTGRES_PORT"),
+# En production, Neon fournit une DATABASE_URL unique. En local, compose passe
+# encore les variables séparées. `postgresql_psycopg2` n'existe plus depuis
+# longtemps : le backend s'appelle `postgresql` et détecte psycopg 3 tout seul.
+_DATABASE_URL = os.getenv("DATABASE_URL")
+if _DATABASE_URL:
+    DATABASES = {
+        'default': dj_database_url.config(
+            conn_max_age=600,  # Neon facture au temps de calcul : on garde la connexion
+            # SQLite n'a pas de TLS : la contrainte ne vaut que pour Postgres,
+            # ce qui permet aussi de faire tourner les contrôles sans serveur.
+            ssl_require=_DATABASE_URL.startswith(('postgres://', 'postgresql://')),
+        )
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.getenv("DJANGO_DB_NAME"),
+            'USER': os.getenv("POSTGRES_USER"),
+            'PASSWORD': os.getenv("POSTGRES_PASSWORD"),
+            'HOST': os.getenv("POSTGRES_HOST"),
+            'PORT': os.getenv("POSTGRES_PORT"),
+        }
+    }
 
 
 # Password validation
@@ -146,10 +168,11 @@ STATIC_URL = 'static/'
 
 STATIC_ROOT = '/static'
 
-STATICFILES_DIRS = [
-    BASE_DIR / 'pong/templates/',
-]
+# Avatars envoyés par les utilisateurs. Le dossier doit être persistant : sur un
+# disque éphémère (tier gratuit Render), les avatars disparaissent au redémarrage.
+MEDIA_URL = 'media/'
 
+MEDIA_ROOT = os.getenv("DJANGO_MEDIA_ROOT", "/media")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
@@ -187,6 +210,12 @@ LOGGING = {
     },
 }
 
-# a securiser avec import os et os.getenv('FT_CLIENT_ID') et os.getenv('FT_CLIENT_SECRET')
+# Le frontend et l'API vivent sur deux hôtes distincts : le retour de l'OAuth 42
+# doit renvoyer le navigateur vers le frontend, pas vers l'API.
+FRONTEND_URL = os.getenv("FRONTEND_URL", "").rstrip("/")
+
+# URL publique de cette API, telle que 42 la connaît dans l'application OAuth.
+PUBLIC_API_URL = os.getenv("PUBLIC_API_URL", "").rstrip("/")
+
 FT_CLIENT_ID = os.getenv("FT_CLIENT_ID")
 FT_CLIENT_SECRET = os.getenv("FT_CLIENT_SECRET")

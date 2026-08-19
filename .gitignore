@@ -1,0 +1,29 @@
+# Environnement
+.env
+.env.local
+*.env
+!.env.example
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# Certificats
+*.pem
+*.key
+*.crt
+
+# Système
+.DS_Store
+Thumbs.db
+
+# Outils
+.remember/
