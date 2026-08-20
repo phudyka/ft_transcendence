@@ -8,6 +8,8 @@ import { html } from "./html.js";
 // Le corps était toujours orange : « Friend request sent » et « An error
 // occurred » rendaient le même rectangle, au même endroit. Les tokens
 // sémantiques existaient déjà et ne servaient nulle part.
+const TOAST_MS = 5000;
+
 const BODY_CLASS = {
   success: "toast-body-success",
   error: "toast-body-error",
@@ -29,13 +31,7 @@ export function showToast(message, type = "success") {
       <div class="toast-header">
         <strong class="me-auto">${type.charAt(0).toUpperCase() +
           type.slice(1)}</strong>
-        <button
-          type="button"
-          class="btn-close"
-          data-bs-dismiss="toast"
-          aria-label="Close"
-        >
-        </button>
+        <button type="button" class="btn-close" aria-label="Close"></button>
       </div>
       <div class="toast-body ${BODY_CLASS[type] || BODY_CLASS.info}">
         ${message}
@@ -43,20 +39,17 @@ export function showToast(message, type = "success") {
     </div>
   `;
 
-  const toastContainer = document.createElement("div");
-  toastContainer.className =
-    "toast-container position-fixed top-0 start-50 translate-middle-x p-3";
-  toastContainer.innerHTML = toastHtml;
-  document.body.appendChild(toastContainer);
+  const container = document.createElement("div");
+  container.className = "toast-container";
+  container.innerHTML = toastHtml;
+  document.body.appendChild(container);
 
-  const toastElement = toastContainer.querySelector(".toast");
-  // Le conteneur n'était jamais retiré : tous posés au même endroit, ils se
-  // masquaient l'un l'autre et s'accumulaient dans le DOM.
-  toastElement.addEventListener(
-    "hidden.bs.toast",
-    () => toastContainer.remove(),
-  );
-  new bootstrap.Toast(toastElement).show();
+  // `bootstrap.Toast` posait le fondu et retirait le toast au bout de 5 s. La
+  // durée est la même ; le conteneur part avec lui, sans quoi ils s'empilent
+  // au même endroit et s'accumulent dans le DOM.
+  const dismiss = () => container.remove();
+  container.querySelector(".btn-close").addEventListener("click", dismiss);
+  setTimeout(dismiss, TOAST_MS);
 }
 
 // Aucun bouton de soumission ne disait qu'il travaillait, alors que le premier

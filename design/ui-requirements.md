@@ -85,7 +85,7 @@ Convention d'identifiant : `UI-<SYSTÈME>-<n>`.
 
 | ID       | Exigence                                                                  | Preuve dans le code                              |
 | -------- | ------------------------------------------------------------------------- | ------------------------------------------------ |
-| UI-SET-1 | Modification du nom d'affichage, du courriel, du mot de passe             | `views/settings.js`, `api/update-user-settings/` |
+| UI-SET-1 | Modification du nom d'affichage et du courriel. **Pas de changement de mot de passe** : aucun champ dans la vue, aucun traitement dans `update_user_settings` | `views/settings.js`, `src/django/app/pong/views.py:238-294` |
 | UI-SET-2 | Envoi d'un avatar, plafonné à 2 Mo                                        | `views/settings.js`                              |
 | UI-SET-3 | Valeurs existantes pré-remplies à l'ouverture                             | `views/settings.js`                              |
 | UI-SET-4 | Confirmation ou erreur après enregistrement, dans l'écran                 | `utils/feedback.js`                              |
