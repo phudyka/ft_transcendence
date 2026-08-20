@@ -13,7 +13,7 @@ import { io } from "socket.io-client";
 // statique qui les réécrit vers l'API, ce qui évite CORS et garde les cookies
 // CSRF en same-origin.
 
-export const REALTIME_URL = import.meta.env.VITE_REALTIME_URL ||
+const REALTIME_URL = import.meta.env.VITE_REALTIME_URL ||
   window.location.origin;
 
 // Le service refuse toute connexion sans JWT valide et en tire l'identité :

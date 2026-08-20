@@ -7,7 +7,7 @@
  * deux par ici, et `scripts/check-controls.mjs` couvre les six cas.
  */
 
-export const KEYS = {
+const KEYS = {
   w: { direction: "up", side: "left" },
   s: { direction: "down", side: "left" },
   ArrowUp: { direction: "up", side: "right" },

@@ -68,11 +68,14 @@ services:
       - 42nice
       - db_network
 
+  # Image officielle telle quelle. Le Dockerfile local ne faisait que copier un
+  # `django.sql` dans /docker-entrypoint-initdb.d pour créer la base — ce que
+  # `POSTGRES_DB` fait déjà, et l'utilisateur du healthcheck n'est plus en dur.
   postgresql:
-    build: postgresql
+    image: postgres:15-alpine3.18
     container_name: "postgresql"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U 42"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -80,6 +83,7 @@ services:
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${DJANGO_DB_NAME}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:

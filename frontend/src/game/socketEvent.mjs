@@ -65,44 +65,27 @@ export function initSocketEvent(socket) {
     }, 300);
   });
 
-  // Un bouton de menu, un événement. `LeaveRoom` a disparu avec ce bloc :
-  // aucun serveur ne l'émettait, et son corps émettait `disconnect` côté
-  // client, ce que socket.io ignore.
-  const MENU_EMITS = {
-    "solo-ia": "solo_vs_ia",
-    "multi-2-local": "multi-2-local",
-    "multi-2-online": "multi-2-online",
-    "multi-four": "multi-four",
-    "multi-tournament": "return-list",
-    "create-tournament": "create-tournament",
-    "quit-tournament": "quit-tournament",
+  // Un bouton de menu, une ligne : ce qu'il émet, le panneau qu'il ferme, celui
+  // qu'il ouvre — `null` quand il n'y en a pas. C'étaient deux tables indexées
+  // par les mêmes identifiants, elles-mêmes héritées d'un `<script>` en ligne
+  // dans game.html qui en gardait une troisième copie commentée.
+  const MENU = {
+    "solo-ia": ["solo_vs_ia", "menu", null],
+    "multi-button": [null, "menu", "multi"],
+    "multi-back-button": [null, "multi", "menu"],
+    "multi-2-local": ["multi-2-local", "multi", null],
+    "multi-2-online": ["multi-2-online", "multi", "waiting"],
+    "multi-four": ["multi-four", "multi", "waiting"],
+    "multi-tournament": ["return-list", "multi", "tournament"],
+    "tournament-back-button": [null, "tournament", "multi"],
+    "create-tournament": ["create-tournament", "tournament", null],
+    "quit-tournament": ["quit-tournament", null, null],
   };
 
-  for (const [id, event] of Object.entries(MENU_EMITS)) {
-    document.getElementById(id).addEventListener(
-      "click",
-      () => socket.emit(event),
-    );
-  }
-
-  // Quel panneau chaque bouton ferme et lequel il ouvre. C'était un
-  // `<script>` en ligne dans game.html, qui doublonnait la table ci-dessus et
-  // gardait trois blocs commentés.
-  const MENU_NAV = {
-    "solo-ia": ["menu", null],
-    "multi-button": ["menu", "multi"],
-    "multi-back-button": ["multi", "menu"],
-    "multi-tournament": ["multi", "tournament"],
-    "tournament-back-button": ["tournament", "multi"],
-    "create-tournament": ["tournament", null],
-    "multi-2-local": ["multi", null],
-    "multi-2-online": ["multi", "waiting"],
-    "multi-four": ["multi", "waiting"],
-  };
-
-  for (const [id, [close, open]] of Object.entries(MENU_NAV)) {
+  for (const [id, [event, close, open]] of Object.entries(MENU)) {
     document.getElementById(id).addEventListener("click", () => {
-      hidePanel(close);
+      if (event) socket.emit(event);
+      if (close) hidePanel(close);
       if (open) showPanel(open);
     });
   }

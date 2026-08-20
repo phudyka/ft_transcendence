@@ -98,6 +98,6 @@ Convention d'identifiant : `UI-<SYSTÈME>-<n>`.
 | UI-NAV-1 | Application à page unique : toute navigation passe par `navigateTo()`               | `app.js`                                             |
 | UI-NAV-2 | Retour et avance du navigateur fonctionnels (`popstate`)                            | `app.js`                                             |
 | UI-NAV-3 | Route inconnue : écran 404 avec chemin de retour                                    | `views/notfound.js`                                  |
-| UI-NAV-4 | Changement de route annoncé aux lecteurs d'écran                                    | `design/accessibility-requirements.md` — écart connu |
+| UI-NAV-4 | Changement de route annoncé aux lecteurs d'écran : titre d'onglet réécrit, focus porté sur le `h1` | `announceRoute()`, `frontend/src/app.js:18-24` |
 | UI-NAV-5 | Le jeu est chargé en `iframe` dans le tableau de bord, et autonome sur `/game.html` | `#pong`, `frontend/game.html`                        |
 | UI-NAV-6 | Coupure d'inactivité de dix minutes côté client                                     | `utils/socketManager.js` — non réarmée, écart connu  |

@@ -19,7 +19,7 @@ if (!SECRET) {
   );
 }
 
-export function verifyAccessToken(token) {
+function verifyAccessToken(token) {
   if (!token) return null;
   try {
     const payload = jwt.verify(token, SECRET, { algorithms: ["HS256"] });

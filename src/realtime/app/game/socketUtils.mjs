@@ -23,9 +23,10 @@ export function findOrCreateRoom(type, name = null) {
   return room;
 }
 
-export function findRoomForSocket(client, roomsid) {
-  for (const room in roomsid) {
-    if (roomsid[room].includes(client)) {
+// Le second paramètre recevait toujours `rooms`, que ce module importe déjà.
+export function findRoomForSocket(client) {
+  for (const room in rooms) {
+    if (rooms[room].includes(client)) {
       return room;
     }
   }

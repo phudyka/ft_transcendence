@@ -21,7 +21,7 @@ export function hidePanel(id) {
 
 // Le premier bouton réellement atteignable : les entrées masquées ne comptent
 // pas — le menu du jeu cache le multijoueur pour un invité.
-export function focusFirst(panel) {
+function focusFirst(panel) {
   const target = [...panel.querySelectorAll("button")]
     .find((button) => !button.disabled && !button.classList.contains("hidden"));
   target?.focus();

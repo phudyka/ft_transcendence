@@ -54,7 +54,7 @@ constitue le résultat qu'elle attendait.
 | Message de chat reçu           | Auteur et contenu                             | `polite`                     | conteneurs `aria-live` de `dashboard.js`    |
 | Demande d'ami reçue / acceptée | Nom et nouvel état de la relation             | `polite`                     | à vérifier par spec                         |
 | Erreur de formulaire           | Message d'erreur, champ marqué `aria-invalid` | `assertive` (`role="alert"`) | `#loginError`, `#registerError`             |
-| Changement de route SPA        | Titre du nouvel écran                         | `polite`                     | absent — écart connu                        |
+| Changement de route SPA | Titre de l'onglet réécrit et focus porté sur le `h1` de l'écran | déplacement de focus, pas de région live | `announceRoute()`, `frontend/src/app.js:18-24` |
 | Toast / notification           | Contenu du toast                              | `polite`                     | via `utils/feedback.js`                     |
 
 **Règle d'écriture pour les specs.** Une région live encadre un seul nœud dont

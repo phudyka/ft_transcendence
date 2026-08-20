@@ -108,7 +108,7 @@ export default function setupSockets(io) {
       // deux — d'où playerRoomMap en premier choix.
       socket.on("padMove", (data) => {
         const room = playerRoomMap[socket.id] ||
-          findRoomForSocket(socket.id, rooms);
+          findRoomForSocket(socket.id);
         if (!room) return;
 
         // Un seul navigateur pilote les deux raquettes en local. En ligne la
@@ -129,7 +129,7 @@ export default function setupSockets(io) {
       });
 
       socket.on("endGame", () => {
-        const room = findRoomForSocket(socket.id, rooms);
+        const room = findRoomForSocket(socket.id);
         if (room) {
           io.in(room).emit("gameEnded");
 

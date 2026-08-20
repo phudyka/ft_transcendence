@@ -1,4 +1,3 @@
-import { fetchWithToken } from "./api.js";
 import { connectChat } from "../config.js";
 import {
   fetchAndDisplayFriends,
@@ -27,8 +26,9 @@ export function initializeSocket(displayName) {
   socket.displayName = displayName;
 
   socket.on("connect", () => {
+    // `register` suffit : le serveur écrit lui-même la présence, aux deux bouts
+    // de la connexion qu'il est seul à voir en entier.
     socket.emit("register");
-    updateOnlineStatus(displayName, true);
     startActivityTimer(displayName);
   });
 
@@ -72,9 +72,8 @@ function startActivityTimer(username) {
   clearActivityTimer();
   const arm = () => {
     clearTimeout(activityTimer);
-    activityTimer = setTimeout(async () => {
+    activityTimer = setTimeout(() => {
       showToast("Disconnected after 10 minutes idle.", "warning");
-      await updateOnlineStatus(username, false);
       disconnectSocket();
     }, IDLE_MS);
   };
@@ -99,32 +98,16 @@ function clearActivityTimer() {
   }
 }
 
-export async function updateOnlineStatus(username, isOnline) {
-  try {
-    const response = await fetchWithToken("/api/update-online-status/", {
-      method: "POST",
-      body: JSON.stringify({ is_online: isOnline, display_name: username }),
-    });
-    if (!response.ok) {
-      throw new Error("Error updating online status");
-    }
-  } catch (error) {
-    console.error("Error updating online status:", error);
-  }
-}
-
 export function getSocket() {
   return socket;
 }
 
 export function disconnectSocket() {
   if (!socket) return;
-  const username = socket.displayName;
   socket.off("force_disconnect");
   socket.disconnect();
   socket = null;
   clearActivityTimer();
-  updateOnlineStatus(username, false);
 }
 
 export function sendFriendRequestSocket(to, requestId) {

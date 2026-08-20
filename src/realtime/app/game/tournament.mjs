@@ -5,46 +5,65 @@ import { Pad } from "./pad.mjs";
 import { keysPressedMap } from "./sockets.mjs";
 import { clients, rooms, roomsTypes } from "./sockets.mjs";
 
-let roomMain;
 // Quelle salle pilote les touches de ce socket. En tournoi le joueur est à la
 // fois dans le lobby et dans son match : `findRoomForSocket()` rendrait le
 // premier des deux. Lu par le gestionnaire `padMove` de sockets.mjs.
 export const playerRoomMap = {};
-const finalPlayers = [];
-const finalPlayersName = [];
-let playersName = {};
+
+// Un tournoi, un état. `roomMain` et les deux listes de finalistes étaient des
+// variables de module : deux tournois lancés en parallèle se les partageaient,
+// donc la finale de l'un se jouait avec les gagnants de l'autre, et la fin de
+// partie du premier supprimait les salles du second. Tout est indexé par la
+// salle du lobby, la seule identité qu'un tournoi possède.
+const mainRoomOf = {}; // salle de match -> salle du lobby
+const finalists = new Map(); // salle du lobby -> { ids: [], names: [] }
+const playersName = {}; // salle -> noms des joueurs, dans l'ordre
+
+function roundOf(mainRoom) {
+  if (!finalists.has(mainRoom)) finalists.set(mainRoom, { ids: [], names: [] });
+  return finalists.get(mainRoom);
+}
+
+function dropRoom(room, padsMap) {
+  delete rooms[room];
+  delete roomsTypes[room];
+  delete playersName[room];
+  delete mainRoomOf[room];
+  keysPressedMap.delete(room);
+  padsMap.delete(room);
+}
 
 export function setupTournamentEvents(io, socket, padsMap) {
   socket.on("match-finished", (data) => {
-    const winnerId = data.playerWinner;
-    finalPlayers.push(winnerId);
-    finalPlayersName.push(data.playerName);
+    // Seul le gagnant émet, une fois par match. Une salle de match inconnue
+    // n'appartient à aucun tournoi vivant : il n'y a rien à faire avancer.
+    const mainRoom = mainRoomOf[data.room];
+    if (!mainRoom) return;
 
-    if (data.roomType === "semi-tournament" && finalPlayers.length === 2) {
-      io.to(roomMain).emit("update tournament", finalPlayersName);
-      finalGame(io, rooms, finalPlayers);
+    const round = roundOf(mainRoom);
+    round.ids.push(data.playerWinner);
+    round.names.push(data.playerName);
+
+    if (data.roomType === "semi-tournament" && round.ids.length === 2) {
+      io.to(mainRoom).emit("update tournament", round.names);
+      const winners = [...round.ids];
+      round.ids.length = 0;
+      round.names.length = 0;
+      finalGame(io, mainRoom, winners);
     } else if (
-      finalPlayers.length === 1 && data.roomType === "final-tournament"
+      data.roomType === "final-tournament" && round.ids.length === 1
     ) {
-      io.to(roomMain).emit("update tournament", finalPlayersName);
-      finalPlayers.length = 0;
-      finalPlayersName.length = 0;
-
-      for (const room in rooms) {
-        if (room !== roomMain) {
-          delete rooms[room];
-          delete roomsTypes[room];
-          keysPressedMap.delete(room);
-          padsMap.delete(room);
-        }
+      io.to(mainRoom).emit("update tournament", round.names);
+      finalists.delete(mainRoom);
+      // Les salles de match de *ce* tournoi, et elles seules : la boucle
+      // balayait `rooms` en entier et emportait les parties des autres.
+      for (const room of Object.keys(mainRoomOf)) {
+        if (mainRoomOf[room] === mainRoom) dropRoom(room, padsMap);
       }
     }
 
-    if (rooms[data.room] && data.room !== roomMain) {
-      delete rooms[data.room];
-      delete roomsTypes[data.room];
-      keysPressedMap.delete(data.room);
-      padsMap.delete(data.room);
+    if (rooms[data.room] && data.room !== mainRoom) {
+      dropRoom(data.room, padsMap);
     }
   });
 
@@ -59,11 +78,9 @@ export function setupTournamentEvents(io, socket, padsMap) {
 
     socket.emit("tournament-created");
     socket.emit("tournament-updated", { room: playersName[room] });
-    updateTournamentList(io, rooms, roomsTypes);
+    updateTournamentList(io);
 
-    if (room && rooms[room].length === 4) {
-      createQuarterRooms(io, room, roomsTypes);
-    }
+    if (room && rooms[room].length === 4) createQuarterRooms(io, room);
   });
 
   socket.on("join-tournament", (data) => {
@@ -78,55 +95,49 @@ export function setupTournamentEvents(io, socket, padsMap) {
       io.to(room).emit("tournament-updated", { room: playersName[room] });
     }
 
-    if (room && rooms[room].length === 4) {
-      createQuarterRooms(io, room, roomsTypes);
-    }
+    if (room && rooms[room].length === 4) createQuarterRooms(io, room);
   });
 
   socket.on("quit-tournament", (data) => {
-    const room = findRoomForSocket(socket.id, rooms);
+    const room = findRoomForSocket(socket.id);
+    if (!room) return;
 
-    if (room) {
-      const index = rooms[room].indexOf(socket.id);
-      if (index !== -1) {
-        rooms[room].splice(index, 1);
-      }
-      delete playerRoomMap[socket.id];
-      playersName[room] = playersName[room].filter((name) =>
-        name !== clients.get(socket.id).playerName
-      );
-      socket.leave(room);
+    const index = rooms[room].indexOf(socket.id);
+    if (index !== -1) rooms[room].splice(index, 1);
+    delete playerRoomMap[socket.id];
+    playersName[room] = playersName[room].filter((name) =>
+      name !== clients.get(socket.id).playerName
+    );
+    socket.leave(room);
 
-      if (!data && rooms[room].length > 0) {
-        io.to(room).emit("tournament-updated", { room: playersName[room] });
-      }
+    if (!data && rooms[room].length > 0) {
+      io.to(room).emit("tournament-updated", { room: playersName[room] });
+    }
 
-      if (rooms[room].length === 0) {
-        delete rooms[room];
-        delete roomsTypes[room];
-        delete playersName[room];
-        roomMain = null;
-        updateTournamentList(io, rooms, roomsTypes);
+    if (rooms[room].length === 0) {
+      // Le lobby est vide : ses matchs n'ont plus de parent.
+      for (const match of Object.keys(mainRoomOf)) {
+        if (mainRoomOf[match] === room) dropRoom(match, padsMap);
       }
+      finalists.delete(room);
+      dropRoom(room, padsMap);
+      updateTournamentList(io);
     }
   });
 
-  socket.on("return-list", () => {
-    updateTournamentList(io, rooms, roomsTypes);
-  });
+  socket.on("return-list", () => updateTournamentList(io));
 }
 
-function updateTournamentList(io, rooms, roomsTypes) {
-  const tournamentList = Object.keys(rooms).filter((room) =>
-    roomsTypes[room] === "tournament"
+function updateTournamentList(io) {
+  io.emit(
+    "tournament-list",
+    Object.keys(rooms).filter((room) => roomsTypes[room] === "tournament"),
   );
-  io.emit("tournament-list", tournamentList);
 }
 
-function createQuarterRooms(io, mainRoom, roomsTypes) {
+function createQuarterRooms(io, mainRoom) {
   const players = [...rooms[mainRoom]];
   const quarterRooms = [];
-  roomMain = mainRoom;
 
   for (let i = 0; i < 2; i++) {
     const quarterRoom = `${mainRoom}-quarter-${i + 1}`;
@@ -136,6 +147,7 @@ function createQuarterRooms(io, mainRoom, roomsTypes) {
       playersName[mainRoom][i * 2],
       playersName[mainRoom][i * 2 + 1],
     ];
+    mainRoomOf[quarterRoom] = mainRoom;
     quarterRooms.push(quarterRoom);
 
     keysPressedMap.set(quarterRoom, {});
@@ -162,19 +174,16 @@ function createQuarterRooms(io, mainRoom, roomsTypes) {
   }
 }
 
-function finalGame(io, rooms, finalPlayers) {
-  const finalRoom = `${roomMain}-final`;
-  rooms[finalRoom] = [finalPlayers[0], finalPlayers[1]];
+function finalGame(io, mainRoom, winners) {
+  const finalRoom = `${mainRoom}-final`;
+  rooms[finalRoom] = [...winners];
   roomsTypes[finalRoom] = "final-tournament";
-  playersName[finalRoom] = [
-    clients.get(finalPlayers[0]).playerName,
-    clients.get(finalPlayers[1]).playerName,
-  ];
-  const allPlayers = rooms[roomMain];
+  playersName[finalRoom] = winners.map((id) => clients.get(id).playerName);
+  mainRoomOf[finalRoom] = mainRoom;
 
   keysPressedMap.set(finalRoom, {});
 
-  for (const playerId of rooms[finalRoom]) {
+  for (const playerId of winners) {
     const playerSocket = io.sockets.sockets.get(playerId);
     if (playerSocket) {
       playerSocket.join(finalRoom);
@@ -182,18 +191,11 @@ function finalGame(io, rooms, finalPlayers) {
     }
   }
 
-  const spectators = allPlayers.filter((playerId) =>
-    !finalPlayers.includes(playerId)
-  );
-  for (const spectatorId of spectators) {
-    const spectatorSocket = io.sockets.sockets.get(spectatorId);
-    if (spectatorSocket) {
-      spectatorSocket.join(finalRoom);
-    }
+  // Les éliminés du même lobby regardent la finale.
+  for (const spectatorId of rooms[mainRoom]) {
+    if (winners.includes(spectatorId)) continue;
+    io.sockets.sockets.get(spectatorId)?.join(finalRoom);
   }
-
-  finalPlayers.length = 0;
-  finalPlayersName.length = 0;
 
   launchMatch(
     io,

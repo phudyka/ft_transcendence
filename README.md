@@ -10,6 +10,8 @@ parties. Projet final du cursus web de l'école 42, remasterisé sur la branche
 
 - Pong 3D (three.js) en solo contre l'IA, en local à deux, en ligne à deux ou à
   quatre, et en tournoi
+- Démo jouable dès la page d'accueil, sans compte : le visiteur arrive sur
+  l'île, pas sur un formulaire
 - Chat entre amis et demandes d'ami en temps réel (socket.io)
 - Comptes, profils, avatars, statistiques de victoires et défaites
 - Connexion par mot de passe ou via l'OAuth de l'intra 42
@@ -32,7 +34,7 @@ frontend/        application Vite : SPA et client du jeu
 src/
   compose.yaml   pile locale
   django/        API : app/ (projet Django), conf/, Dockerfile
-  realtime/      service socket.io : src/, Dockerfile
+  realtime/      service socket.io : app/, Dockerfile
   nginx/         proxy TLS, local uniquement
   postgresql/    base locale uniquement
 scripts/         vérifications (check-*) et outils d'assets (bake-*)
@@ -53,24 +55,39 @@ cd ft_transcendence
 cp src/.env.example src/.env               # secrets et adresses du backend
 cp frontend/.env.example frontend/.env     # adresses vues par le navigateur
 
+npm install                                # ESLint et outils d'assets
+npm install --prefix src/realtime          # dépendances du service temps réel
+npm install --prefix frontend
+
 make                                       # nginx, django, postgresql, realtime
-cd frontend && npm install && npm run dev  # Vite sur http://localhost:5173
+npm run dev --prefix frontend              # Vite sur http://localhost:5173
 ```
 
 Vite relaie `/api`, `/media` et `/socket.io` vers la pile Docker : le frontend
-n'est servi ni par nginx ni par Django.
+n'est servi ni par nginx ni par Django. Les migrations Django tournent seules au
+démarrage du conteneur.
+
+| Commande      | Effet                                                                                          |
+| ------------- | ---------------------------------------------------------------------------------------------- |
+| `make`        | monte les quatre conteneurs et affiche l'URL de l'API                                          |
+| `make re`     | reconstruit les images : requis après toute modification du backend, il n'y a aucun bind mount |
+| `make down`   | arrête la pile                                                                                 |
+| `make fclean` | supprime aussi images et volumes                                                               |
+| `make debug`  | monte la pile et suit les journaux                                                             |
 
 ## Vérifications
 
 ```bash
-make check   # six scripts, sans conteneur
-make lint    # ESLint sur frontend/, realtime/ et scripts/
+make check   # sept scripts, sans conteneur
+make lint    # ESLint sur frontend/, src/realtime/ et scripts/
 ```
 
 Les scripts couvrent les assets, l'échappement HTML, l'accord des boîtes de
-collision entre client et serveur, le routage des touches, le système de design
-et le rejet des jetons invalides au handshake. `npm install` est requis à la
-racine, dans `frontend/` et dans `src/realtime/`.
+collision entre client et serveur, le routage des touches, le système de design,
+le rejet des jetons invalides au handshake socket.io et, côté Django, les
+migrations et la validation des noms. C'est la seule suite de tests du dépôt :
+`check_django.py` demande les dépendances de `src/django/conf/requirements.txt`
+installées dans un `.venv/` à la racine.
 
 ## Documentation
 
@@ -91,6 +108,9 @@ appels REST restent relatifs pour garder les cookies CSRF en même origine.
 **Les secrets présents dans l'historique git sont compromis** (clé Django,
 identifiants de base, secret OAuth 42) : les faire tourner avant tout
 déploiement public.
+
+Le parcours OAuth 42 est le seul chemin jamais exercé : la clé d'intra a expiré
+et le flux est laissé en l'état.
 
 ## Auteurs
 

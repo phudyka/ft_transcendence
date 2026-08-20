@@ -7,7 +7,6 @@ import {
   sendFriendRequest,
 } from "../utils/friendManager.js";
 import { removeLoginEventListeners } from "./login.js";
-import { checkAuthentication } from "../utils/auth.js";
 import { setBusy, showToast } from "../utils/feedback.js";
 import { checkFriendshipStatus } from "./profile.js";
 import { sendFriendRequestSocket } from "../utils/socketManager.js";
@@ -21,12 +20,10 @@ const blockedUsers = new Set();
 let activePrivateChat = null;
 
 export async function dashboard() {
-  const isAuthenticated = await checkAuthentication();
-  if (!isAuthenticated) {
-    navigateTo("/login");
-    return;
-  }
-
+  // Le routeur ne sert cette vue qu'à une session ouverte, et le garde sur
+  // `displayName` plus bas rattrape le reste. `checkAuthentication()` posait
+  // par-dessus un POST /api/verify-token/ dont n'importe quel appel authentifié
+  // donne déjà la réponse par un 401 — un aller-retour avant chaque affichage.
   removeLoginEventListeners();
 
   const displayName = sessionStorage.getItem("display_name");
@@ -1339,27 +1336,17 @@ async function unblockUser(username) {
   }
 }
 
+// Le routeur remplace tout `#ft_transcendence` par `innerHTML` : les écouteurs
+// posés sur des éléments meurent avec leurs nœuds, et `setupDashboardEvents`
+// les repose sur les nouveaux. Il ne reste à défaire que ce qui survit au
+// remplacement — `document`, l'intervalle, le socket.
 export function removeDashboardEventListeners() {
-  // Remove logout listener
-  const logoutLink = document.getElementById("logoutLink");
-  if (logoutLink) {
-    logoutLink.removeEventListener("click", handleLogout);
-  }
-
-  // Remove profile picture listener
-  const profilePic = document.getElementById("img_profile_pic_button");
-  if (profilePic) {
-    profilePic.removeEventListener("click", handleProfilePictureClick);
-  }
-
-  // Remove other listeners
   document.removeEventListener("click", hideDropdowns);
   document.removeEventListener("keydown", handleEnterKey);
   document.removeEventListener("keydown", handleDropdownKeydown);
 
   clearInterval(window.fetchFriendsInterval);
 
-  // Remove socket listeners and disconnect
   const socket = getSocket();
   if (socket) {
     socket.off("chat message");

@@ -34,6 +34,14 @@ export default function setupChat(nsp) {
 
       userTokens.set(username, socket.data.token);
       users.set(username, socket.id);
+      // La présence est écrite ici et à la déconnexion, nulle part ailleurs :
+      // le client la posait aussi depuis le login, l'ouverture du socket, la
+      // minuterie d'inactivité et le logout — quatre écrivains pour un champ
+      // que ce namespace observe déjà des deux côtés. L'ordre compte : `users`
+      // doit pointer sur le nouveau socket avant l'appel, sinon la déconnexion
+      // forcée de la session précédente repasse le compte hors ligne juste
+      // après.
+      updateOnlineStatus(username, true);
     });
 
     socket.on("chat message", (msg) => {

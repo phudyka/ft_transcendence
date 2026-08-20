@@ -1,7 +1,9 @@
 import json
 import re
 import logging
-import requests
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 from django.http import JsonResponse
 from django.contrib.auth import authenticate, login
 from django.views.decorators.csrf import ensure_csrf_cookie
@@ -147,8 +149,8 @@ def register_view(request):
 
 @ensure_csrf_cookie
 def set_csrf_token(request):
-    token = get_token(request)
-    logger.info(f"CSRF Token generated: {token}")
+    # Le jeton n'est plus journalisé : il partait en clair dans les logs, où il
+    # se lit sans authentification et suffit à monter une requête CSRF valide.
     return JsonResponse({'csrfToken': get_token(request)})
 
 # @permission_classes ne fait rien sur une vue Django nue : la route était
@@ -292,11 +294,6 @@ def update_user_settings(request):
             'success': False,
             'error': str(e)
         }, status=500)
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def verify_token(request):
-    return JsonResponse({'success': True, 'message': 'Token valide'})
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -482,6 +479,14 @@ def get_blocked_users(request):
         'blocked_users': blocked_list
     })
 
+# `requests` ne servait qu'aux deux appels ci-dessous ; urllib les fait depuis
+# la bibliothèque standard, et avec un délai d'attente que requests n'avait pas.
+def _fetch_json(url, data=None, headers=None):
+    body = urlencode(data).encode() if data else None
+    with urlopen(Request(url, data=body, headers=headers or {}), timeout=10) as response:
+        return json.load(response)
+
+
 def auth_42_login(request):
     auth_url = 'https://api.intra.42.fr/oauth/authorize'
     params = {
@@ -490,8 +495,7 @@ def auth_42_login(request):
         'response_type': 'code',
         'scope': 'public'
     }
-    auth_url = f"{auth_url}?{'&'.join(f'{k}={v}' for k, v in params.items())}"
-    return redirect(auth_url)
+    return redirect(f'{auth_url}?{urlencode(params)}')
 
 def auth_42_callback(request):
     code = request.GET.get('code')
@@ -507,21 +511,20 @@ def auth_42_callback(request):
         'redirect_uri': f'{settings.PUBLIC_API_URL}/api/auth/42/callback/'
     }
 
-    response = requests.post(token_url, data=data)
-    if response.status_code != 200:
+    try:
+        token_data = _fetch_json(token_url, data=data)
+    except (HTTPError, URLError, ValueError):
         return redirect(f'{settings.FRONTEND_URL}/register?error=auth_failed')
 
-    token_data = response.json()
     access_token = token_data.get('access_token')
 
-    user_url = 'https://api.intra.42.fr/v2/me'
-    headers = {'Authorization': f'Bearer {access_token}'}
-    user_response = requests.get(user_url, headers=headers)
-
-    if user_response.status_code != 200:
+    try:
+        user_data = _fetch_json(
+            'https://api.intra.42.fr/v2/me',
+            headers={'Authorization': f'Bearer {access_token}'},
+        )
+    except (HTTPError, URLError, ValueError):
         return redirect(f'{settings.FRONTEND_URL}/register?error=profile_fetch_failed')
-
-    user_data = user_response.json()
 
     try:
         user = User.objects.get(email=user_data['email'])
@@ -543,4 +546,4 @@ def auth_42_callback(request):
         'display_name': user.display_name,
         'avatar_url': user.avatar_url
     }
-    return redirect(f'{settings.FRONTEND_URL}/login?auth_success=true&' + '&'.join(f'{k}={v}' for k, v in response_data.items()))
+    return redirect(f'{settings.FRONTEND_URL}/login?auth_success=true&{urlencode(response_data)}')

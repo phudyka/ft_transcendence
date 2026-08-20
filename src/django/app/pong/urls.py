@@ -6,7 +6,6 @@ urlpatterns = [
 	path('api/health/', views.health, name='health'),
 	path('api/set-csrf-token/', views.set_csrf_token, name='set_csrf_token'),
 	path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-	path('api/verify-token/', views.verify_token, name='verify_token'),
 	path('api/register/', views.register_view, name='register'),
 	path('api/login/', views.login_view, name='login'),
 	path('api/user/<str:display_name>/', views.get_user_by_display_name, name='get_user_by_display_name'),

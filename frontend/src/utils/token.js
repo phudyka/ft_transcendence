@@ -14,25 +14,15 @@ export async function getCsrfToken() {
   throw new Error("Failed to get CSRF token");
 }
 
-export async function logout() {
+export function logout() {
+  // `removeDashboardEventListeners` coupe le socket, et c'est sa déconnexion
+  // qui repasse le compte hors ligne côté serveur.
   removeDashboardEventListeners();
-
-  if (sessionStorage.getItem("accessToken")) {
-    try {
-      await fetchWithToken("/api/update-online-status/", {
-        method: "POST",
-        body: JSON.stringify({ is_online: false }),
-      });
-    } catch (error) {
-      console.error("Erreur lors de la mise à jour du statut en ligne:", error);
-    }
-  }
-
   sessionStorage.clear();
   navigateTo("/login");
 }
 
-export async function refreshAccessToken() {
+async function refreshAccessToken() {
   const refreshToken = sessionStorage.getItem("refreshToken");
   if (!refreshToken) {
     logout();

@@ -8,7 +8,7 @@ import loadModel from "./loadIsland.mjs";
 import { Ball } from "./ball.mjs";
 import { initSocketEvent } from "./socketEvent.mjs";
 import Sound from "./sounds.mjs";
-import { updateUserStats } from "./api.mjs";
+import { saveMatchResult } from "./api.mjs";
 import { connectGame } from "../config.js";
 import { padForSide, padMoveFor } from "./controls.mjs";
 import { showPanel } from "./panels.mjs";
@@ -54,8 +54,8 @@ window.addEventListener("message", function (event) {
 // si bien qu'à partir du deuxième match le chiffre du score et la raquette
 // qu'il compte n'avaient plus la même couleur. Deux équipes, deux couleurs —
 // c'est la Règle des Couleurs d'Équipe, et elle vaut aussi pour les pads 3 et 4.
-export const TEAM_ORANGE = 0xff6600;
-export const TEAM_BLUE = 0x00a9ff;
+const TEAM_ORANGE = 0xff6600;
+const TEAM_BLUE = 0x00a9ff;
 
 export let pad1, pad2, pad3, pad4, ball;
 export let scene, camera, renderer;
@@ -104,11 +104,7 @@ function updateCamera() {
       (performance.now() - camTween.start) / camTween.duration,
       1,
     );
-    camera.position.lerpVectors(
-      camTween.from,
-      camTween.to,
-      easeInOutExpo(t, 0, 1, 1),
-    );
+    camera.position.lerpVectors(camTween.from, camTween.to, easeInOutExpo(t));
     camera.lookAt(0, camTween.lookY, 0);
     if (t === 1) camTween = null;
     return;
@@ -439,7 +435,7 @@ socket.on("gameOver", (data) => {
     sounds.play("win");
     winnerMessage.textContent = "YOU WIN";
     won(true);
-    updateUserStats(username, token, true, data.looser);
+    saveMatchResult(token, true, data.looser);
   } else if (
     data.winner !== username && data.roomType !== "multi-2-local" &&
     data.roomType !== "multi-four"
@@ -447,7 +443,7 @@ socket.on("gameOver", (data) => {
     sounds.play("loose");
     winnerMessage.textContent = `YOU LOSE — ${formatWinner(winner)} wins`;
     won(false);
-    updateUserStats(username, token, false, data.winner);
+    saveMatchResult(token, false, data.winner);
   } else if (
     data.winner.length === 2 && data.winner[0] === username ||
     data.winner[1] === username

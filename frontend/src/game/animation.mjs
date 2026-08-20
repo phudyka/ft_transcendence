@@ -24,7 +24,7 @@ function fade(scene, object, from, onDone) {
   const start = performance.now();
   (function step() {
     const t = (performance.now() - start) / FADE_MS;
-    object.material.opacity = Math.max(from * easeInOutExpo(1 - t, 0, 1, 1), 0);
+    object.material.opacity = Math.max(from * easeInOutExpo(1 - t), 0);
     if (t < 1) return requestAnimationFrame(step);
     scene.remove(object);
     object.geometry.dispose();
@@ -33,9 +33,11 @@ function fade(scene, object, from, onDone) {
   })();
 }
 
-export function easeInOutExpo(t, b, c, d) {
-  if (t == 0) return b;
-  if (t == d) return b + c;
-  if ((t /= d / 2) < 1) return c / 2 * Math.pow(2, 10 * (t - 1)) + b;
-  return c / 2 * (-Math.pow(2, -10 * --t) + 2) + b;
+// La signature à quatre paramètres (t, b, c, d) venait des courbes jQuery ; les
+// deux appelants passaient toujours (t, 0, 1, 1), c'est-à-dire un `t` déjà
+// normalisé dans [0, 1] pour une sortie dans [0, 1].
+export function easeInOutExpo(t) {
+  if (t <= 0) return 0;
+  if (t >= 1) return 1;
+  return t < 0.5 ? 2 ** (20 * t - 10) / 2 : 1 - 2 ** (10 - 20 * t) / 2;
 }

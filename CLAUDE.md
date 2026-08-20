@@ -115,7 +115,13 @@ committed `node_modules`. The one chart on the site (wins/losses) is a
   the router boots without it.
 - `src/app.js` — router on `window.location.pathname`; `navigateTo()` is the
   only way to change route; "logged in" means
-  `sessionStorage.getItem('username') !== null`.
+  `sessionStorage.getItem('username') !== null`. `announceRoute(title)` sets the
+  document title and moves focus to the view's `h1`; every view calls it last,
+  because `innerHTML` replaces the whole document and drops focus on `<body>`.
+- **`/` is the playable demo** (`src/views/home.js`), not the login form: the
+  game iframe fills the page and runs solo against the AI without an account.
+  `/login` holds the form. A signed-out visitor never meets a field before the
+  island.
 - `src/utils/api.js` — `fetchWithToken()`, the single wrapper adding
   `Authorization: Bearer` + `X-CSRFToken`. REST calls stay **relative**
   (`/api/…`) so the static host rewrites them same-origin: no CORS, CSRF cookies
@@ -138,7 +144,15 @@ committed `node_modules`. The one chart on the site (wins/losses) is a
 - `src/game/` — three.js client (`main.mjs`, `socketEvent.mjs`,
   ball/pad/camera/light/loadIsland/…).
 - `src/game/controls.mjs` — which pad a key drives; keyboard and the touch zones
-  both go through it.
+  both go through it. The keys are printed in the menus (`.controls-legend`) and
+  recalled at kick-off (`#controls-brief`).
+- `src/game/panels.mjs` — `showPanel` / `hidePanel`: an overlay that opens takes
+  focus, one that closes gives it back. Do not toggle `.hidden` by hand on a
+  panel holding buttons.
+- `src/game/sounds.mjs` — short effects go through `THREE.Audio` (decoded
+  buffers); the seven long loops go through `HTMLAudioElement` (**streamed**).
+  `AudioLoader` decodes to Float32 PCM and never frees it: the music alone
+  reached roughly 300 MB of RAM over a session.
 - `src/views/dashboard.js` is the main screen and the largest file in the app.
 - `public/` — `brand/` (favicon, logos), `textures/` (game planes), `avatars/`,
   `scenes/` (the GLB), `sound/`. `check-assets.mjs` walks exactly those five.
@@ -151,7 +165,11 @@ One Node service replacing the old game and chat servers: socket.io namespaces
 
 - `src/auth.mjs` — `requireAuth` verifies the JWT signature with
   `DJANGO_SECRET_KEY` at handshake and takes the identity from it. No valid
-  token → no connection, and the client goes silent.
+  token → no connection, and the client goes silent. `allowGuest` (namespace
+  **`/game` only**) admits a token-less visitor as a guest so the landing demo
+  can run; `sockets.mjs` returns before registering any online handler for them,
+  so a guest gets solo and 2-players-local and nothing else. `/chat` stays under
+  `requireAuth`.
 - `src/game/` — authoritative physics and scoring, **without three.js**; state
   lives in module-level maps in `sockets.mjs` (in-memory, a restart drops all
   matches). Modes: `solo`, `multi-2-local`, `multi-2-online`, `multi-four`,
