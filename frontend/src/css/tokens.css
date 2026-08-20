@@ -1,0 +1,375 @@
+/* Tokens du système de design — voir DESIGN.md.
+   Les cinq feuilles de vue et le jeu lisent d'ici : aucune valeur de couleur,
+   de rayon ou d'espacement du système ne doit plus être écrite en dur. */
+
+:root {
+  /* ── Rive application : orange sur nuit ────────────────────────────────── */
+  --sunset-orange: #ff8c00;
+  --sunset-orange-bright: #ffa500;
+  --lava-orange: #ff5722;
+  --lava-orange-deep: #ff3d00;
+  --lava-orange-soft: #ff7043;
+
+  /* ── Rive jeu : bleu et or ─────────────────────────────────────────────── */
+  --sun-gold: #ffcc00;
+  --flame-red: #ff0000;
+  --lagoon-blue: #00a2ff;
+  --deep-sea-blue: #0066ff;
+  --menu-blue: #0091e6;
+  --menu-blue-deep: #0055cc;
+
+  /* ── Couleurs d'équipe : ne désignent qu'un joueur ─────────────────────── */
+  --pad-orange: #ff6600;
+  --pad-blue: #00a9ff;
+
+  /* ── Neutres ───────────────────────────────────────────────────────────── */
+  --night: #121212;
+  --night-raised: #1e1e1e;
+  --panel-smoke: rgba(34, 34, 34, 0.8);
+  --panel-smoke-soft: rgba(34, 34, 34, 0.7);
+  --panel-smoke-strong: rgba(34, 34, 34, 0.9);
+  --panel-smoke-hover: rgba(98, 98, 98, 0.7);
+  --field-slate: #2a2a2a;
+  --field-border: #3e3e3e;
+  --border-subtle: #555555;
+  --border-faint: #dddddd;
+  --paper: #e0e0e0;
+  --chalk: #ffffff;
+  --muted-sand: #888888;
+
+  /* ── Sémantique ────────────────────────────────────────────────────────── */
+  --reef-green: #28a745;
+  --reef-green-win: #4caf50;
+  --coral-red: #dc3545;
+  --coral-red-loss: #f44336;
+
+  /* Les deux teintes sémantiques posées sur la fumée : #4caf50 y tient 5,9:1,
+     mais #f44336 plafonnait à 4,48:1, sous le minimum. Éclaircies au seuil. */
+  --reef-green-text: #66bb6a;
+  --coral-red-text: #ff7a70;
+
+  /* Texte posé sur un aplat de couleur. Le blanc sur nos oranges plafonne à
+     2,3:1 ; la nuit y monte à 8,03:1. */
+  --on-accent: var(--night);
+
+  /* ── Rayons ────────────────────────────────────────────────────────────── */
+  --radius-xs: 4px;
+  --radius-sm: 5px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-game: 16px;
+  --radius-pill: 25px;
+
+  /* ── Espacement ────────────────────────────────────────────────────────── */
+  --space-xs: 5px;
+  --space-sm: 10px;
+  --space-md: 15px;
+  --space-lg: 20px;
+  --space-xl: 40px;
+
+  /* ── Ombres ────────────────────────────────────────────────────────────── */
+  --shadow-panel: 0 4px 8px rgba(0, 0, 0, 0.6);
+  --shadow-card: 0 8px 16px rgba(0, 0, 0, 0.3);
+
+  /* ── Cibles de pointage ────────────────────────────────────────────────── */
+  --tap-min: 44px;
+
+  /* ── Cadence de transition du système ──────────────────────────────────── */
+  --ease-color: 0.3s ease;
+  --ease-transform: 0.2s ease;
+}
+
+/* Le focus était invisible partout : aucune règle `:focus` n'existait dans le
+   projet, et le bouton START posait `outline: none`. */
+:focus-visible {
+  outline: 3px solid var(--sun-gold);
+  outline-offset: 2px;
+  border-radius: var(--radius-xs);
+}
+
+/* Respecte le réglage système sans tout éteindre : les boucles décoratives
+   (pulsation, halo de victoire, balayage) s'arrêtent sur leur état de repos,
+   mais le retour d'information reste — le compteur d'attente continue de
+   tourner et le score garde sa bascule de 0,3 s, sans quoi on ne saurait plus
+   qu'un point vient d'être marqué. */
+@media (prefers-reduced-motion: reduce) {
+  /* Les boucles décoratives s'arrêtent sur leur état de repos. */
+  #start-game-button,
+  #winner-message,
+  #scoreTitle,
+  #spinner {
+    animation: none;
+  }
+
+  #winner-message::before {
+    display: none;
+  }
+
+  /* Les agrandissements et translations au survol disparaissent — c'est le
+     mouvement qui gêne. Les fondus de couleur et la bascule de score restent :
+     ils portent l'information, et rien ne les remplace. */
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-property:
+      color,
+      background-color,
+      border-color,
+      opacity,
+      box-shadow,
+      outline-color !important;
+  }
+
+  *:hover {
+    transform: none !important;
+  }
+}
+
+/* ── Composants partagés ───────────────────────────────────────────────────
+   `.btn*`, les champs et le pied de page étaient définis en double dans
+   login.css et register.css, chargées toutes les deux sur toutes les routes :
+   l'ordre d'import décidait du gagnant. Un seul propriétaire ici. */
+
+.btn {
+  padding: 12px var(--space-lg);
+  border-radius: var(--radius-md);
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  min-height: var(--tap-min);
+  transition:
+    background-color var(--ease-color),
+    transform var(--ease-transform);
+}
+
+.btn-primary {
+  background-color: var(--lava-orange);
+  color: var(--on-accent);
+}
+
+.btn-primary:hover {
+  background-color: var(--lava-orange-deep);
+  transform: scale(1.05);
+}
+
+.btn-secondary {
+  background-color: var(--field-slate);
+  color: var(--paper);
+}
+
+.btn-secondary:hover {
+  background-color: var(--field-border);
+}
+
+.btn-outline-light {
+  background-color: transparent;
+  border: 2px solid var(--lava-orange);
+  color: var(--lava-orange);
+}
+
+.btn-outline-light:hover {
+  background-color: var(--lava-orange);
+  color: var(--on-accent);
+}
+
+/* 16px est le plancher : sous cette taille, Safari iOS zoome de force sur le
+   champ au focus et casse la mise en page du formulaire. */
+.field-input {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  font-family: "Poppins", Helvetica, sans-serif;
+  background-color: var(--field-slate);
+  border: 1px solid var(--field-border);
+  border-radius: var(--radius-sm);
+  color: var(--chalk);
+  transition: border-color var(--ease-color);
+}
+
+.field-input:hover {
+  border-color: var(--lava-orange-soft);
+}
+
+.field-input::placeholder {
+  color: var(--muted-sand);
+}
+
+/* Champ mot de passe : le bouton de démasquage se pose dans le champ. Il
+   vivait dans login.css avec des sélecteurs nus, et register.css en reprenait
+   une variante qui ne réservait que 40 px pour un bouton de 44. */
+.password-wrapper {
+  display: flex;
+  align-items: center;
+  position: relative;
+  width: 100%;
+}
+
+.password-wrapper .field-input {
+  padding-inline-end: calc(var(--tap-min) + var(--space-sm));
+}
+
+.unmask {
+  position: absolute;
+  inset-inline-end: var(--space-xs);
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--tap-min);
+  height: var(--tap-min);
+  border-radius: 50%;
+  border: none;
+  background-color: var(--lava-orange);
+  color: var(--on-accent);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: background-color var(--ease-color);
+}
+
+.unmask:hover {
+  background-color: var(--lava-orange-soft);
+}
+
+.unmask svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Un refus de champ tenu à côté du champ, pas dans un toast qui part au bout
+   de cinq secondes. */
+.field-error {
+  margin: 0;
+  color: var(--coral-red-text);
+  font-size: 0.9rem;
+}
+
+.field-hints {
+  margin: var(--space-xs) 0 0;
+  padding-inline-start: var(--space-lg);
+  color: var(--muted-sand);
+  font-size: 0.875rem;
+}
+
+footer {
+  margin-top: 2px;
+  text-align: center;
+  color: var(--muted-sand);
+  font-size: 0.9rem;
+}
+
+/* Page 404. La hauteur pleine est portée ici en `dvh` : la classe `vh-100` de
+   Bootstrap ignore la barre d'adresse rétractable, et le contrôle E de
+   check-design.mjs ne lit que le CSS — la règle sortait par le gabarit. */
+.notfound-view {
+  min-height: 100dvh;
+}
+
+.notfound-view .alert {
+  background-color: var(--sunset-orange);
+  color: var(--on-accent);
+  border: none;
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  max-width: 32rem;
+}
+
+.notfound-view .alert-heading {
+  font-size: 1.5rem;
+  margin-bottom: var(--space-sm);
+}
+
+.notfound-view .btn {
+  width: 200px;
+  max-width: 100%;
+}
+
+.toast-body-accent {
+  background-color: var(--sunset-orange);
+  color: var(--on-accent);
+}
+
+.toast-body-success {
+  background-color: var(--reef-green);
+  color: var(--on-accent);
+}
+
+.toast-body-error {
+  background-color: var(--coral-red);
+  color: var(--chalk);
+}
+
+/* L'avertissement portait l'or en aplat : l'or encadre les panneaux du jeu et
+   ne traverse pas vers la rive application, où seul l'anneau de focus passe.
+   La lave le distingue de l'orange couchant de l'information (5,92:1). */
+.toast-body-warning {
+  background-color: var(--lava-orange);
+  color: var(--on-accent);
+}
+
+/* Le mot du titre reprend la couleur du corps pour que l'en-tête, resté clair,
+   dise la même chose que lui. */
+.btn-close {
+  filter: invert(1) grayscale(1) brightness(2);
+  opacity: 0.8;
+}
+
+.btn-close:hover {
+  opacity: 1;
+}
+
+.toast-header {
+  background-color: var(--night-raised);
+  color: var(--paper);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ── États vides et d'erreur ────────────────────────────────────────────────
+   Une liste vide ne rendait littéralement rien : c'est ce que voit tout compte
+   neuf, et rien ne le distinguait d'un échec de requête. */
+/* Texte réservé aux technologies d'assistance. La SPA le tenait de Bootstrap ;
+   la page du jeu ne charge pas Bootstrap et en a besoin aussi. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.empty-state,
+.error-state {
+  margin: 0;
+  padding: var(--space-md) var(--space-sm);
+  text-align: center;
+  font-size: 0.9rem;
+  list-style: none;
+}
+
+.empty-state {
+  color: var(--muted-sand);
+}
+
+/* #f44336 sur la fumée plafonne à 4,49:1, sous le minimum — et c'est le texte
+   qui dit qu'une requête a échoué. `--coral-red-text` existe pour ça. */
+.error-state {
+  color: var(--coral-red-text);
+}
+
+/* ── Bouton en cours d'action ───────────────────────────────────────────────
+   Aucun bouton de soumission ne changeait d'état, alors que le premier login
+   réveille une API endormie et peut prendre une minute. */
+.btn[aria-busy="true"],
+.btn:disabled {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  transform: none;
+}
