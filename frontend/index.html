@@ -1,17 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ft_transcendence</title>
-    <link rel="icon" type="image/x-icon" href="/content/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="/brand/favicon.ico">
+    <meta
+      name="description"
+      content="Pong en 3D dans le navigateur : comptes, amis, chat, tournois."
+    >
+    <meta name="theme-color" content="#121212">
+    <!-- Une seule requête de polices, et seulement les deux familles du système.
+         Inter était chargé sans être utilisé nulle part, et Font Awesome entier
+         venait d'un CDN pour un unique cadenas — remplacé par un SVG inline. -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;700&display=swap"
+    >
+  </head>
+  <body>
     <div id="ft_transcendence"></div>
+    <!-- Sans JavaScript, la page est un div vide : les feuilles de style elles
+         aussi sont chargées par le module d'entrée, d'où le style en ligne —
+         c'est le seul endroit du projet où il n'y a pas d'alternative. -->
+    <noscript>
+      <p style="padding: 1rem; text-align: center">
+        ft_transcendence is a 3D Pong that runs entirely in the browser: it
+        needs JavaScript and WebGL. Enable JavaScript and reload the page.
+      </p>
+    </noscript>
     <script type="module" src="/src/main.js"></script>
-</body>
+  </body>
 </html>

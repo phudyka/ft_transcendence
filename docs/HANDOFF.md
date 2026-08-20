@@ -25,19 +25,49 @@ Deux comptes d'essai existent en base : `alice` / `bob`, mot de passe
 
 ## Où en est le projet
 
-| Lot                 | État           | Ce qui a été fait                                                           |
-| ------------------- | -------------- | --------------------------------------------------------------------------- |
-| 0 — purge           | fait           | `.gitignore`, 89 Mo d'assets orphelins, monitoring et `user_api` supprimés  |
-| 1 — secrets         | fait côté code | `src/.env` retiré du suivi, `admin`/`admin` en dur supprimé                 |
-| Sécurité            | fait           | XSS stockée fermée (échappement + validation serveur)                       |
-| 2 — assets          | fait           | 209 Mo ➜ 25,6 Mo, dont ~9,4 Mo au premier chargement                        |
-| 3 — frontend        | fait           | Vite, SPA et jeu réunis, `three` r166 ➜ r185                                |
-| 4 — temps réel      | fait           | jeu + chat fusionnés, physique sans `three`, JWT au handshake               |
-| 5 — API Django      | fait           | Django 5.2, config par environnement, Neon prêt, avatars réparés            |
-| **6 — interface**   | **en cours**   | contrôles tactiles faits ; retravail visuel et responsive de la SPA à faire |
-| **7 — déploiement** | **à faire**    | Vercel + Koyeb + Render + Neon                                              |
+| Lot                 | État           | Ce qui a été fait                                                                       |
+| ------------------- | -------------- | --------------------------------------------------------------------------------------- |
+| 0 — purge           | fait           | `.gitignore`, 89 Mo d'assets orphelins, monitoring et `user_api` supprimés              |
+| 1 — secrets         | fait côté code | `src/.env` retiré du suivi, `admin`/`admin` en dur supprimé                             |
+| Sécurité            | fait           | XSS stockée fermée (échappement + validation serveur)                                   |
+| 2 — assets          | fait           | 209 Mo ➜ 25,6 Mo, dont ~9,4 Mo au premier chargement                                    |
+| 3 — frontend        | fait           | Vite, SPA et jeu réunis, `three` r166 ➜ r185                                            |
+| 4 — temps réel      | fait           | jeu + chat fusionnés, physique sans `three`, JWT au handshake                           |
+| 5 — API Django      | fait           | Django 5.2, config par environnement, Neon prêt, avatars réparés                        |
+| **6 — interface**   | **en cours**   | contrôles tactiles, audit + critique traités (voir plus bas) ; reste l'essai navigateur |
+| **7 — déploiement** | **à faire**    | Vercel + Koyeb + Render + Neon                                                          |
 
 Architecture cible et justification du découpage : `PLAN.md`.
+
+---
+
+## Lot 6 — audit et critique appliqués (20 août 2026)
+
+Un audit technique (14/20) et une critique design (18/40) ont été passés sur
+`frontend/`, puis corrigés. Ce qui a changé, du plus structurant au plus petit :
+
+- **`/` est la démo jouable**, plus le formulaire de connexion. Le service temps
+  réel admet un invité sur le namespace `/game` (`allowGuest`) et ne lui
+  installe aucun gestionnaire en ligne : solo et deux joueurs locaux, rien
+  d'autre. Le chat reste fermé aux invités.
+- **Le chat ne devient plus muet.** `sendMessage` recréait un socket sans
+  reposer les écouteurs ; ils se posent maintenant dans `initializeSocket`.
+- **L'inscription ouvre la session** au lieu de renvoyer au formulaire de
+  connexion : Django renvoie `username`, `display_name` et `avatar_url`.
+- **Les commandes sont écrites** : légende permanente dans les menus, rappel du
+  camp et des touches au coup d'envoi.
+- **Le focus est géré** : `showPanel`/`hidePanel` côté jeu, `announceRoute` côté
+  SPA (titre du document + focus sur le `h1`).
+- **Les musiques passent en flux** (`HTMLAudioElement`) : les six pistes
+  décodées en PCM approchaient les 300 Mo de RAM par session.
+- **La défaite n'est plus habillée en victoire**, et l'or du message de victoire
+  ne tombe plus à 1,82:1 sur son dégradé.
+- Deux nouveaux contrôles dans `check-design.mjs` (teinte littérale sur une
+  surface, `vh-100` dans un gabarit) et un cas invité dans `check-realtime.mjs`.
+
+Reste ouvert : l'essai en navigateur de tout ce lot, et le pied de page qui
+porte désormais « ft_transcendence — a 3D Pong by phudyka » (à ajuster si le nom
+public doit être un autre).
 
 ---
 
@@ -111,9 +141,8 @@ Prérequis d'environnement, à connaître avant de s'étonner :
   et pour `gltf-transform`. Utiliser `~/.nvm/versions/node/v24.18.1/bin`.
 - `npm install` dans `frontend/` **et** dans `src/realtime/`.
 - `check_django.py` demande les dépendances de
-  `src/django/conf/requirements.txt` dans un environnement virtuel
-  ; `make check` prend automatiquement `.venv/bin/python` s'il existe à la
-  racine.
+  `src/django/conf/requirements.txt` dans un environnement virtuel ;
+  `make check` prend automatiquement `.venv/bin/python` s'il existe à la racine.
 - `src/.env` était resté dans sa forme d'avant le remaster (variables
   `GAME_SERVER_HOST`, `CHAT_SERVER_HOST`, Grafana, Discord) et il manquait tout
   ce que le Lot 5 attend. Il a été réécrit sur `src/.env.example`, avec une clé
@@ -219,12 +248,12 @@ tout, avec les valeurs attendues en production.
 
 ## Repères dans le code
 
-| Où                                           | Quoi                                              |
-| -------------------------------------------- | ------------------------------------------------- |
-| `frontend/src/`                           | SPA : routeur, vues, utilitaires                  |
-| `frontend/src/game/`                         | client du jeu (rendu three)                       |
-| `frontend/src/config.js`                     | adresses des namespaces socket.io                 |
-| `frontend/src/utils/html.js`              | gabarit `html` qui échappe les interpolations     |
+| Où                              | Quoi                                              |
+| ------------------------------- | ------------------------------------------------- |
+| `frontend/src/`                 | SPA : routeur, vues, utilitaires                  |
+| `frontend/src/game/`            | client du jeu (rendu three)                       |
+| `frontend/src/config.js`        | adresses des namespaces socket.io                 |
+| `frontend/src/utils/html.js`    | gabarit `html` qui échappe les interpolations     |
 | `src/realtime/app/game/`        | physique et salles côté serveur, sans three       |
 | `src/realtime/app/auth.mjs`     | vérification des JWT au handshake                 |
 | `src/django/app/pong/tokens.py` | émission des jetons, revendication `display_name` |

@@ -162,6 +162,21 @@ for (const file of cssFiles) {
   }
 }
 
+// La règle sortait par la porte de service : `vh-100` est une classe utilitaire
+// de Bootstrap, posée dans un gabarit JavaScript, donc invisible à un contrôle
+// qui ne lit que des propriétés CSS. La 404 et l'erreur de profil l'employaient.
+const VH_UTILITY = /\b(?:min-|max-)?vh-100\b/g;
+for (const file of codeFiles.filter((f) => !f.endsWith(".css"))) {
+  // Les commentaires de ligne citent la classe qu'ils interdisent — les
+  // scanner ferait échouer le contrôle sur sa propre documentation.
+  const src = read(file).replace(/^[ \t]*\/\/.*$/gm, "");
+  for (const m of src.matchAll(VH_UTILITY)) {
+    fail("E · hauteur d'écran en vh (classe utilitaire dans un gabarit)", [
+      `${relative(root, file)}:${at(src, m.index)} — ${m[0]}`,
+    ]);
+  }
+}
+
 // --- F. piles de polices ----------------------------------------------------
 // Le frontmatter de docs/DESIGN.md annonce les replis. Le code en avait perdu la
 // moitié — un repli qui disparaît ne se voit jamais, la police distante répond.
@@ -196,7 +211,9 @@ for (const file of cssFiles) {
 // « L'or encadre, il ne remplit pas » — la seule formulation du doc qui était
 // invérifiable telle quelle. Réécrite : l'or n'apparaît jamais en `background`.
 
-for (const file of otherCss) {
+// `otherCss` excluait tokens.css, où `.toast-body-warning` portait justement
+// l'or en aplat — et du côté application, que l'or ne traverse pas.
+for (const file of cssFiles) {
   const src = read(file);
   for (
     const m of src.matchAll(/background(-color)?\s*:\s*var\(--sun-gold\)/g)
@@ -209,6 +226,35 @@ for (const file of otherCss) {
     fail("G · l'or en aplat (il encadre, il ne remplit pas)", [
       `${relative(root, file)}:${at(src, m.index)}`,
     ]);
+  }
+}
+
+// --- I. teintes littérales sur une surface ----------------------------------
+// Le contrôle C ne lit que les hexadécimaux. La couleur du système avait donc
+// migré vers `rgba()` : trois survols orange, un fond de bouton tactile bleu,
+// deux bordures sémantiques — changer le jeton ne les aurait pas bougés.
+//
+// Les voiles neutres restent libres : rgba(0,0,0,·) et rgba(255,255,255,·) sont
+// le vocabulaire des fumées et du filet blanc, pas des teintes. Et seules les
+// propriétés de surface sont visées — un halo coloré vit dans `box-shadow`, où
+// DESIGN.md le documente comme local à son composant.
+
+const SURFACE_DECL =
+  /(?:^|[;{])\s*(background|background-color|border-color|border|border-top|border-right|border-bottom|border-left|border-inline|border-block|color|outline-color)\s*:\s*([^;{}]*)/g;
+const RGB_CALL = /rgba?\(\s*(\d+)[\s,]+(\d+)[\s,]+(\d+)/g;
+
+for (const file of otherCss) {
+  const src = read(file);
+  const rel = relative(root, file);
+  for (const decl of src.matchAll(SURFACE_DECL)) {
+    for (const call of decl[2].matchAll(RGB_CALL)) {
+      const [r, g, b] = [call[1], call[2], call[3]].map(Number);
+      // Achromatique = neutre : c'est une fumée ou un filet, pas une teinte.
+      if (r === g && g === b) continue;
+      fail("I · teinte du système écrite en littéral sur une surface", [
+        `${rel}:${at(src, decl.index)} — ${decl[1]}: ${call[0]}…`,
+      ]);
+    }
   }
 }
 
@@ -253,5 +299,6 @@ if (failures.length) {
 
 console.log(
   `OK — design : ${declared.length} jetons tous appelés, anneau de focus unique, ` +
-    `aucune couleur en dur, plancher de seize tenu, piles de polices conformes.`,
+    `aucune couleur en dur ni teinte littérale sur une surface, plancher de seize ` +
+    `tenu, piles de polices conformes.`,
 );

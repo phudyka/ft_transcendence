@@ -1,255 +1,284 @@
-.profile-icon {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    overflow: hidden;
-    margin-left: 20px;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+/* Écran de profil. Stylait `.card`, `.row`, `.list-group-item`, `.badge` et
+   `.status-dot` en global, en collision directe avec dashboard.css.
+   `.card` y était déclaré quatre fois, `.card-body` et `#chartContainer` deux
+   fois chacun, et deux `@media` avaient perdu le préfixe de portée : ils
+   ciblaient `.card` et `.row.mt-4` sur toutes les routes. */
+
+/* La vue emprunte `.dashboard-container`, taillé pour un écran fixe
+   (`height: 100dvh; overflow: hidden`). En flux vertical, cela poussait le
+   bouton de retour et le pied de page hors du cadre, sans barre de défilement.
+   Le composé bat le sélecteur simple, aucune règle du tableau de bord n'est
+   touchée. */
+.profile-view.dashboard-container {
+  height: auto;
+  min-height: 100dvh;
+  overflow-y: auto;
 }
 
-.profile-icon img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
+/* Le seul titre du projet qui porte un nom d'utilisateur était le seul sans
+   garde-fou : cent caractères s'enroulaient sur cinq lignes. */
+.profile-view #header-dashboard {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 var(--space-md);
 }
 
-.card-title {
-    font-weight: 700;
+.profile-error {
+  min-height: 100dvh;
 }
 
-.card {
-    border-radius: 10px;
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+.profile-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  justify-content: center;
 }
 
-#friendButton {
-    width: 200px;
-    background-color: #FF8C00;
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    margin: 20px auto;
-    display: block;
-    border-radius: 5px;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+.profile-view .profile-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-left: var(--space-lg);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-#friendButton:hover {
-    background-color: #FFA500;
-    transform: scale(1.05);
+.profile-view .profile-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
-.card {
-    background: rgba(34, 34, 34, 0.8);
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
-    margin-bottom: 20px;
+.profile-view #header-dashboard {
+  margin-top: var(--space-sm);
 }
 
-.card-title {
-    color: #ff5722;
-    font-weight: 700;
+.profile-view #profile-picture img {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  border: 2px solid var(--sunset-orange);
+  box-shadow: var(--shadow-panel);
+  margin: 0 auto;
+  padding: 0;
+  object-fit: cover;
 }
 
-.card-text {
-    color: #e0e0e0;
+.profile-view .status-indicator {
+  display: flex;
+  align-items: center;
+  margin-top: var(--space-sm);
+  justify-content: center;
+  font-weight: bold;
 }
 
-#chartContainer {
-    background: rgba(34, 34, 34, 0.7);
-    border-radius: 10px;
-    padding: 10px;
-    height: 200px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
+.profile-view .status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: var(--space-xs);
 }
 
-#winLossChart {
-    max-width: 100%;
-    max-height: 100%;
+.profile-view #friendButton {
+  width: 200px;
+  max-width: 100%;
+  margin: var(--space-lg) auto;
+  display: block;
 }
 
-.alert {
-    background-color: #f44336;
-    color: white;
-    padding: 15px;
-    border-radius: 5px;
-    margin-bottom: 20px;
+.profile-view .back-button {
+  width: 200px;
+  max-width: 100%;
 }
 
-#backToDashboard {
-    background-color: #FF8C00;
-    border: none;
-    color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    transition: background-color 0.3s ease, transform 0.2s ease;
+/* CARTES */
+
+.profile-view .row {
+  display: flex;
+  flex-wrap: wrap;
 }
 
-#backToDashboard:hover {
-    background-color: #FFA500;
-    transform: scale(1.05);
+.profile-view .row.mt-4 {
+  flex-wrap: nowrap;
+  margin-right: calc(-1 * var(--space-md));
+  margin-left: calc(-1 * var(--space-md));
+}
+
+.profile-view .col-md-4 {
+  flex: 1;
+  max-width: 33.333333%;
+  padding-right: var(--space-md);
+  padding-left: var(--space-md);
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-view .card {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  background: var(--panel-smoke);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+  margin-bottom: var(--space-lg);
+}
+
+.profile-view .card-body {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-view .card-title {
+  color: var(--lava-orange);
+  font-weight: 700;
+}
+
+.profile-view .card-text {
+  color: var(--paper);
+  flex-grow: 1;
+}
+
+/* RATIO VICTOIRES / DÉFAITES */
+
+.profile-view #chartContainer {
+  background: var(--panel-smoke-soft);
+  border-radius: var(--radius-lg);
+  padding: var(--space-sm);
+  min-height: 200px;
+  width: 100%;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  justify-content: center;
+  align-items: center;
+}
+
+/* Deux parts et deux nombres : un `conic-gradient` percé au masque suffit.
+   La bibliothèque de graphiques qui dessinait ce donut pesait plus lourd que
+   toute la vue. */
+.profile-view .ratio-donut {
+  width: 130px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: conic-gradient(
+    var(--reef-green-win) 0 calc(var(--win-share) * 1turn),
+    var(--coral-red-loss) 0
+  );
+  -webkit-mask: radial-gradient(circle, transparent 49%, #000 50%);
+  mask: radial-gradient(circle, transparent 49%, #000 50%);
+}
+
+.profile-view .ratio-legend {
+  display: flex;
+  gap: var(--space-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--paper);
+}
+
+.profile-view .ratio-legend li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.profile-view .ratio-legend .swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.profile-view .ratio-legend .win {
+  background: var(--reef-green-win);
+}
+
+.profile-view .ratio-legend .loss {
+  background: var(--coral-red-loss);
+}
+
+.profile-view .no-games {
+  color: var(--muted-sand);
+  margin: 0;
+}
+
+/* HISTORIQUE DE MATCHS */
+
+.profile-view .list-group-item {
+  background-color: var(--panel-smoke);
+  color: var(--paper);
+  border: 1px solid transparent;
+  margin-bottom: var(--space-xs);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--ease-color);
+}
+
+/* Une bordure latérale de 5 px est le tic le plus reconnaissable des interfaces
+   produites en série, et le système dit déjà de distinguer un état par la
+   bordure et l'opacité avant la couleur. Le verdict est porté par le mot, la
+   carte se contente d'un filet. */
+.profile-view .list-group-item.win {
+  border-color: color-mix(in srgb, var(--reef-green-win) 45%, transparent);
+}
+
+.profile-view .list-group-item.loss {
+  border-color: color-mix(in srgb, var(--coral-red-loss) 45%, transparent);
+}
+
+.profile-view .badge {
+  background-color: var(--sunset-orange);
+  color: var(--on-accent);
+  font-weight: normal;
+  padding: var(--space-xs) var(--space-sm);
+  border-radius: var(--radius-md);
+}
+
+.profile-view .match-result {
+  font-weight: bold;
+}
+
+.profile-view .match-result.win {
+  color: var(--reef-green-text);
+}
+
+.profile-view .match-result.loss {
+  color: var(--coral-red-text);
+}
+
+/* La craie sur #f44336 plafonne à 3,68:1, sous le minimum : c'est le message
+   d'erreur, donc le texte le plus important à lire de la vue. La nuit y monte
+   à 5,09:1 — c'est la Règle du Texte sur Aplat. */
+.profile-view .alert {
+  background-color: var(--coral-red-loss);
+  color: var(--on-accent);
+  padding: var(--space-md);
+  border-radius: var(--radius-sm);
+  margin-bottom: var(--space-lg);
+  max-width: 32rem;
 }
 
 @media (max-width: 768px) {
-    .card {
-        margin-bottom: 15px;
-    }
-}
-
-#profile-picture img {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
-    border: 2px solid #FF8C00;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
-    margin: 0 auto;
-    padding: 0;
-    object-fit: cover;
-}
-
-.row {
-    display: flex;
+  .profile-view .row.mt-4 {
     flex-wrap: wrap;
-}
+  }
 
-.card {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    background: rgba(34, 34, 34, 0.8);
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
-    margin-bottom: 20px;
-}
+  .profile-view .col-md-4 {
+    flex-basis: 100%;
+    max-width: 100%;
+    margin-bottom: var(--space-lg);
+  }
 
-.card-body {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.card-text {
-    flex-grow: 1;
-}
-
-.status-indicator {
-    display: flex;
-    align-items: center;
-    margin-top: 10px;
-    justify-content: center;
-    font-weight: bold;
-}
-
-.status-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 5px;
-}
-
-.status-dot.online {
-    background-color: #28a745;
-}
-
-.status-dot.offline {
-    background-color: #dc3545;
-}
-
-.row.mt-4 {
-    display: flex;
-    flex-wrap: nowrap;
-    margin-right: -15px;
-    margin-left: -15px;
-}
-
-.col-md-4 {
-    flex: 1;
-    max-width: 33.333333%;
-    padding-right: 15px;
-    padding-left: 15px;
-    display: flex;
-    flex-direction: column;
-}
-
-.card {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-.card-body {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-#chartContainer {
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-/* Ajoutez ces styles pour gérer le responsive */
-@media (max-width: 768px) {
-    .row.mt-4 {
-        flex-wrap: wrap;
-    }
-
-    .col-md-4 {
-        flex-basis: 100%;
-        max-width: 100%;
-        margin-bottom: 20px;
-    }
-}
-
-/* Ajoutez ces styles à la fin du fichier */
-
-.list-group-item {
-    background-color: rgba(34, 34, 34, 0.8);
-    color: #e0e0e0;
-    border: none;
-    margin-bottom: 5px;
-    border-radius: 5px;
-    transition: transform 0.2s ease;
-}
-
-.list-group-item:hover {
-    transform: scale(1.02);
-}
-
-.list-group-item.win {
-    border-left: 5px solid #4CAF50;
-}
-
-.list-group-item.loss {
-    border-left: 5px solid #F44336;
-}
-
-.badge {
-    background-color: #FF8C00;
-    color: white;
-    font-weight: normal;
-    padding: 5px 10px;
-    border-radius: 15px;
-}
-
-.match-result {
-    font-weight: bold;
-}
-
-.match-result.win {
-    color: #4CAF50;
-}
-
-.match-result.loss {
-    color: #F44336;
+  .profile-view .card {
+    margin-bottom: var(--space-md);
+  }
 }

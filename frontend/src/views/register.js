@@ -142,7 +142,7 @@ export function register() {
       </form>
     </main>
     <footer class="footer">
-      <p>© 2024 42Company, Inc</p>
+      <p>ft_transcendence — a 3D Pong by phudyka</p>
     </footer>
   `;
 

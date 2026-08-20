@@ -1,199 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>ft_transcendence</title>
-    <link rel="stylesheet" href="/src/game/style.css">
-</head>
-<body>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    >
+    <title>ft_transcendence — Pong 3D</title>
+    <link rel="icon" type="image/x-icon" href="/brand/favicon.ico">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Les deux familles étaient chargées par deux `@import` dans style.css :
+         sérialisés derrière le CSS, et Roboto n'est plus du système. -->
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;700&display=swap"
+    >
+    <link rel="stylesheet" href="/src/css/game.css">
+  </head>
+  <body>
     <button id="start-game-button" class="start-game-button">START</button>
 
+    <div
+      id="loading"
+      class="hidden"
+      role="progressbar"
+      aria-label="Loading the island"
+      aria-valuemin="0"
+      aria-valuemax="100"
+      aria-valuenow="0"
+    >
+      <p>Loading the island…</p>
+      <div id="loading-bar"></div>
+    </div>
+
+    <!-- Ces deux boutons portaient une classe `hidden` que rien ne retirait
+         jamais : ils ne s'affichaient que parce que `.menu-button` est
+         déclarée après `.hidden` à spécificité égale. Le menu tenait debout
+         par ordre de source. -->
     <div id="menu" class="menu hidden">
-        <button class="menu-button hidden" id="solo-ia">Solo</button>
-        <button class="menu-button hidden" id="multi-button">Multiplayer</button>
+      <h2 class="panel-title">Play</h2>
+      <button class="menu-button" id="solo-ia">Solo</button>
+      <button class="menu-button" id="multi-button">Multiplayer</button>
+      <p class="guest-note hidden" id="guest-note">
+        Online play, tournaments and friends come with an account.
+      </p>
+      <ul class="controls-legend">
+        <li><b>W</b> / <b>S</b> — left paddle</li>
+        <li><b>↑</b> / <b>↓</b> — right paddle</li>
+      </ul>
     </div>
-    
+
     <div id="multi" class="multi hidden">
-        <button class="menu-button" id="multi-2-local">2 Players Local</button>
-        <button class="menu-button" id="multi-2-online">2 Players Online</button>
-        <button class="menu-button" id="multi-four">4 Players Online</button>
-        <button class="menu-button" id="multi-tournament">Tournaments</button>
-        <button class="menu-button" id="multi-back-button">Back</button>
+      <h2 class="panel-title">Multiplayer</h2>
+      <button class="menu-button" id="multi-2-local">2 Players Local</button>
+      <button class="menu-button" id="multi-2-online">2 Players Online</button>
+      <button class="menu-button" id="multi-four">4 Players Online</button>
+      <button class="menu-button" id="multi-tournament">Tournaments</button>
+      <button class="menu-button" id="multi-back-button">Back</button>
+      <ul class="controls-legend">
+        <li><b>W</b> / <b>S</b> — left paddle</li>
+        <li><b>↑</b> / <b>↓</b> — right paddle</li>
+      </ul>
     </div>
-    
+
     <div id="tournament" class="tournament hidden">
-        <ul id="tournament-list"></ul>
-        <button class="menu-button" id="create-tournament">Create tournament</button>
-        <button class="menu-button" id="tournament-back-button">Back</button>
+      <ul id="tournament-list"></ul>
+      <button class="menu-button" id="create-tournament">
+        Create tournament
+      </button>
+      <button class="menu-button" id="tournament-back-button">Back</button>
     </div>
 
-    <div id="invite" class="cl_invite hidden">
-        <p id="invite-text"></p>
-        <div id="button-container">
-            <button class="invite-button accept" id="accept">Accept</button>
-            <button class="invite-button cancel" id="cancel">Refuse</button>
-        </div>
+    <!-- Une invitation est une interruption : sans `role`, elle apparaissait
+         sans un mot pour un lecteur d'écran, et c'est le seul chemin pour
+         jouer contre un ami. -->
+    <div id="invite" class="cl_invite hidden" role="alert">
+      <p id="invite-text"></p>
+      <div id="button-container">
+        <button class="invite-button accept" id="accept">Accept</button>
+        <button class="invite-button cancel" id="cancel">Refuse</button>
+      </div>
     </div>
 
-    <div id="notReady" class="cl_invite hidden">
-        <p id="not-ready-text"></p>
+    <div
+      id="notReady"
+      class="cl_invite hidden"
+      role="status"
+      aria-live="polite"
+    >
+      <p id="not-ready-text"></p>
     </div>
-
 
     <div id="tournament-details" class="hidden">
-        <div class="colonne">
-            <span id="player-1"></span>
-            <div class="ligne">
-            <span id="player-2"></span>
-            </div>
-            <span id="player-3"></span>
-            <div class="ligne">
-            <span id="player-4"></span>
-            </div>
+      <div class="colonne">
+        <span id="player-1"></span>
+        <div class="ligne">
+          <span id="player-2"></span>
         </div>
-        <div class="colonne">
-            <span id="Gagnant-1"></span>
-            <div class="ligne">
-            <span id="Gagnant-2"></span>
-            </div>
+        <span id="player-3"></span>
+        <div class="ligne">
+          <span id="player-4"></span>
         </div>
-        <div class="colonne">
-            <span id="Gagnant-Finale"></span>
+      </div>
+      <div class="colonne">
+        <span id="Gagnant-1"></span>
+        <div class="ligne">
+          <span id="Gagnant-2"></span>
         </div>
-        <button class="button-tournament" id="quit-tournament">Quit Tournament</button>
+      </div>
+      <div class="colonne">
+        <span id="Gagnant-Finale"></span>
+      </div>
+      <button class="button-tournament" id="quit-tournament">
+        Quit Tournament
+      </button>
     </div>
-    
-	<div id="match-info" class="hidden"></div>
 
-    <div id="space" class="hidden">
-        <h1>Press space to Launch the game</h1>
+    <div id="match-info" class="hidden" role="status" aria-live="polite"></div>
+
+    <!-- Quelle raquette est la mienne et quelles touches la bougent : affiché
+         au coup d'envoi de chaque match, dans son propre nœud pour ne pas
+         écraser le décompte des tournois. -->
+    <div
+      id="controls-brief"
+      class="controls-brief hidden"
+      role="status"
+      aria-live="polite"
+    >
     </div>
+
+    <button type="button" id="space" class="hidden">
+      Press space to launch the game
+    </button>
 
     <div id="waiting" class="waiting hidden">
-        <p>WAITING FOR PLAYERS...</p>
-        <div id="spinner"></div>
-        <div id="back" class="menu-button">Cancel</div>
+      <p>WAITING FOR PLAYERS...</p>
+      <div id="spinner"></div>
+      <!-- L'attente n'avait aucun repère : ni durée, ni sortie proposée. -->
+      <p class="waiting-elapsed" id="waiting-elapsed" role="status">
+        Waiting for 0 s
+      </p>
+      <button type="button" id="back" class="menu-button">Cancel</button>
     </div>
-    
-    <div id="score" class="hidden">
-        <div id="scoreLeft">0</div>
-        <div id="scoreTitle">SCORE</div>
-        <div id="scoreRight">0</div>
+
+    <!-- Le conteneur était `aria-live` autour de trois nœuds séparés : chaque
+         but annonçait un nombre nu, « 3 », sans camp ni joueur. L'annonce est
+         maintenant une phrase, écrite une fois par point. -->
+    <div id="score" class="hidden" aria-hidden="true">
+      <div id="scoreLeft">0</div>
+      <div id="scoreTitle">SCORE</div>
+      <div id="scoreRight">0</div>
     </div>
-    
+    <p
+      id="score-announce"
+      class="visually-hidden"
+      role="status"
+      aria-live="polite"
+    >
+    </p>
+
     <div id="game-over" class="game-over hidden">
-        <div id="winner-message"></div>
+      <div id="winner-message" role="status" aria-live="assertive"></div>
+      <div class="game-over-actions">
+        <button class="menu-button" id="play-again-button">Play again</button>
         <button class="menu-button" id="back-to-menu-button">Back</button>
+      </div>
     </div>
-    
+
     <!-- Commandes tactiles : mêmes touches que le clavier, affichées par le CSS
          sur pointeur grossier seulement, et seulement du côté que l'on pilote. -->
     <div id="touch-controls" class="hidden">
-        <div class="touch-side hidden" data-side="left">
-            <button type="button" data-key="w" aria-label="Raquette gauche vers le haut">&#9650;</button>
-            <button type="button" data-key="s" aria-label="Raquette gauche vers le bas">&#9660;</button>
-        </div>
-        <div class="touch-side hidden" data-side="right">
-            <button type="button" data-key="ArrowUp" aria-label="Raquette droite vers le haut">&#9650;</button>
-            <button type="button" data-key="ArrowDown" aria-label="Raquette droite vers le bas">&#9660;</button>
-        </div>
+      <div class="touch-side hidden" data-side="left">
+        <button
+          type="button"
+          data-key="w"
+          aria-label="Left paddle up"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+            width="28"
+            height="28"
+          >
+            <path fill="currentColor" d="M12 4 3 16h18z" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          data-key="s"
+          aria-label="Left paddle down"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+            width="28"
+            height="28"
+          >
+            <path fill="currentColor" d="M12 20 3 8h18z" />
+          </svg>
+        </button>
+      </div>
+      <div class="touch-side hidden" data-side="right">
+        <button
+          type="button"
+          data-key="ArrowUp"
+          aria-label="Right paddle up"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+            width="28"
+            height="28"
+          >
+            <path fill="currentColor" d="M12 4 3 16h18z" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          data-key="ArrowDown"
+          aria-label="Right paddle down"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+            width="28"
+            height="28"
+          >
+            <path fill="currentColor" d="M12 20 3 8h18z" />
+          </svg>
+        </button>
+      </div>
     </div>
 
-    <div id="credits">
-        <h1>CREDITS</h1>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const startButton = document.getElementById('start-game-button');
-            const menu = document.getElementById('menu');
-            const soloIaButton = document.getElementById('solo-ia');
-            const multiButton = document.getElementById('multi-button');
-            const multiMenu = document.getElementById('multi');
-            const tournament = document.getElementById('tournament');
-            const tournamentDetails = document.getElementById('tournament-details');
-            const waiting = document.getElementById('waiting');
-            const invite = document.getElementById('invite')
-
-            invite.classList.add('hidden');
-
-            // Afficher le bouton Start Game
-            //startButton.classList.add('hidden');
-            tournamentDetails.classList.add('hidden');
-            tournamentDetails.classList.remove('flex');
-
-            /*document.getElementById('score').classList.remove('score-container');*/
-
-            // Lorsqu'on clique sur Start Game, le menu principal apparaît
-            /*startButton.addEventListener('click', () => {
-                menu.classList.remove('hidden');
-                startButton.classList.add('hidden');
-                soloIaButton.classList.remove('hidden');
-                multiButton.classList.remove('hidden');
-            });*/
-
-            // Gestion du bouton Solo vs IA
-            soloIaButton.addEventListener('click', () => {
-                menu.classList.add('hidden');
-            });
-
-            // Gestion du bouton Multijoueur
-            multiButton.addEventListener('click', () => {
-                menu.classList.add('hidden');
-                multiMenu.classList.remove('hidden');
-            });
-
-            // Gestion du bouton Retour depuis le menu Multijoueur
-            document.getElementById('multi-back-button').addEventListener('click', () => {
-                multiMenu.classList.add('hidden');
-                menu.classList.remove('hidden');
-            });
-
-            // Gestion du bouton Tournois
-            document.getElementById('multi-tournament').addEventListener('click', () => {
-                multiMenu.classList.add('hidden');
-                tournament.classList.remove('hidden');
-            });
-
-            // Gestion du bouton Retour depuis le menu Tournois
-            document.getElementById('tournament-back-button').addEventListener('click', () => {
-                tournament.classList.add('hidden');
-                multiMenu.classList.remove('hidden');
-            });
-
-            // Gestion du bouton Créer un tournoi
-            document.getElementById('create-tournament').addEventListener('click', () => {
-                tournament.classList.add('hidden');
-                tournamentDetails.classList.remove('hidden');
-                tournamentDetails.classList.add('flex');
-            });
-
-            document.getElementById('quit-tournament').addEventListener('click', () => {
-                tournament.classList.remove('hidden');
-                tournamentDetails.classList.add('hidden');
-                tournamentDetails.classList.remove('flex');
-            });
-
-            // Gestion du mode multijoueur local
-            document.getElementById('multi-2-local').addEventListener('click', () => {
-                multiMenu.classList.add('hidden');
-            });
-
-            // Gestion du mode multijoueur en ligne
-            document.getElementById('multi-2-online').addEventListener('click', () => {
-                multiMenu.classList.add('hidden');
-                waiting.classList.remove('hidden');
-            });
-
-            // Gestion du mode 4 joueurs en ligne
-            document.getElementById('multi-four').addEventListener('click', () => {
-                multiMenu.classList.add('hidden');
-                waiting.classList.remove('hidden');
-            });
-        });
-    </script>
-    
     <script type="module" src="/src/game/main.mjs"></script>
-</body>
+  </body>
 </html>

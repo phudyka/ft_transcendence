@@ -1,37 +1,13 @@
-import { PerspectiveCamera } from 'three';
+import { PerspectiveCamera } from "three";
 
+// `animCam` vivait ici : un `setInterval` à 20 ms qui écrivait `position` pas à
+// pas, pendant que la boucle rAF de `main.mjs` la faisait tourner sur elle-même
+// à 60 Hz. Deux horloges, une seule propriété — la caméra tremblait à chaque
+// lancement de match et à chaque retour au lobby. Le recadrage est maintenant
+// un tween de cette boucle-là (`flyCamera`).
 export default class Camera extends PerspectiveCamera {
-    constructor() {
-        super(50, window.innerWidth/window.innerHeight)
-        this.position.set(0, 200, 50);
-    }
-
-    animCam(targetX, targetY, targetZ, steps = 50, interval = 20) {
-        let currentStep = 0;
-        const startX = this.position.x;
-        const startY = this.position.y;
-        const startZ = this.position.z;
-
-        const deltaX = (targetX - startX) / steps;
-        const deltaY = (targetY - startY) / steps;
-        const deltaZ = (targetZ - startZ) / steps;
-
-        const countdownInterval = setInterval(() => {
-            if (currentStep >= steps) {
-                this.position.x = targetX;
-                this.position.y = targetY;
-                this.position.z = targetZ;
-                this.lookAt(0,3,0);
-                clearInterval(countdownInterval);
-                return;
-            }
-            this.lookAt(0,3,0);
-            this.position.x += deltaX;
-            this.position.y += deltaY;
-            this.position.z += deltaZ;
-
-            currentStep++;
-        }, interval);
-    }
-
+  constructor() {
+    super(50, window.innerWidth / window.innerHeight);
+    this.position.set(0, 200, 50);
+  }
 }

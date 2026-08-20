@@ -27,3 +27,6 @@ Thumbs.db
 
 # Outils
 .remember/
+.impeccable/
+.impeccable-live*/
+.impeccable-live.json

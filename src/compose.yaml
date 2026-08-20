@@ -12,10 +12,10 @@ volumes:
 services:
   ## INTERFACE ##
   nginx:
-    build: requirements/nginx
+    build: nginx
     container_name: "nginx"
     healthcheck:
-      test: ["CMD-SHELL", "curl -k https://localhost/api/content/"]
+      test: ["CMD-SHELL", "curl -k https://localhost/api/health/"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -25,6 +25,8 @@ services:
     restart: no
     volumes:
       - static_files:/static
+      # Les avatars sont servis ici, plus par Django.
+      - media_files:/media:ro
     networks:
       - 42nice
     ports:
@@ -32,10 +34,10 @@ services:
 
   ## BACKEND ##
   django:
-    build: requirements/django
+    build: django
     container_name: "django"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/content/"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health/"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -67,7 +69,7 @@ services:
       - db_network
 
   postgresql:
-    build: requirements/postgresql
+    build: postgresql
     container_name: "postgresql"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U 42"]
@@ -86,7 +88,7 @@ services:
   # Jeu et chat réunis : les hébergeurs gratuits ne donnent qu'un service, et
   # deux namespaces socket.io suffisent à les séparer.
   realtime:
-    build: requirements/realtime
+    build: realtime
     container_name: "realtime"
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]

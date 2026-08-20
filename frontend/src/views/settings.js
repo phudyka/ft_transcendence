@@ -103,7 +103,7 @@ export function settings() {
       </main>
 
       <footer class="footer py-3 my-4">
-        <p class="text-center">© 2024 42 Company, Inc</p>
+        <p class="text-center">ft_transcendence — a 3D Pong by phudyka</p>
       </footer>
     </div>
   `;

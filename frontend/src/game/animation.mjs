@@ -1,84 +1,41 @@
-import * as THREE from 'three';
-import Clouds from './clouds.mjs'
+import { createClouds } from "./plane.mjs";
+import { showPanel } from "./panels.mjs";
 
+const FADE_MS = 2000;
 
-
-export async function fadeOutLogoAndStartAnimation(logo, scene, camera, renderer) {
-    const fadeDuration = 2000;
-    const startTime = performance.now();
-
-    function fadeOut() {
-        const elapsedTime = performance.now() - startTime;
-        const opacity = 1 - (elapsedTime / fadeDuration);
-        logo.material.opacity = Math.max(opacity, 0);
-
-        if (elapsedTime < fadeDuration) {
-            requestAnimationFrame(fadeOut);
-        } else {
-            scene.remove(logo);
-            logo.geometry.dispose();
-            logo.material.dispose();
-            startCameraAnimation(scene, camera, renderer)
-        }
-
-        renderer.render(scene, camera);
-    }
-
-    fadeOut();
+// Ce module n'anime plus que des opacités — sa propriété à lui, que personne
+// d'autre n'écrit. La caméra appartient à la boucle rAF de `main.mjs`, et c'est
+// elle seule qui rend : le vol d'entrée tournait sur un `setInterval` à 16 ms
+// qui appelait `renderer.render` de son côté, si bien que la scène était peinte
+// deux fois par image, à deux positions de caméra différentes.
+export function fadeOutLogoAndStartAnimation(logo, scene, flyCamera) {
+  fade(scene, logo, 1, () => {
+    // Le fond cyan uni est remplacé par le boîtier de ciel de `light.mjs`, déjà
+    // dans la scène : le peindre derrière ne ferait que le recouvrir.
+    //
+    // Les nuages partent à 2 : ils tiennent le cadre opaque la première moitié
+    // du vol, puis s'ouvrent sur l'île.
+    fade(scene, createClouds(scene), 2, () => showPanel("menu"));
+    flyCamera();
+  });
 }
 
-function startCameraAnimation(scene, camera, renderer) {
-    scene.background = new THREE.Color(0x00ffff);
+function fade(scene, object, from, onDone) {
+  const start = performance.now();
+  (function step() {
+    const t = (performance.now() - start) / FADE_MS;
+    object.material.opacity = Math.max(from * easeInOutExpo(1 - t, 0, 1, 1), 0);
+    if (t < 1) return requestAnimationFrame(step);
+    scene.remove(object);
+    object.geometry.dispose();
+    object.material.dispose();
+    onDone();
+  })();
+}
 
-    const clouds = new Clouds(scene);
-
-        const startOpacity = 2;
-        const endOpacity = 0.0;
-        const startPosition = {
-            x: camera.position.x,
-            y: camera.position.y,
-            z: camera.position.z
-        };
-        const endPosition = {
-            x: 0,
-            y: 8,
-            z: 20
-        };
-        const duration = 2000;
-        const interval = 16;
-        let elapsedTime = 0;
-
-        const cameraAnimation = setInterval(() => {
-            elapsedTime += interval;
-
-            const newX = easeInOutExpo(elapsedTime, startPosition.x, endPosition.x - startPosition.x, duration);
-            const newY = easeInOutExpo(elapsedTime, startPosition.y, endPosition.y - startPosition.y, duration);
-            const newZ = easeInOutExpo(elapsedTime, startPosition.z, endPosition.z - startPosition.z, duration);
-            const newOpacity = easeInOutExpo(elapsedTime, startOpacity, endOpacity - startOpacity, duration);
-
-            camera.position.set(newX, newY, newZ);
-            clouds.material.opacity = newOpacity;
-            camera.lookAt(0, 0, 0);
-
-            if (elapsedTime >= duration) {
-                camera.position.set(endPosition.x, endPosition.y, endPosition.z);
-                camera.lookAt(0, 0, 0);
-                document.getElementById('menu').classList.remove('hidden');
-                clearInterval(cameraAnimation);
-                scene.remove(clouds);
-                clouds.geometry.dispose();
-                clouds.material.dispose();
-            }
-
-            renderer.render(scene, camera);
-        }, interval);
-        
-    }
-
-    
-    function easeInOutExpo(t, b, c, d) {
-        if (t == 0) return b;
-        if (t == d) return b + c;
-        if ((t /= d / 2) < 1) return c / 2 * Math.pow(2, 10 * (t - 1)) + b;
-        return c / 2 * (-Math.pow(2, -10 * --t) + 2) + b;
-    }
+export function easeInOutExpo(t, b, c, d) {
+  if (t == 0) return b;
+  if (t == d) return b + c;
+  if ((t /= d / 2) < 1) return c / 2 * Math.pow(2, 10 * (t - 1)) + b;
+  return c / 2 * (-Math.pow(2, -10 * --t) + 2) + b;
+}

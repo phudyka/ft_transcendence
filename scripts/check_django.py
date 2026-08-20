@@ -7,7 +7,7 @@ imposé :
   - tout jeton émis porte la revendication `display_name` (sans elle, le
     handshake socket.io est refusé et le chat comme le jeu restent muets) ;
   - un jeton d'accès se vérifie bien en HS256 avec SECRET_KEY, exactement comme
-    le fait `src/requirements/realtime/src/auth.mjs` ;
+    le fait `src/realtime/app/auth.mjs` ;
   - `clean_display_name` rejette le balisage.
 
     python3 scripts/check_django.py     (avec les dépendances de conf/requirements.txt)
@@ -19,7 +19,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(ROOT / "src/requirements/django/src"))
+sys.path.insert(0, str(ROOT / "src/django/app"))
 
 tmp = tempfile.mkdtemp()
 os.environ.update(
@@ -27,7 +27,7 @@ os.environ.update(
     DJANGO_SECRET_KEY="clef-de-test-uniquement",
     DATABASE_URL=f"sqlite:///{tmp}/test.sqlite3",
     DJANGO_MEDIA_ROOT=f"{tmp}/media",
-    DJANGO_ALLOWED_HOSTS="localhost",
+    DJANGO_ALLOWED_HOSTS="localhost,testserver",
 )
 
 import django
@@ -42,7 +42,7 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 import jwt as pyjwt
 
-from pong.tokens import tokens_for_user, DisplayNameTokenObtainPairSerializer
+from pong.tokens import tokens_for_user
 from pong.views import clean_display_name
 
 User = get_user_model()
@@ -74,11 +74,34 @@ check("le jeton d'accès porte user_id", str(payload.get("user_id")) == str(user
 refreshed = pyjwt.decode(str(refresh.access_token), settings.SECRET_KEY, algorithms=["HS256"])
 check("la revendication survit au renouvellement", refreshed.get("display_name") == "Zoé Martin")
 
-serializer_token = DisplayNameTokenObtainPairSerializer.get_token(user)
+# Le compteur de victoires est incrémenté par le serveur, sur le compte
+# authentifié : le client ne renvoie plus de total qu'il aurait calculé lui-même.
+from django.test import Client
+
+api = Client(HTTP_AUTHORIZATION=f"Bearer {access}")
+before = (user.wins, user.losses)
+api.post(
+    "/api/save-match-result/",
+    data='{"result": "win", "opponent": "AI"}',
+    content_type="application/json",
+)
+api.post(
+    "/api/save-match-result/",
+    data='{"result": "loss", "opponent": "AI"}',
+    content_type="application/json",
+)
+user.refresh_from_db()
+check("save-match-result incrémente wins et losses", (user.wins, user.losses) == (before[0] + 1, before[1] + 1))
+
+refused = api.post(
+    "/api/save-match-result/",
+    data='{"result": "cheat", "opponent": "AI"}',
+    content_type="application/json",
+)
+user.refresh_from_db()
 check(
-    "le jeton émis par /api/token/ porte display_name",
-    pyjwt.decode(str(serializer_token.access_token), settings.SECRET_KEY, algorithms=["HS256"]).get("display_name")
-    == "Zoé Martin",
+    "un résultat invalide est refusé sans toucher aux compteurs",
+    refused.status_code == 400 and (user.wins, user.losses) == (before[0] + 1, before[1] + 1),
 )
 
 for bad in ["<img src=x onerror=alert(1)>", 'a"b', "a'b", "ab", ""]:

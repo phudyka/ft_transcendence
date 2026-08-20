@@ -158,6 +158,14 @@ de déconnexion, les machines à états des menus et le comportement clavier n'y
 figurent pas et ne s'en déduisent pas. Ce qui n'est pas ici n'est pas pour
 autant décidé ailleurs : c'est une lacune connue, pas un renvoi.
 
+Deux règles sortaient par une porte que le script ne surveillait pas : la
+couleur du système s'écrivait en `rgba()` (le contrôle C ne lit que les
+hexadécimaux) et la hauteur d'écran en `vh-100`, une classe utilitaire de
+Bootstrap posée dans un gabarit JavaScript. Le contrôle **I** interdit désormais
+une teinte littérale sur une propriété de surface — les voiles achromatiques
+restent libres, ils sont le vocabulaire des fumées et du filet blanc — et le
+contrôle **E** lit aussi les gabarits.
+
 Ce qui est mécaniquement vérifié l'est par `scripts/check-design.mjs`, dans
 `make check`. Le reste est tenu à la relecture, et vieillit donc en silence.
 
@@ -250,8 +258,9 @@ posés sur une nuit tiède. Rien de pastel, rien de désaturé.
 - **Ardoise** (#2a2a2a) : fond des champs de formulaire.
 - **Bordure de Champ** (#3e3e3e) : leur contour au repos, et le fond du bouton
   secondaire survolé.
-- **Bordure Discrète** (#555555) : la seule ligne pointillée du projet, autour
-  de la zone de saisie du chat.
+- **Bordure Discrète** (#555555) : la ligne pointillée autour de la zone de
+  saisie du chat, et le contour du panneau de défaite du jeu — les deux seuls
+  endroits où une bordure ne doit ni accentuer ni encadrer.
 - **Papier** (#e0e0e0) : couleur de texte par défaut sur nuit.
 - **Craie** (#ffffff) : texte sur les rares aplats sombres colorés.
 - **Sable Éteint** (#888888) : texte de pied de page, textes indicatifs des
@@ -281,14 +290,17 @@ colonne. L'anneau de focus est la seule couleur qui traverse.
 
 **La Règle du Cadre d'Or.** Dans le jeu, l'or (#ffcc00) encadre **les panneaux
 et eux seuls** : bordures de 2 à 5 px sur les surfaces flottantes — menus,
-attente, détails de tournoi, fin de partie, compte à rebours, chargeur — jamais
-un fond, jamais un aplat de texte long, et jamais un bouton. Les boutons portent
-le filet blanc (voir la Règle du Filet). Une seule exception, et le contrôle G
-de `check-design.mjs` la nomme : la jauge de chargement, qui est un trait de
-progression et non une surface — l'or y lit comme une mesure et ne porte aucun
-texte. Sa rareté en surface est ce qui le rend précieux, et cette rareté n'est
-vraie que parce que les boutons ne l'empruntent pas : l'or bordait autrefois
-tout élément interactif du jeu, et ne signalait alors plus rien.
+attente, détails de tournoi, fin de partie, compte à rebours, chargeur,
+invitation reçue — jamais un fond, jamais un aplat de texte long, et jamais un
+bouton. La règle ne s'arrête pas au bord de l'iframe : la pastille
+d'avertissement de la SPA portait l'or en aplat, et le contrôle G ne regardait
+pas `tokens.css`. Il le regarde ; l'avertissement est passé en Orange Lave. Les
+boutons portent le filet blanc (voir la Règle du Filet). Une seule exception, et
+le contrôle G de `check-design.mjs` la nomme : la jauge de chargement, qui est
+un trait de progression et non une surface — l'or y lit comme une mesure et ne
+porte aucun texte. Sa rareté en surface est ce qui le rend précieux, et cette
+rareté n'est vraie que parce que les boutons ne l'empruntent pas : l'or bordait
+autrefois tout élément interactif du jeu, et ne signalait alors plus rien.
 
 **La Règle du Filet.** Ce qui se clique dans le jeu se borde d'un filet blanc
 translucide — `2px rgba(255, 255, 255, 0.3)`. C'est le liseré du bandeau de
@@ -430,7 +442,8 @@ servent qu'une fois.
   jeu.
 - **Halo de victoire**
   (`0 0 20px rgba(0, 102, 255, 0.8), 0 0 40px rgba(0, 162, 255, 0.6)`) : message
-  de vainqueur, en respiration continue de 3 s.
+  de vainqueur **gagné** (`#winner-message.is-win`), en respiration continue de
+  3 s. Il portait les quatre issues, défaite comprise.
 - **Halo de départ**
   (`0 0 10px rgba(255, 0, 0, 0.5), 0 0 40px rgba(255, 0, 0, 0.3)`) : pulsation
   d'une seconde sur le bouton START.
@@ -450,6 +463,13 @@ par-dessus n'importe quelle partie de l'île.
 **La Règle du Halo Mérité.** Un halo coloré signale un événement — départ,
 victoire, attente, sélection — et disparaît avec lui. Une surface au repos n'a
 droit qu'à une ombre noire.
+
+**Et un verdict ne se célèbre que s'il est bon.** Le panneau de fin de partie
+portait le même habillage dans les quatre branches de `gameOver` : halo bleu en
+respiration, balayage de lumière, cadre d'or — « YOU LOSE » clignotait en fête,
+sur le dernier écran de chaque session. Deux états désormais, sur le même
+panneau : `.is-win` garde le halo, le balayage et l'or ; `.is-loss` reste sur la
+nuit relevée, en craie, bordée de #555, sans une seule boucle. Le mot suffit.
 
 ## Shapes
 
@@ -581,6 +601,18 @@ entre eux en halo blanc. Chaque point marqué déclenche une bascule d'échelle 
 1,3 en 0,3 s. Il ne se réduit pas sur mobile : il s'élargit à 80 vw pour rester
 lisible.
 
+### Le panneau de fin de partie
+
+Deux états sur un seul panneau. `.is-win` : aplat Bleu Profond, texte en Or
+Solaire, cadre d'or de 3 px, halo de victoire et balayage de lumière. `.is-loss`
+: Nuit Relevée, texte en Craie, bordure #555, aucune boucle. Le fond était un
+dégradé Bleu Profond → Bleu Lagon dans les deux cas, où l'or tombait à 1,82:1 du
+côté lagon — sous le seuil du grand texte, sur le mot le plus important du jeu.
+L'aplat le tient à 3,20:1 partout.
+
+Sous le message, deux boutons de menu : « Play again », qui rejoue le dernier
+mode lancé, et « Back ». Il n'y avait que « Back ».
+
 ### Signature: le bouton START
 
 Gélule de 50 px de rayon en dégradé or-vers-rouge, capitales en
@@ -597,7 +629,42 @@ pastilles carrées de 12 px à coins de 3 px. Aucun canevas, aucune bibliothèqu
 celle qui dessinait ce donut pesait plus lourd que toute la vue. Sans partie
 jouée, le donut cède la place à une ligne en Sable Éteint.
 
+### Écran d'accueil
+
+`/` servait le formulaire de connexion : la scène — l'argument du produit —
+n'était atteignable qu'après inscription. L'accueil est maintenant une démo
+jouable. Une barre d'application en fumée 0.9 (logo, titre en Bebas Neue, une
+ligne de description, « Log in » en contour et « Create account » en primaire),
+la scène en dessous sur toute la hauteur restante, un pied de page en Sable
+Éteint qui dit ce que le compte débloque. C'est la Règle des Deux Rives dans sa
+forme la plus nette : orange en haut, bleu et or en dessous, la couture est le
+bord de l'iframe.
+
+Le service temps réel admet l'invité sur `/game` seul ; le menu du jeu masque
+alors « Multiplayer » et affiche une ligne en Sable Éteint à la place. Ce que le
+menu propose et ce que le serveur accepte disent la même chose.
+
+### Légendes et intitulés des panneaux du jeu
+
+- **Titre de panneau** (`.panel-title`, Bebas Neue, 2 rem, interlettrage 4 px,
+  Or Solaire) : les panneaux n'avaient aucun intitulé.
+- **Légende des commandes** (`.controls-legend`) : deux lignes en Poppins 0,9
+  rem, les touches dans un cartouche bordé du filet blanc. Permanente dans le
+  menu et le sous-menu multijoueur.
+- **Rappel de camp** (`.controls-brief`) : panneau bordé d'or à 12 % de la
+  hauteur, affiché trois secondes au coup d'envoi — quelle raquette est la
+  vôtre, quelles touches la bougent. Ni l'un ni l'autre n'était écrit nulle part
+  ; la seule indication était le clignotement de `colorPad`.
+- **Durée d'attente** (`.waiting-elapsed`) : Sable Éteint sous le spinner, et
+  au-delà de 30 s une phrase qui renvoie vers le solo.
+
 ### Named Rules
+
+**La Règle de la Respiration Composée.** Une boucle qui tourne _pendant_ le
+match anime une propriété composée — opacité ou transformation — jamais une
+ombre. Le mot SCORE respirait en `text-shadow` : une propriété qui se repeint à
+chaque image, par-dessus une scène 3D déjà à 60 images par seconde. Il respire
+en opacité, l'ombre est fixe, et le halo n'a pas bougé à l'œil.
 
 **La Règle de la Boucle Décorative.** Sous `prefers-reduced-motion: reduce`, les
 boucles qui n'informent de rien s'arrêtent sur leur état de repos — pulsation du

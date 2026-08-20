@@ -1,88 +1,41 @@
-async function getUserByDisplayName(displayName, token) {
-  const response = await fetch(`/api/user/${displayName}/`, {
-    method: 'GET',
-    headers: {
-      'Authorization': `Bearer ${token}`
-    }
-  });
-
-  if (response.ok) {
-    return await response.json();
-  } else {
-    throw new Error('Erreur lors de la récupération des informations utilisateur');
-  }
-}
-
-export async function updateUserStats(displayName, token, hasWon, opponent) {
-  try {
-    const userData = await getUserByDisplayName(displayName, token);
-    let currentWins = userData.user.wins;
-    let currentLosses = userData.user.losses;
-    console.log('opponent contient : ', opponent);
-
-    console.log('user data :', userData);
-
-    // Incrémente les victoires ou les défaites selon le résultat du match
-    if (hasWon) {
-      currentWins += 1;
-    } else {
-      currentLosses += 1;
-    }
-
-    // Construction de la requête PUT pour mettre à jour les statistiques de l'utilisateur
-    const response = await fetch(`/api/users/display_name/${displayName}/update_stats/`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        wins: currentWins,
-        losses: currentLosses,
-        is_online: true
-      })
-    });
-
-    await saveMatchResult(token, hasWon, opponent);
-
-    // Vérifie si la requête a réussi
-    if (response.ok) {
-      const updatedUserData = await response.json();
-      console.log('Statistiques mises à jour avec succès :', updatedUserData);
-    } else {
-      console.error('Erreur lors de la mise à jour des statistiques :', response.statusText);
-    }
-
-  } catch (error) {
-    console.error('Erreur :', error.message);
-  }
-}
+// Enregistrement d'une partie terminée.
+//
+// Le client lisait auparavant wins/losses par GET /api/user/<nom>/, ajoutait un,
+// et renvoyait le total à PUT /api/users/display_name/<nom>/update_stats/ :
+// trois requêtes, un compteur que n'importe quel compte pouvait écrire pour
+// n'importe quel autre, et deux parties finies en même temps qui s'écrasaient.
+// Le serveur incrémente désormais lui-même, sur le compte du jeton présenté.
 
 export async function saveMatchResult(token, hasWon, opponent) {
   try {
     const response = await fetch(`/api/save-match-result/`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`,
       },
       body: JSON.stringify({
-        result: hasWon ? 'win' : 'loss',
-        opponent: opponent
-      })
+        result: hasWon ? "win" : "loss",
+        opponent: opponent,
+      }),
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Erreur de sauvegarde:', errorText);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = await response.json();
-    console.log('Match result saved:', data);
-    return data;
+    return await response.json();
   } catch (error) {
-    console.error('Error saving match result:', error);
+    console.error("Error saving match result:", error);
     throw error;
   }
+}
+
+// `displayName` n'est plus utilisé : l'identité vient du jeton. L'argument reste
+// en place pour ne pas toucher aux appels de main.mjs.
+export function updateUserStats(_displayName, token, hasWon, opponent) {
+  // Un invité n'a pas de compte : inutile d'envoyer une requête qui ne peut
+  // qu'être refusée.
+  if (!token) return Promise.resolve(null);
+  return saveMatchResult(token, hasWon, opponent).catch(() => {});
 }

@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// deno-fmt-ignore-file -- `deno fmt` reformate le HTML des gabarits `html`
+// et réécrit les quotes d'attribut, ce qui change la valeur testée ici.
 // Vérifie l'échappement HTML des vues :
 //  1. `html`/`escapeHtml` neutralisent bien les charges connues, y compris en
 //     contexte d'attribut (guillemets) ;
@@ -13,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const jsDir = join(root, 'frontend/src/js');
+const jsDir = join(root, 'frontend/src');
 
 const { html, raw, escapeHtml } = await import(join(jsDir, 'utils/html.js'));
 

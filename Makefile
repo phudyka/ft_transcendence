@@ -20,12 +20,8 @@ $(NAME):
 	@docker compose --project-directory src up -d
 	@echo "API disponible sur $$(grep PUBLIC_API_URL src/.env | cut -d'"' -f2)"
 
-start: all
-
 down:
 	@docker compose --project-directory src down -t 0
-
-stop: down
 
 clean: down
 	@docker image rm -f $(IMAGES) > /dev/null 2>&1
@@ -40,17 +36,22 @@ re: clean all
 refclean: fclean all
 
 # Contrôles rapides, sans conteneur. Node 22+ et les dépendances de
-# frontend/ et src/requirements/realtime/ doivent être installés ; check_django
-# demande celles de src/requirements/django/conf/requirements.txt.
+# frontend/ et src/realtime/ doivent être installés ; check_django
+# demande celles de src/django/conf/requirements.txt.
 check:
 	@node scripts/check-assets.mjs
 	@node scripts/check-escaping.mjs
 	@node scripts/check-physics.mjs
 	@node scripts/check-controls.mjs
+	@node scripts/check-design.mjs
 	@node scripts/check-realtime.mjs
 	@$(if $(wildcard .venv/bin/python),.venv/bin/python,python3) scripts/check_django.py
+
+# ESLint sur frontend/, realtime/ et scripts/ ; npm install à la racine requis.
+lint:
+	@npx eslint .
 
 debug: $(NAME)
 	@docker compose --project-directory src logs -f
 
-.PHONY: all up start down stop clean fclean re refclean check debug
+.PHONY: all up start down stop clean fclean re refclean check lint debug

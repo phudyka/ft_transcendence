@@ -1,4 +1,4 @@
-import { io } from 'socket.io-client';
+import { io } from "socket.io-client";
 
 // Le jeu et le chat partagent désormais un seul service temps réel, séparés par
 // deux namespaces socket.io (/game et /chat) sur le chemin par défaut. Avant,
@@ -13,17 +13,18 @@ import { io } from 'socket.io-client';
 // statique qui les réécrit vers l'API, ce qui évite CORS et garde les cookies
 // CSRF en same-origin.
 
-export const REALTIME_URL = import.meta.env.VITE_REALTIME_URL || window.location.origin;
+export const REALTIME_URL = import.meta.env.VITE_REALTIME_URL ||
+  window.location.origin;
 
 // Le service refuse toute connexion sans JWT valide et en tire l'identité :
 // il ne croit plus le nom que le client annonce.
 function connect(namespace, options = {}) {
-    return io(`${REALTIME_URL}${namespace}`, {
-        transports: ['websocket'],
-        auth: { token: sessionStorage.getItem('accessToken') },
-        ...options,
-    });
+  return io(`${REALTIME_URL}${namespace}`, {
+    transports: ["websocket"],
+    auth: { token: sessionStorage.getItem("accessToken") },
+    ...options,
+  });
 }
 
-export const connectGame = () => connect('/game');
-export const connectChat = (options) => connect('/chat', options);
+export const connectGame = () => connect("/game");
+export const connectChat = (options) => connect("/chat", options);

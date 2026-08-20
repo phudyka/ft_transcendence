@@ -296,7 +296,9 @@ export async function dashboard() {
         </div>
       </div>
 
-      <footer id="footer-dashboard">© 2024 42Company, Inc</footer>
+      <footer id="footer-dashboard">
+        ft_transcendence — a 3D Pong by phudyka
+      </footer>
     </div>
   `;
   // Le jeu est servi par le même hôte : il lit la session lui-même,

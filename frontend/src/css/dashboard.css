@@ -1,636 +1,755 @@
-/* MAIN BODY */
+/* Couche globale de la SPA : la remise à zéro, `html`/`body` et les surcharges
+   Bootstrap du tableau de bord. Le commentaire d'origine prétendait que la
+   feuille était portée à sa vue ; elle ne l'a jamais été. */
 
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 #ft_transcendence {
-    width: 100%;
+  width: 100%;
 }
 
 html, body {
-    font-family: 'Roboto', sans-serif;
-    background-color: #121212;
-    color: #e0e0e0;
-    height: 100%;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    -webkit-user-select: none;
-    user-select: none;
+  font-family: "Poppins", Helvetica, sans-serif;
+  background-color: var(--night);
+  color: var(--paper);
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
 }
 
 /* DASHBOARD */
 
 .logo {
-    margin-top: 15px;
-    width: 50px;
-    height: auto;
-    position: relative;
-    transition: transform 0.3s ease;
+  margin-top: 15px;
+  width: 50px;
+  height: auto;
+  position: relative;
+  transition: transform 0.3s ease;
 }
 
 #img_profile_pic {
-    width: 50px;
-    position: relative;
-    transition: transform 0.3s ease;
-    border: 2px solid #FF8C00;
-    object-fit: cover;
+  width: 50px;
+  position: relative;
+  transition: transform 0.3s ease;
+  border: 2px solid var(--sunset-orange);
+  object-fit: cover;
 }
 
 .logo:hover {
-    filter: brightness(1.2);
-    transform: scale(1.05);
+  filter: brightness(1.2);
+  transform: scale(1.05);
 }
 
 .header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    background: rgba(34, 34, 34, 0.9);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: var(--panel-smoke-strong);
+  box-shadow: var(--shadow-panel);
 }
 
 /* DASHBOARD CONTAINER */
 .dashboard-container {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    width: 100%;
-    overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  width: 100%;
+  overflow: hidden;
 }
 
 /* CONTENT */
 .content {
-    display: flex;
-    height: calc(100vh - 60px);
-    overflow: hidden;
-    width: 100%;
+  display: flex;
+  height: calc(100dvh - 60px);
+  overflow: hidden;
+  width: 100%;
 }
 
 /* FRIENDS LIST */
 .sidebar {
-    width: 15%;
-    min-width: 150px;
-    background: rgba(34, 34, 34, 0.8);
-    padding: 10px;
-    box-shadow: 4px 0 8px rgba(0, 0, 0, 0.6);
+  display: flex;
+  flex-direction: column;
+  width: 15%;
+  min-width: 150px;
+  background: var(--panel-smoke);
+  padding: var(--space-sm);
+  box-shadow: 4px 0 8px rgba(0, 0, 0, 0.6);
 }
-
-.title-friends {
-    font-size: 2.5rem;
-    color: #FF8C00;
-    text-align: center;
-    margin-bottom: 10px;
-}
-
 .list-group {
-    list-style-type: none;
-    padding: 0;
-    margin: 0;
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
 }
 
 .list-group-item {
-    background: rgba(34, 34, 34, 0.7);
-    margin: 5px 0;
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.3s ease, transform 0.2s ease;
-    color: white;
-    border: 1px solid transparent;
+  background: var(--panel-smoke-soft);
+  margin: var(--space-xs) 0;
+  padding: var(--space-sm);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--ease-color), transform var(--ease-transform);
+  color: var(--chalk);
+  border: 1px solid transparent;
 }
 
-.list-group-item+.list-group-item {
-    border-top-width: 1px;
+/* Le bouton occupe toute la ligne : c'est lui qui prend le focus. */
+.friend-row {
+  width: 100%;
+  gap: var(--space-sm);
+  padding: 0;
+  background: none;
+  border: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: start;
+}
+
+.list-group-item + .list-group-item {
+  border-top-width: 1px;
 }
 
 .list-group-item:hover {
-    background: rgba(98, 98, 98, 0.7);
-    transform: translateY(-2px);
-    border-color: #FF8C00;
-}
-
-.list-group-item.disabled {
-    opacity: 0.6;
-    background-color: rgba(34, 34, 34, 0.9);
-    cursor: not-allowed;
-    position: relative;
-    pointer-events: none;
-}
-
-.list-group-item.disabled::before {
-    content: "\1F6AB"; /* 🚫 */
-    position: absolute;
-    left: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 1.2em;
-    color: #dc3545;
-}
-
-.list-group-item.disabled span:last-child {
-    margin-left: 30px;
-    color: #dc3545;
-}
-
-.list-group-item.disabled:hover {
-    background: rgba(34, 34, 34, 0.9);
-    transform: none;
+  background: var(--panel-smoke-hover);
+  transform: translateY(-2px);
+  border-color: var(--sunset-orange);
 }
 
 /* GAME CONTAINER */
 .game-container {
-    width: 70%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: rgba(34, 34, 34, 0.8);
-    padding: 5px;
-    /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.6); */
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--panel-smoke);
+  padding: var(--space-xs);
 }
 
 iframe#pong {
-    border-radius: 10px;
-    width: 100%;
-    height: 100%;
+  border: none;
+  border-radius: var(--radius-lg);
+  width: 100%;
+  height: 100%;
 }
 
 /* CHAT CONTAINER */
 .chat-container {
-    width: 15%;
-    min-width: 150px;
-    display: flex;
-    flex-direction: column;
-    background: rgba(34, 34, 34, 0.8);
-    box-shadow: -4px 0 8px rgba(0, 0, 0, 0.6);
+  width: 15%;
+  min-width: 150px;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-smoke);
+  box-shadow: -4px 0 8px rgba(0, 0, 0, 0.6);
 }
 
 .title-chat {
-    font-size: 2.5rem;
-    color: #FF8C00;
-    text-align: center;
-    margin-bottom: 10px;
+  font-size: 2.5rem;
+  color: var(--sunset-orange);
+  text-align: center;
+  margin-bottom: 10px;
 }
 
 .chat-log {
-    flex: 1;
-    padding: 10px;
-    overflow-y: auto;
-    background: rgba(34, 34, 34, 0.7);
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  background: var(--panel-smoke-soft);
 }
 
 /* CHAT CONTAINER ET CHAT PRIVÉ */
 .input-container,
 .input-container2 {
-    display: flex;
-    align-items: center;
-    padding: 5px;
-    background: rgba(34, 34, 34, 0.8);
-    border-radius: 25px;
-    border: 1px dashed #555;
-    margin: 7px;
+  display: flex;
+  align-items: center;
+  padding: var(--space-xs);
+  background: var(--panel-smoke);
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--border-subtle);
+  margin: 7px;
 }
 
 #message-input,
 [id^="message-input-"] {
-    flex: 1;
-    padding: 10px 15px;
-    border: none;
-    background: transparent;
-    color: #e0e0e0;
-    font-size: 14px;
-    resize: none;
+  flex: 1;
+  padding: 10px 15px;
+  border: none;
+  background: transparent;
+  color: var(--paper);
+  /* Plancher de seize : sous 16px Safari iOS zoome de force au focus. */
+  font-size: 16px;
+  resize: none;
 }
 
 #message-input::placeholder,
 [id^="message-input-"]::placeholder {
-    color: #888;
+  color: var(--muted-sand);
 }
 
 #send-button,
 [id^="send-button-"] {
-    width: clamp(30px, 3vw, 36px);
-    height: clamp(30px, 3vw, 36px); 
-    background-color: #FF8C00;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: background-color 0.3s ease;
-    margin: 0 5px;
-    padding: 0;
-    color: white;
-    font-size: clamp(14px, 1.5vw, 18px);
-    position: relative;
+  width: clamp(32px, 3vw, 36px);
+  height: clamp(32px, 3vw, 36px);
+  background-color: var(--sunset-orange);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.3s ease;
+  margin: 0 5px;
+  padding: 0;
+  color: var(--on-accent);
+  font-size: clamp(14px, 1.5vw, 18px);
+  position: relative;
 }
 
 #send-button:hover,
 [id^="send-button-"]:hover {
-    background-color: #FFA500;
+  background-color: var(--sunset-orange-bright);
 }
 
 /* CHAT */
 .username-link {
-    color: #FF8C00;
-    font-weight: 700;
+  color: var(--sunset-orange);
+  font-weight: 700;
+  padding: 0;
+  background: none;
+  border: none;
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+.username-link.is-me {
+  color: var(--lava-orange-soft);
 }
 
 /* ONLINE STATUS */
 
 .status-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    display: inline-block;
-    margin-right: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 5px;
 }
 
 .status-dot.online {
-    background-color: #28a745;
+  background-color: var(--reef-green);
 }
 
 .status-dot.offline {
-    background-color: #dc3545;
+  background-color: var(--coral-red);
 }
 
 /* CHAT PRIVÉ */
-.offcanvas-end {
-    background-color: #1E1E1E; /* Légèrement plus clair que le fond principal */
-    color: #e0e0e0;
-    width: 300px;
+#chatbox {
+  background-color: var(
+    --night-raised
+  ); /* Légèrement plus clair que le fond principal */
+  color: var(--paper);
+  width: 300px;
 }
 
-.offcanvas-header {
-    background: rgba(255, 140, 0, 0.2); /* Teinte orange transparente */
-    padding: 10px;
-    border-bottom: 2px solid #FF8C00; /* Bordure orange */
+#chatbox .offcanvas-header {
+  background: color-mix(in srgb, var(--sunset-orange) 20%, transparent);
+  padding: 10px;
+  border-bottom: 2px solid var(--sunset-orange); /* Bordure orange */
 }
 
-.offcanvas-body {
-    display: flex;
-    flex-direction: column;
-    height: calc(100% - 56px); /* Hauteur totale moins la hauteur du header */
+#chatbox .offcanvas-body {
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 56px); /* Hauteur totale moins la hauteur du header */
 }
 
 #private-chats-container {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
-.offcanvas-title {
-    font-size: 2.5rem;
-    color: #FF8C00; /* Orange pour correspondre au thème */
-    text-align: center;
-    margin-bottom: 10px;
-    font-weight: bold;
+#chatbox .offcanvas-title {
+  font-size: 2.5rem;
+  color: var(--sunset-orange); /* Orange pour correspondre au thème */
+  text-align: center;
+  margin-bottom: 10px;
+  font-weight: bold;
 }
 
-.chat-container2 {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
-    background: rgba(34, 34, 34, 0.7);
+#chatbox .chat-container2 {
+  flex: 1;
+  overflow-y: auto;
+  padding: 10px;
+  background: var(--panel-smoke-soft);
 }
 
-.chat-log2 {
-    padding: 10px;
-    overflow-y: auto;
-    background: rgba(34, 34, 34, 0.7);
-}
-
-/* Ajustement pour le bouton de fermeture */
-.btn-close {
-    color: #e0e0e0;
-    opacity: 0.8;
-}
-
-.btn-close:hover {
-    opacity: 1;
+#chatbox .chat-log2 {
+  padding: 10px;
+  overflow-y: auto;
+  background: var(--panel-smoke-soft);
 }
 
 #footer-dashboard {
-    background-color: rgba(34, 34, 34, 0.9)
+  background-color: var(--panel-smoke-strong);
 }
 
-/* Style commun pour friendDropdown et friendDropdown_chat */
+/* Style commun pour friendDropdown et friendDropdown_chat.
+   Les menus se pilotent par l'attribut `hidden` et non plus par un
+   `style="display:…"` en ligne ; il faut donc battre le `display: none` que
+   Bootstrap pose sur `.dropdown-menu`. */
+.dropdown-menu[hidden], .dropdown-menu_chat[hidden] {
+  display: none;
+}
+
 .dropdown-menu, .dropdown-menu_chat {
-    position: absolute;
-    background-color: #1E1E1E;
-    border: 1px solid #FF8C00;
-    border-radius: 5px;
-    padding: 5px 0;
-    min-width: 150px;
-    z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  display: block;
+  position: absolute;
+  background-color: var(--night-raised);
+  border: 1px solid var(--sunset-orange);
+  border-radius: 5px;
+  padding: 5px 0;
+  min-width: 150px;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 .dropdown-menu .dropdown-item, .dropdown-menu_chat .dropdown-item {
-    display: block;
-    padding: 8px 15px;
-    color: #e0e0e0;
-    text-decoration: none;
-    transition: background-color 0.3s ease;
+  display: block;
+  width: 100%;
+  padding: 8px 15px;
+  background: none;
+  border: none;
+  text-align: start;
+  font: inherit;
+  color: var(--paper);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color var(--ease-color);
 }
 
 .dropdown-menu .dropdown-item:hover, .dropdown-menu_chat .dropdown-item:hover {
-    background-color: rgba(255, 140, 0, 0.2);
-    color: #FF8C00;
-}
-
-/* FRIENDS SECTIONS */
-.friends-sections {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    height: calc(100% - 60px); /* Hauteur totale moins le titre */
-    overflow-y: auto;
-}
-
-.friends-section {
-    background: rgba(34, 34, 34, 0.9);
-    border-radius: 8px;
-    padding: 10px;
-    margin-bottom: 10px;
-}
-
-.friends-section h3 {
-    color: #FF8C00;
-    font-size: 1.2rem;
-    margin-bottom: 10px;
-    text-align: center;
-    border-bottom: 1px solid rgba(255, 140, 0, 0.3);
-    padding-bottom: 5px;
+  background-color: color-mix(in srgb, var(--sunset-orange) 20%, transparent);
+  color: var(--sunset-orange);
 }
 
 /* Style spécifique pour les demandes en attente */
 .pending-request {
-    background: rgba(34, 34, 34, 0.7);
-    margin: 5px 0;
-    padding: 8px;
-    border-radius: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid rgba(255, 140, 0, 0.2);
+  background: var(--panel-smoke-soft);
+  margin: 5px 0;
+  padding: 8px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--sunset-orange) 20%, transparent);
 }
 
 .pending-actions {
-    display: flex;
-    gap: 0.5rem;
+  display: flex;
+  gap: 0.5rem;
 }
 
 .accept-btn, .reject-btn {
-    width: 24px;
-    height: 24px;
-    border: none;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: transform 0.2s ease, background-color 0.2s ease;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
 .accept-btn {
-    background: #28a745;
-    color: white;
+  background: var(--reef-green);
+  color: var(--on-accent);
 }
 
 .reject-btn {
-    background: #dc3545;
-    color: white;
+  background: var(--coral-red);
+  color: var(--chalk);
 }
 
 .accept-btn:hover, .reject-btn:hover {
-    transform: scale(1.1);
+  transform: scale(1.1);
 }
 
 /* Style spécifique pour les utilisateurs bloqués */
 .blocked-user {
-    background: rgba(34, 34, 34, 0.7);
-    margin: 5px 0;
-    padding: 8px;
-    border-radius: 5px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border: 1px solid rgba(220, 53, 69, 0.3);
+  background: var(--panel-smoke-soft);
+  margin: 5px 0;
+  padding: 8px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--coral-red) 30%, transparent);
 }
 
 .unblock-btn {
-    background: #FF8C00;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 4px 8px;
-    cursor: pointer;
-    font-size: 0.8rem;
-    transition: background-color 0.2s ease;
+  background: var(--sunset-orange);
+  color: var(--on-accent);
+  border: none;
+  border-radius: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background-color 0.2s ease;
 }
 
 .unblock-btn:hover {
-    background: #FFA500;
-}
-
-/* Scrollbar personnalisée pour friends-sections */
-.friends-sections::-webkit-scrollbar {
-    width: 6px;
-}
-
-.friends-sections::-webkit-scrollbar-track {
-    background: rgba(34, 34, 34, 0.5);
-    border-radius: 3px;
-}
-
-.friends-sections::-webkit-scrollbar-thumb {
-    background: #FF8C00;
-    border-radius: 3px;
-}
-
-.friends-sections::-webkit-scrollbar-thumb:hover {
-    background: #FFA500;
-}
-
-/* Ajustement des sections pour le responsive */
-@media (max-width: 768px) {
-    .friends-section h3 {
-        font-size: 1rem;
-    }
-
-    .pending-actions {
-        gap: 0.25rem;
-    }
-
-    .accept-btn, .reject-btn {
-        width: 20px;
-        height: 20px;
-        font-size: 0.8rem;
-    }
-
-    .unblock-btn {
-        padding: 2px 6px;
-        font-size: 0.7rem;
-    }
+  background: var(--sunset-orange-bright);
 }
 
 /* FRIENDS TABS */
 .friends-tabs {
-    display: flex;
-    gap: 2px;
-    background: rgba(34, 34, 34, 0.9);
-    padding: 5px 5px 0;
-    border-radius: 8px 8px 0 0;
+  display: flex;
+  gap: 2px;
+  background: var(--panel-smoke-strong);
+  padding: 5px 5px 0;
+  border-radius: 8px 8px 0 0;
 }
 
 .tab-button {
-    flex: 1;
-    padding: 8px 12px;
-    background: rgba(34, 34, 34, 0.7);
-    border: none;
-    border-radius: 8px 8px 0 0;
-    color: #e0e0e0;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    font-size: 0.9rem;
-    position: relative;
-    overflow: hidden;
+  flex: 1;
+  padding: 8px 12px;
+  background: var(--panel-smoke-soft);
+  border: none;
+  border-radius: 8px 8px 0 0;
+  color: var(--paper);
+  cursor: pointer;
+  transition:
+    background var(--ease-color),
+    border-color var(--ease-color),
+    transform var(--ease-transform);
+  font-size: 0.9rem;
+  position: relative;
+  overflow: hidden;
 }
 
 .tab-button:hover {
-    background: rgba(255, 140, 0, 0.1);
-    color: #FF8C00;
+  background: color-mix(in srgb, var(--sunset-orange) 10%, transparent);
+  color: var(--sunset-orange);
 }
 
 .tab-button.active {
-    background: #FF8C00;
-    color: white;
+  background: var(--sunset-orange);
+  color: var(--on-accent);
 }
 
 .tab-button.active::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background: #FF8C00;
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--sunset-orange);
 }
 
 /* FRIENDS CONTENT */
 .friends-content {
-    background: rgba(34, 34, 34, 0.9);
-    border-radius: 0 0 8px 8px;
-    height: calc(100% - 110px); /* Ajuster selon vos besoins */
-    overflow: hidden;
+  background: var(--panel-smoke-strong);
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .tab-content {
-    display: none;
-    height: 100%;
-    overflow-y: auto;
-    padding: 10px;
+  display: none;
+  height: 100%;
+  overflow-y: auto;
+  padding: 10px;
 }
 
 .tab-content.active {
-    display: block;
+  display: block;
 }
 
 /* Scrollbar pour le contenu des onglets */
 .tab-content::-webkit-scrollbar {
-    width: 6px;
+  width: 6px;
 }
 
 .tab-content::-webkit-scrollbar-track {
-    background: rgba(34, 34, 34, 0.5);
+  background: var(--panel-smoke-soft);
 }
 
 .tab-content::-webkit-scrollbar-thumb {
-    background: #FF8C00;
-    border-radius: 3px;
+  background: var(--sunset-orange);
+  border-radius: 3px;
 }
 
 .tab-content::-webkit-scrollbar-thumb:hover {
-    background: #FFA500;
-}
-
-/* Style des éléments de liste */
-.list-group-item {
-    margin: 5px 0;
-    padding: 10px;
-    background: rgba(34, 34, 34, 0.7);
-    border: 1px solid rgba(255, 140, 0, 0.2);
-    border-radius: 5px;
-    transition: all 0.3s ease;
-}
-
-/* Styles spécifiques pour les demandes en attente */
-.pending-request {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.pending-actions {
-    display: flex;
-    gap: 5px;
-}
-
-.accept-btn, .reject-btn {
-    width: 24px;
-    height: 24px;
-    border: none;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-}
-
-.accept-btn {
-    background: #28a745;
-    color: white;
-}
-
-.reject-btn {
-    background: #dc3545;
-    color: white;
-}
-
-/* Style pour les utilisateurs bloqués */
-.blocked-user {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.unblock-btn {
-    background: #FF8C00;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 4px 8px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
+  background: var(--sunset-orange-bright);
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-    .tab-button {
-        font-size: 0.8rem;
-        padding: 6px 8px;
-    }
-    
-    .friends-content {
-        height: calc(100% - 100px);
-    }
+  .tab-button {
+    font-size: 0.8rem;
+    padding: 6px 8px;
+  }
+}
+
+/* ── Repli mobile ───────────────────────────────────────────────────────────
+   Le triptyque restait en trois colonnes à toutes les tailles : sous 500 px,
+   les deux colonnes latérales à `min-width: 150px` ne laissaient que 75 px au
+   jeu. Il s'empile, le jeu en premier — c'est le sujet de la page. */
+@media (max-width: 768px) {
+  .content {
+    flex-direction: column;
+    height: auto;
+    min-height: calc(100dvh - 60px);
+    overflow-y: auto;
+  }
+
+  .sidebar,
+  .game-container,
+  .chat-container {
+    flex: none;
+    width: 100%;
+    min-width: 0;
+    box-shadow: var(--shadow-panel);
+  }
+
+  .game-container {
+    order: -1;
+    aspect-ratio: 4 / 3;
+    padding: 0;
+  }
+
+  .sidebar,
+  .chat-container {
+    max-height: 60dvh;
+  }
+
+  .title-chat {
+    font-size: 1.5rem;
+  }
+
+  .friends-tabs {
+    flex-wrap: wrap;
+  }
+}
+
+/* ── Cibles de pointage ─────────────────────────────────────────────────────
+   Les boutons ronds de la liste tiennent le minimum WCAG 2.5.8 au pointeur
+   fin ; au doigt ils passent à 44 px. La media query mobile précédente les
+   réduisait à 20 px, sous le minimum. */
+.accept-btn,
+.reject-btn {
+  width: 24px;
+  height: 24px;
+}
+
+.unblock-btn {
+  min-height: 24px;
+}
+
+.tab-button {
+  min-height: 32px;
+}
+
+@media (pointer: coarse) {
+  .accept-btn,
+  .reject-btn,
+  #send-button,
+  [id^="send-button-"] {
+    width: var(--tap-min);
+    height: var(--tap-min);
+  }
+
+  .unblock-btn,
+  .tab-button,
+  .list-group-item,
+  .dropdown-item {
+    min-height: var(--tap-min);
+    display: flex;
+    align-items: center;
+  }
+
+  .pending-actions {
+    gap: var(--space-sm);
+  }
+}
+
+/* ── En-tête ────────────────────────────────────────────────────────────────
+   Le nom et l'avatar étaient stylés en `style="…"` dans le gabarit. */
+.header-title {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: var(--lava-orange-soft);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.avatar-button {
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  line-height: 0;
+}
+
+#send-button svg,
+[id^="send-button-"] svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ── En-tête ────────────────────────────────────────────────────────────────
+   Le `<h1>` portait le nom de l'utilisateur ; il porte celui du produit, et le
+   nom passe à côté de l'avatar. */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.header-name {
+  color: var(--lava-orange-soft);
+  font-weight: 500;
+  max-width: 12rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brand-button {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  line-height: 0;
+}
+
+.focus-toggle {
+  min-height: var(--tap-min);
+  padding: var(--space-xs) var(--space-sm);
+  border: 1px solid var(--sunset-orange);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--sunset-orange);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background-color var(--ease-color), color var(--ease-color);
+}
+
+.focus-toggle:hover,
+.focus-toggle[aria-pressed="true"] {
+  background: var(--sunset-orange);
+  color: var(--on-accent);
+}
+
+/* ── Ajout d'ami ────────────────────────────────────────────────────────────
+   Il n'existait aucun chemin vers un ami hors du chat général. */
+.add-friend {
+  display: flex;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-sm);
+}
+
+.add-friend .field-input {
+  flex: 1;
+  /* Plancher de seize : ce champ ne peut pas descendre, iOS zoomerait. */
+  min-width: 0;
+  font-size: 1rem;
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.add-friend .btn {
+  padding: var(--space-xs) var(--space-sm);
+  font-size: 0.85rem;
+}
+
+/* ── Priorité à la scène ────────────────────────────────────────────────────
+   Deux colonnes de 150 px prenaient 30 % de la largeur en permanence, devant
+   le sujet de la page. */
+.content.focus-game .sidebar,
+.content.focus-game .chat-container {
+  display: none;
+}
+
+.content.focus-game .game-container {
+  width: 100%;
+}
+
+/* Les boutons ronds de la liste portent maintenant un tracé SVG. */
+.accept-btn svg,
+.reject-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* ── Lignes de chat ─────────────────────────────────────────────────────────
+   Quatre classes posées par le JS et stylées nulle part : un avis système
+   ressemblait mot pour mot à un message reçu. */
+.message-container {
+  margin-bottom: var(--space-xs);
+  word-break: break-word;
+}
+
+.system-message {
+  color: var(--muted-sand);
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+/* Le message relu depuis sessionStorage porte cette classe ; elle n'était
+   définie que dans la feuille du jeu, jamais chargée par la SPA. */
+.bold-username {
+  opacity: 0.7;
+}
+
+/* Horodatage des messages du salon général : il était calculé et enregistré à
+   chaque message, et rendu nulle part. */
+.message-time {
+  color: var(--muted-sand);
+  font-size: 0.75rem;
+  margin-inline-end: var(--space-xs);
+}
+
+/* ── Priorité à la scène, sur téléphone ─────────────────────────────────────
+   « Focus the game » masquait bien les colonnes, mais la requête mobile impose
+   `aspect-ratio: 4 / 3` à la zone de jeu : sur un écran de 360 x 780, la partie
+   restait un rectangle de 360 x 270 avec du vide au-dessus et en dessous. En
+   mode concentré, la scène prend toute la hauteur disponible. */
+@media (max-width: 768px) {
+  .content.focus-game {
+    height: calc(100dvh - 60px);
+    overflow: hidden;
+  }
+
+  .content.focus-game .game-container {
+    aspect-ratio: auto;
+    height: 100%;
+  }
+}
+
+/* Le pied de page était poussé hors d'un conteneur en `overflow: hidden` :
+   la colonne mobile défile, le conteneur la laisse défiler. */
+@media (max-width: 768px) {
+  .dashboard-container {
+    height: auto;
+    min-height: 100dvh;
+    overflow-y: auto;
+  }
 }

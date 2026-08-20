@@ -1,309 +1,138 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
-
-body {
-    background-color: #121212;
-    color: #e0e0e0;
-    font-family: 'Roboto', sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-	overflow: auto;
-	overflow-y: auto;
-}
-
-.container {
-    background-color: #1e1e1e;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-	margin: 20px auto;
-    overflow-y: auto;
-}
+/* Écran d'inscription. Cette feuille stylait `body` et `.container` nus, et
+   posait `.left`, `.right`, `.current`, `.password-wrapper` en global : chargée
+   pour toutes les routes par main.js, elle décidait du centrage du tableau de
+   bord et entrait en conflit avec login.css. Tout est scopé sous
+   `.register-container` ; les boutons partagés vivent dans tokens.css. */
 
 .container.register-container {
-    margin-top: 10%;
-    width: 100%;
-    width: 600px;
-    padding: 20px;
+  background-color: var(--night-raised);
+  padding: var(--space-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  margin: var(--space-lg) auto;
+  width: 100%;
+  max-width: 600px;
 }
 
-.register-title {
-    font-family: 'Poppins', sans-serif;
-    font-size: 35px;
-    font-weight: 700;
-    color: #ff5722;
-    text-align: center;
-    margin-bottom: 20px;
-    margin-top: 30%
+.register-container .register-title {
+  font-family: "Poppins", Helvetica, sans-serif;
+  font-size: clamp(1.75rem, 6vw, 35px);
+  font-weight: 700;
+  color: var(--lava-orange);
+  text-align: center;
+  margin-bottom: var(--space-lg);
+  margin-top: var(--space-lg);
 }
 
-.form-group {
-    margin-bottom: 15px;
+.register-container .form-group {
+  margin-bottom: var(--space-md);
 }
 
-.form-label {
-    font-family: 'Poppins', sans-serif;
-    font-size: 14px;
-    color: #ff5722;
-    margin-bottom: 8px;
+.register-container .form-label {
+  font-family: "Poppins", Helvetica, sans-serif;
+  font-size: 14px;
+  color: var(--lava-orange);
+  margin-bottom: var(--space-xs);
 }
 
-.form-input {
-    width: 450px; /* Changé de 100% à 450px */
-    padding: 12px;
-    background-color: #2a2a2a;
-    border: 1px solid #3e3e3e;
-    border-radius: 5px;
-    color: #ffffff;
-    font-size: 16px;
-    font-family: 'Roboto', sans-serif;
+.register-container .form-actions {
+  margin-top: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
 }
 
-.password-wrapper {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    width: 450px;
+.register-container .btn-back {
+  background-color: transparent;
+  color: var(--lava-orange);
+  border: 2px solid var(--lava-orange);
+  align-self: center;
 }
 
-.password-wrapper input[type="password"],
-.password-wrapper input[type="text"] {
-    width: 100%;
-    padding-right: 40px; /* Espace pour le bouton */
+.register-container .btn-back:hover {
+  background-color: var(--lava-orange);
+  color: var(--on-accent);
 }
 
-.toggle-password {
-    position: absolute;
-    right: 5px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: none;
-    background-color: #ff5722;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+.register-container .choose-avatar {
+  width: 100%;
+  border: none;
+  padding: 0;
+  margin: 0;
 }
 
-.toggle-password:hover {
-    background-color: #ff7043;
+/* Rangée d'avatars : sept boutons radio natifs, défilement horizontal avec
+   accrochage. Remplace un carrousel en JS qui traduisait la bande de 195 px à
+   chaque flèche — et qui n'avait ni focus clavier ni annonce d'état. */
+.register-container .avatars {
+  display: flex;
+  gap: var(--space-lg);
+  padding: var(--space-md) var(--space-sm);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: thin;
 }
 
-.toggle-password i {
-    font-size: 14px;
+.register-container .avatar-item {
+  flex: 0 0 auto;
+  scroll-snap-align: center;
+  cursor: pointer;
+  border-radius: 50%;
+  line-height: 0;
 }
 
-.form-actions {
-    margin-top: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+.register-container .avatar-item input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
 }
 
-.btn-primary {
-    background-color: #ff5722;
-    color: #ffffff;
-    border: none;
-    padding: 12px;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-    font-family: 'Roboto', sans-serif;
-    width: 450px; /* Changé pour correspondre à la largeur des inputs */
+.register-container .avatar-item img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  opacity: 0.45;
+  transition: transform 200ms, opacity 200ms, box-shadow 200ms;
 }
 
-.btn-primary:hover {
-    background-color: #ff3d00;
+.register-container .avatar-item input:checked + img {
+  opacity: 1;
+  transform: scale(1.12);
+  box-shadow: 0 0 0 3px var(--lava-orange), 0 0 18px rgba(255, 87, 34, 0.7);
 }
 
-.btn-secondary {
-    background-color: #333;
-    color: #ffffff;
-    border: none;
-    padding: 12px;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-    width: 450px; /* Changé pour correspondre à la largeur des inputs */
+/* Le radio est masqué : sans cela, tabuler dans le groupe ne se verrait pas. */
+.register-container .avatar-item input:focus-visible + img {
+  outline: 3px solid var(--sun-gold);
+  outline-offset: 2px;
 }
 
-.btn-secondary:hover {
-    background-color: #444;
+@media (prefers-reduced-motion: reduce) {
+  .register-container .avatar-item img {
+    transition: none;
+  }
 }
 
-.btn-back {
-    margin-top: 20px;
-    background-color: transparent;
-    color: #ff5722;
-    border: 2px solid #ff5722;
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    align-self: center;
+.register-container #registerbutton,
+.register-container #registerbutton42 {
+  width: 100%;
+  margin: 0 auto;
+  display: block;
 }
 
-.btn-back:hover {
-    background-color: #ff5722;
-    color: #ffffff;
+.register-container .btn-42 {
+  background-color: var(--sunset-orange);
 }
 
-.choose-avatar {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
+.register-container .btn-42:hover {
+  background-color: var(--sunset-orange-bright);
 }
 
-.avatars-container {
-    display: flex;
-    width: 100%;
-    height: 220px;
-    overflow: hidden;
-    justify-content: center;
-    align-items: center;
-    position: relative;
+.register-container .form-label {
+  display: block;
 }
 
-.avatars {
-    position: relative;
-    display: flex;
-    gap: 50px;
-    transition: transform 500ms;
-}
-
-.avatar-item {
-    width: 145px;
-    height: 145px;
-    background-size: cover;
-    border-radius: 90px;
-    transition: transform 500ms, opacity 500ms, box-shadow 500ms;
-    transition-timing-function: cubic-bezier(0.22, 0.11, 0.67, 0.55);
-    opacity: 0.5;
-}
-
-.left, .right {
-    position: absolute;
-    width: 35px;
-    height: 50px;
-    z-index: 2;
-    cursor: pointer;
-    background-color: rgba(255, 87, 34, 0.7);
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: background-color 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-.left {
-    left: 10px;
-}
-
-.right {
-    right: 10px;
-}
-
-.left::before, .right::before {
-    content: '';
-    width: 0;
-    height: 0;
-    border-top: 10px solid transparent;
-    border-bottom: 10px solid transparent;
-}
-
-.left::before {
-    border-right: 15px solid white;
-}
-
-.right::before {
-    border-left: 15px solid white;
-}
-
-.current {
-    transform: scale(1.3);
-    opacity: 1;
-    box-shadow: 0 0 20px rgba(255, 87, 34, 0.7);
-}
-
-.current + .avatar-item,
-.current + .avatar-item + .avatar-item,
-.current:nth-child(1) + .avatar-item:last-child,
-.current:nth-last-child(2) + .avatar-item:first-child {
-    opacity: 0.7;
-    box-shadow: 0 0 15px rgba(255, 87, 34, 0.5);
-}
-.avatar-item:not(.current):not(.current + .avatar-item):not(.current + .avatar-item + .avatar-item) {
-    opacity: 0.3;
-    box-shadow: none;
-}
-
-#text-avatar {
-    display: none;
-}
-
-.current:hover #text-avatar {
-    display: block;
-}
-
-.current:hover {
-    cursor: pointer;
-    background-blend-mode: overlay;
-    background-color: rgba(13, 17, 31, 0.54);
-    place-items: center;
-    display: grid;
-}
-
-.avatars-container::before {
-    left: 0;
-    background: linear-gradient(to right, #1e1e1e, transparent);
-}
-
-.avatars-container::after {
-    right: 0;
-    background: linear-gradient(to left, #1e1e1e, transparent);
-}
-
-.unmask {
-    position: absolute;
-    right: 5px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    border: none;
-    background-color: #ff5722;
-    color: white;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.unmask:hover {
-    background-color: #ff7043;
-}
-
-.unmask i {
-    font-size: 14px;
-}
-
-#registerbutton, #registerbutton42 {
-    width: 450px;
-    margin: 0 auto;
-    display: block;
+.register-container .btn-back {
+  align-self: center;
+  width: 100%;
 }

@@ -240,7 +240,9 @@ export async function profile(displayName) {
           </div>
 
           <footer class="py-3 my-4">
-            <p class="text-center text-body-secondary">© 2024 42Company, Inc</p>
+            <p class="text-center text-body-secondary">
+              ft_transcendence — a 3D Pong by phudyka
+            </p>
           </footer>
         </main>
       `;
@@ -278,17 +280,17 @@ export async function profile(displayName) {
         <h1 class="visually-hidden">Profile unavailable</h1>
         <div class="alert text-center" role="alert">
           ${missing
-      ? "No account with that name."
-      : "Could not load this profile. The server is hosted on a free tier and may still be starting."}
+            ? "No account with that name."
+            : "Could not load this profile. The server is hosted on a free tier and may still be starting."}
         </div>
         <div class="mt-3 profile-error-actions">
           ${raw(
-      missing ? "" : html`
-          <button type="button" id="retryProfile" class="btn btn-primary">
-            Try again
-          </button>
-        `,
-    )}
+            missing ? "" : html`
+              <button type="button" id="retryProfile" class="btn btn-primary">
+                Try again
+              </button>
+            `,
+          )}
           <button
             type="button"
             id="backToDashboard"

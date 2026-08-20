@@ -1,70 +1,73 @@
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap');
+/* Écran de paramètres. Stylait `.dashboard-container`, `.form-control`,
+   `.btn-primary` et `.toast` en global. */
 
-.dashboard-container {
-    background-color: #121212;
-    border-radius: 10px;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+/* L'élément porte les deux classes : le sélecteur descendant qui vivait ici ne
+   correspondait à rien, et la carte n'a jamais reçu son fond ni son ombre.
+   Le composé règle aussi le débordement — `.dashboard-container` est taillé
+   pour un écran fixe, cette vue est un flux vertical. */
+.settings-view.dashboard-container {
+  background-color: var(--night);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  height: auto;
+  min-height: 100dvh;
+  overflow-y: auto;
 }
 
-.settings-title, .settings-subtitle {
-    font-family: 'Poppins', sans-serif;
-    color: #ff5722;
-    text-align: center;
-    margin-bottom: 20px;
+.settings-view .settings-title {
+  font-family: "Poppins", Helvetica, sans-serif;
+  color: var(--lava-orange);
+  text-align: center;
+  margin-bottom: var(--space-lg);
 }
 
-.settings-form-container {
-    padding: 20px;
-    max-width: 600px;
+.settings-view .settings-form-container {
+  padding: var(--space-lg);
+  max-width: 600px;
 }
 
-.form-label {
-    font-family: 'Poppins', sans-serif;
-    font-size: 14px;
-    color: #ff5722;
+.settings-view .form-label {
+  font-family: "Poppins", Helvetica, sans-serif;
+  font-size: 14px;
+  color: var(--lava-orange);
 }
 
-.form-control {
-    background-color: #2a2a2a;
-    border: 1px solid #3e3e3e;
-    color: #ffffff;
-    padding: 10px;
+.settings-view .field-input {
+  background-color: var(--field-slate);
+  border: 1px solid var(--field-border);
+  color: var(--chalk);
+  padding: var(--space-sm);
 }
 
-.avatar-img {
-    width: 100px !important;
-    height: 100px !important;
-    border-radius: 50%;
-    object-fit: cover;
-    flex-shrink: 0;
+.settings-view .avatar-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
 }
 
-.btn-primary {
-    background-color: #ff5722;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-family: 'Poppins', sans-serif;
-    transition: background-color 0.3s ease;
+/* En-tête de vue : le nom, l'avatar et les astuces du champ fichier étaient
+   posés en `style="…"` — dont un `cdjangoolor` qui ne faisait rien. */
+.settings-view .view-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm);
 }
 
-.btn-primary:hover {
-    background-color: #ff3d00;
+.settings-view .view-header-name {
+  font-size: clamp(1.25rem, 4vw, 2.5rem);
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.btn-secondary {
-    background-color: #333;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    cursor: pointer;
-    margin-top: 20px;
-}
-.toast {
-    background-color: #ff5722;
-    color: white;
+.settings-view .view-header-avatar,
+.settings-view .avatar-img {
+  border: 2px solid var(--lava-orange);
+  object-fit: cover;
+  flex-shrink: 0;
 }
