@@ -46,6 +46,7 @@ check:
 	@node scripts/check-assets.mjs
 	@node scripts/check-escaping.mjs
 	@node scripts/check-physics.mjs
+	@node scripts/check-controls.mjs
 	@node scripts/check-realtime.mjs
 	@$(if $(wildcard .venv/bin/python),.venv/bin/python,python3) scripts/check_django.py
 

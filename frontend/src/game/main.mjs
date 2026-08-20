@@ -24,6 +24,7 @@ import { hitPadEvent, initSocketEvent, SoundLobby } from './socketEvent.mjs';
 import Sound from './sounds.mjs';
 import { updateUserStats } from './api.mjs';
 import { connectGame } from '../config.js';
+import { padForSide, padMoveFor } from './controls.mjs';
 
 const socket = connectGame();
 
@@ -50,8 +51,6 @@ window.addEventListener('message', function(event) {
     }
 });
 
-let controlledPad = null;
-let controlledPads = null;
 export let pad1, pad2, pad3, pad4, ball;
 export let scene, camera, renderer, listener;
 let logo
@@ -63,6 +62,38 @@ let controls;
 export let sounds = [];
 
 const clock = new THREE.Clock();
+
+// L'état des raquettes vit ici, la résolution des touches dans controls.mjs.
+const padState = { controlledPad: null, controlledPads: null };
+
+function emitPadMove(key, moving) {
+    const move = padMoveFor(key, padState);
+    if (move) socket.emit('padMove', { ...move, moving });
+}
+
+// Sur mobile il n'y a pas de clavier : deux zones de part et d'autre de l'écran
+// envoient les mêmes touches. Le CSS ne les affiche que sur pointeur grossier.
+function initTouchControls() {
+    for (const button of document.querySelectorAll('#touch-controls button')) {
+        const key = button.dataset.key;
+        const press = (event) => { event.preventDefault(); emitPadMove(key, true); };
+        const release = (event) => { event.preventDefault(); emitPadMove(key, false); };
+        button.addEventListener('pointerdown', press);
+        button.addEventListener('pointerup', release);
+        button.addEventListener('pointercancel', release);
+        button.addEventListener('pointerleave', release);
+    }
+}
+
+// Une zone tactile inutilisable est pire qu'absente : on n'affiche que les
+// côtés que le joueur pilote réellement, une fois les raquettes attribuées.
+function updateTouchControls() {
+    const controls = document.getElementById('touch-controls');
+    controls.classList.remove('hidden');
+    for (const side of controls.querySelectorAll('.touch-side')) {
+        side.classList.toggle('hidden', !padForSide(side.dataset.side, padState));
+    }
+}
 
 function initGame() {
     scene = new THREE.Scene();
@@ -98,52 +129,15 @@ function initGame() {
 
 
     document.addEventListener('keydown', (event) => {
-        const { key } = event;
-        if (controlledPads) {
-            if (key === 'w') socket.emit('padMove', { pad: 1, direction: 'up', moving: true });
-            if (key === 's') socket.emit('padMove', { pad: 1, direction: 'down', moving: true });
-            if (key === 'ArrowUp') socket.emit('padMove', { pad: 2, direction: 'up', moving: true });
-            if (key === 'ArrowDown') socket.emit('padMove', { pad: 2, direction: 'down', moving: true });
-        } else {
-            if (controlledPad === 1) {
-                if (key === 'w') socket.emit('padMove', { pad: 1, direction: 'up', moving: true });
-                if (key === 's') socket.emit('padMove', { pad: 1, direction: 'down', moving: true });
-            } else if (controlledPad === 2) {
-                if (key === 'ArrowUp') socket.emit('padMove', { pad: 2, direction: 'up', moving: true });
-                if (key === 'ArrowDown') socket.emit('padMove', { pad: 2, direction: 'down', moving: true });
-            } else if (controlledPad === 3) {
-                if (key === 'w') socket.emit('padMove', { pad: 3, direction: 'up', moving: true });
-                if (key === 's') socket.emit('padMove', { pad: 3, direction: 'down', moving: true });
-            } else if (controlledPad === 4) {
-                if (key === 'ArrowUp') socket.emit('padMove', { pad: 4, direction: 'up', moving: true });
-                if (key === 'ArrowDown') socket.emit('padMove', { pad: 4, direction: 'down', moving: true });
-            }
-        }
+        if (!event.repeat) emitPadMove(event.key, true);
     });
 
     document.addEventListener('keyup', (event) => {
-        const { key } = event;
-        if (controlledPads) {
-            if (key === 'w') socket.emit('padMove', { pad: 1, direction: 'up', moving: false });
-            if (key === 's') socket.emit('padMove', { pad: 1, direction: 'down', moving: false });
-            if (key === 'ArrowUp') socket.emit('padMove', { pad: 2, direction: 'up', moving: false });
-            if (key === 'ArrowDown') socket.emit('padMove', { pad: 2, direction: 'down', moving: false });
-        } else {
-            if (controlledPad === 1) {
-                if (key === 'w') socket.emit('padMove', { pad: 1, direction: 'up', moving: false });
-                if (key === 's') socket.emit('padMove', { pad: 1, direction: 'down', moving: false });
-            } else if (controlledPad === 2) {
-                if (key === 'ArrowUp') socket.emit('padMove', { pad: 2, direction: 'up', moving: false });
-                if (key === 'ArrowDown') socket.emit('padMove', { pad: 2, direction: 'down', moving: false });
-            } else if (controlledPad === 3) {
-                if (key === 'w') socket.emit('padMove', { pad: 3, direction: 'up', moving: false });
-                if (key === 's') socket.emit('padMove', { pad: 3, direction: 'down', moving: false });
-            } else if (controlledPad === 4) {
-                if (key === 'ArrowUp') socket.emit('padMove', { pad: 4, direction: 'up', moving: false });
-                if (key === 'ArrowDown') socket.emit('padMove', { pad: 4, direction: 'down', moving: false });
-            }
-        }
+        emitPadMove(event.key, false);
     });
+
+    initTouchControls();
+
     initSocketEvent(socket, ball);
     hitPadEvent(socket, sounds);
     SoundLobby(socket, sounds);
@@ -200,25 +194,26 @@ socket.on('start-game', (rooms, roomsTypes) => {
     camera.animCam(0, 8, 6.2);
     controls.autoRotate = false;
     controls.update();
-    controlledPad = 0;
-    controlledPads = 0;
+    padState.controlledPad = 0;
+    padState.controlledPads = 0;
     document.getElementById('menu').classList.add('hidden');
     document.getElementById('multi').classList.add('hidden');
     document.getElementById('tournament-details').classList.add('hidden');
     document.getElementById('tournament-details').classList.remove('flex');
     document.getElementById('waiting').classList.add('hidden');
+    document.getElementById('space').classList.add('hidden');
     document.getElementById('score').classList.remove('hidden');
     document.getElementById('score').classList.add('score-container');
 
     const [player1, player2, player3, player4] = rooms;
 
     if (roomsTypes === 'multi-2-local') {
-        controlledPads = [1, 2];
+        padState.controlledPads = [1, 2];
     } else {
-        if (username === player1 || socket.id === player1) controlledPad = 1;
-        else if (username === player2 || socket.id === player2) controlledPad = 2;
-        else if (username === player3 || socket.id === player3) controlledPad = 3;
-        else if (username === player4 || socket.id === player4) controlledPad = 4;
+        if (username === player1 || socket.id === player1) padState.controlledPad = 1;
+        else if (username === player2 || socket.id === player2) padState.controlledPad = 2;
+        else if (username === player3 || socket.id === player3) padState.controlledPad = 3;
+        else if (username === player4 || socket.id === player4) padState.controlledPad = 4;
     }
 
     if (player4) {
@@ -228,7 +223,8 @@ socket.on('start-game', (rooms, roomsTypes) => {
         pad4 = new Pad(0x2040df, 0.045, 0.50, 16, 0.5, 3.59, 0);
         pad4.addToScene(scene);
     }
-    colorPad(controlledPad);
+    colorPad(padState.controlledPad);
+    updateTouchControls();
 });
 
 function colorPad(number){

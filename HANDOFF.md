@@ -33,7 +33,7 @@ Deux comptes d'essai existent en base : `alice` / `bob`, mot de passe `pong1234`
 | 3 — frontend | fait | Vite, SPA et jeu réunis, `three` r166 ➜ r185 |
 | 4 — temps réel | fait | jeu + chat fusionnés, physique sans `three`, JWT au handshake |
 | 5 — API Django | fait | Django 5.2, config par environnement, Neon prêt, avatars réparés |
-| **6 — interface** | **à faire** | retravail visuel, responsive, contrôles tactiles |
+| **6 — interface** | **en cours** | contrôles tactiles faits ; retravail visuel et responsive de la SPA à faire |
 | **7 — déploiement** | **à faire** | Vercel + Koyeb + Render + Neon |
 
 Architecture cible et justification du découpage : `PLAN.md`.
@@ -84,6 +84,7 @@ les régressions les plus faciles à réintroduire :
 | `check-assets.mjs` | aucun asset référencé manquant, aucun fichier orphelin, décodeur meshopt branché |
 | `check-escaping.mjs` | échappement HTML en contexte texte **et** attribut, aucun `innerHTML` interpolé hors gabarit |
 | `check-physics.mjs` | boîtes englobantes conformes à three, comportement de la balle réécrite |
+| `check-controls.mjs` | quelle raquette chaque touche pilote, dans les six modes de partie |
 | `check-realtime.mjs` | démarre le service et contrôle 2 namespaces + 4 cas de refus de jeton |
 | `check_django.py` | migrations, revendication `display_name` sur tout jeton, validation des noms |
 
@@ -139,24 +140,40 @@ puisqu'elle ne touche que le checkout.
 
 ### Lot 6 — Interface
 
-Le jeu est **injouable sur mobile** : les contrôles sont exclusivement clavier
-(`w`/`s` et les flèches). C'est le manque le plus visible.
+**Fait : les contrôles tactiles.** Le jeu n'avait que le clavier. Deux zones de
+part et d'autre de l'écran envoient désormais les mêmes touches, et n'apparaissent
+que sur pointeur grossier (`@media (hover: none) and (pointer: coarse)`). Elles ne
+s'affichent que du côté réellement piloté, ce qui dépend du mode — d'où
+`frontend/src/game/controls.mjs`, extrait pour que `scripts/check-controls.mjs`
+couvre les six modes. Il manquait aussi la balise `viewport` dans `game.html` :
+le jeu se rendait en 980 px de large sur téléphone.
 
-Retravail visuel sans refonte : typographie, espacements, transitions entre
-menus, écran de chargement avec progression — le GLB fait encore 5,2 Mo.
+Corrigé au passage, trois bogues préexistants :
 
-Deux corrections repérées mais pas faites, à traiter ici :
+- `#space` (« Press space to Launch the game ») posait un écouteur `keydown` à
+  chaque `tournament-full` : au deuxième tournoi d'une session, `player_ready`
+  partait en double. Et il n'était jamais masqué ensuite, donc l'invite restait
+  affichée pendant la partie. L'invite sert maintenant de bouton, faute de clavier
+  sur mobile ;
+- les cinq surfaces censées recevoir l'ombre dans `loadIsland.mjs` étaient testées
+  derrière `child.isMesh`, or trois d'entre elles ne sont pas des mesh : leur
+  géométrie est un enfant anonyme. Seuls les deux socles ont jamais reçu d'ombre.
+  Contrairement à ce qui était noté ici, les noms étaient bons — `three` assainit
+  les noms au chargement, espaces en tirets bas et points retirés, ce que le code
+  d'origine reflétait fidèlement. `check-assets.mjs` échoue désormais si un de ces
+  noms disparaît du GLB ;
+- le clip d'animation `Palmier2` n'existe pas ; `Palmier` anime déjà les deux
+  palmiers, la condition était morte sans conséquence visible. Retirée.
 
-- dans `frontend/src/game/loadIsland.mjs`, quatre des cinq noms de meshes testés
-  pour `receiveShadow` (`socle_sable_parfait`, `ile_sable_imparfait`,
-  `socle_turquoise_scene`, `Plan001`) et le clip d'animation `Palmier2`
-  **n'existent pas dans le GLB** — conditions mortes d'origine, pas une
-  régression, mais les ombres n'ont jamais été celles prévues ;
-- `avatar_url` est incohérent en base : tantôt `https://…`, tantôt `url("…")`
-  selon qu'il vient de l'inscription, de l'OAuth 42 ou d'un envoi de fichier.
-  Le client rattrape les deux formes au coup par coup. Ce champ n'est
-  volontairement pas validé côté serveur — l'échappement suffit à fermer la
-  faille XSS, et durcir maintenant casserait des comptes existants.
+**Reste à faire :** retravail visuel sans refonte (typographie, espacements,
+transitions entre menus), responsive de la SPA — seuls les menus du jeu ont été
+traités — et écran de chargement avec progression, le GLB faisant encore 5,2 Mo.
+
+`avatar_url` est incohérent en base : tantôt `https://…`, tantôt `url("…")` selon
+qu'il vient de l'inscription, de l'OAuth 42 ou d'un envoi de fichier. Le client
+rattrape les deux formes au coup par coup. Ce champ n'est volontairement pas validé
+côté serveur — l'échappement suffit à fermer la faille XSS, et durcir maintenant
+casserait des comptes existants.
 
 ### Lot 7 — Déploiement
 

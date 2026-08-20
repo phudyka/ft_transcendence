@@ -29,16 +29,9 @@ export default async function loadModel(scene, onLoad) {
             if (child.isMesh) {
                 child.castShadow = true;
             }
-            if(child.isMesh && (
-                child.name === "socle_sable_parfait" || 
-                child.name === "ile_sable_imparfait" || 
-                child.name === "eau" || 
-                child.name === "socle_turquoise_scene" || 
-                child.name === "Plan001")) {
-                child.receiveShadow = true;
-                child.castShadow = false;
-            }
         });
+
+        markGroundSurfaces(model);
 
         const waterGeometry = new THREE.BoxGeometry(500, 500, 2);
 
@@ -62,7 +55,7 @@ export default async function loadModel(scene, onLoad) {
         const actions = {};
 
         gltf.animations.forEach((clip) => {
-            if (clip.name === 'Palmier' || clip.name === 'Palmier2' || clip.name === 'Drapeau' || clip.name === 'Sketchfab_modelAction' || clip.name === 'Swim') {
+            if (clip.name === 'Palmier' || clip.name === 'Drapeau' || clip.name === 'Sketchfab_modelAction' || clip.name === 'Swim') {
                 const action = mixer.clipAction(clip);
                 actions[clip.name] = action;
                 action.play();
@@ -75,5 +68,37 @@ export default async function loadModel(scene, onLoad) {
         onLoad(mixer, actions);
     } catch (error) {
         console.error('Error : Loading Island', error);
+    }
+}
+
+/* Les cinq surfaces qui reçoivent l'ombre au lieu de la projeter.
+ *
+ * Trois d'entre elles ne sont pas elles-mêmes des mesh : leur géométrie est un
+ * enfant anonyme. Le filtre `child.isMesh` qui portait ce test les écartait donc
+ * en silence, et seuls les deux socles ont jamais reçu d'ombre. D'où la descente
+ * d'un niveau — mais d'un seul : `eau` contient toute l'île, tout marquer
+ * reviendrait à supprimer les ombres portées de la scène entière.
+ *
+ * Les noms sont ceux du graphe three, pas ceux du GLB : `createUniqueName()`
+ * remplace les espaces par des tirets bas et retire les points.
+ * `scripts/check-assets.mjs` échoue si l'un d'eux disparaît du fichier.
+ */
+export const GROUND_NODES = [
+    'eau',
+    'ile_sable_imparfait',
+    'Plan001',
+    'socle_turquoise_scene',
+    'socle_sable_parfait',
+];
+
+function markGroundSurfaces(model) {
+    for (const name of GROUND_NODES) {
+        const node = model.getObjectByName(name);
+        if (!node) continue;
+        const surfaces = node.isMesh ? [node] : node.children.filter((c) => c.isMesh && !c.name);
+        for (const surface of surfaces) {
+            surface.receiveShadow = true;
+            surface.castShadow = false;
+        }
     }
 }

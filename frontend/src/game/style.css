@@ -759,3 +759,76 @@ div.input-container {
 .invite-button:hover {
     opacity: 1;
 }
+
+/* ── Commandes tactiles ─────────────────────────────────────────────────────
+   Le jeu n'avait que le clavier : injouable sur mobile. Les zones ci-dessous
+   n'apparaissent que sur un pointeur grossier, et le `:not(.hidden)` laisse le
+   JS masquer le côté que le joueur ne pilote pas malgré la spécificité de l'id. */
+#touch-controls {
+    display: none;
+}
+
+@media (hover: none) and (pointer: coarse) {
+    #touch-controls:not(.hidden) {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: fixed;
+        inset: 0;
+        padding: 0 max(12px, env(safe-area-inset-left)) 0 max(12px, env(safe-area-inset-right));
+        z-index: 20;
+        /* La zone ne doit pas voler les gestes destinés à la scène. */
+        pointer-events: none;
+    }
+
+    #touch-controls .touch-side:not(.hidden) {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        pointer-events: auto;
+    }
+
+    #touch-controls button {
+        width: 4.5rem;
+        height: 4.5rem;
+        font-size: 1.75rem;
+        color: #ffffff;
+        background: rgba(0, 145, 230, 0.55);
+        border: 2px solid #FFCC00;
+        border-radius: 50%;
+        /* Sans cela le navigateur interprète l'appui maintenu comme un défilement. */
+        touch-action: none;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    #touch-controls button:active {
+        background: rgba(0, 85, 204, 0.85);
+    }
+}
+
+/* ── Petits écrans ──────────────────────────────────────────────────────────
+   Les menus étaient dimensionnés en pixels fixes et débordaient sous 480 px. */
+@media (max-width: 600px) {
+    .menu, .waiting, .multi, .tournament {
+        width: min(90vw, 26rem);
+        padding: 24px 16px;
+        font-size: 18px;
+    }
+
+    .menu-button {
+        width: 100%;
+        padding: 14px 16px;
+        font-size: 18px;
+        margin: 10px auto;
+    }
+
+    #space h1 {
+        font-size: 5vw;
+    }
+}
+
+/* Le compte à rebours des tournois se lançait à la barre d'espace : au doigt,
+   c'est le bloc lui-même qui sert de bouton. */
+#space {
+    cursor: pointer;
+}

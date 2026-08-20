@@ -8,7 +8,7 @@
 
 import { readdirSync, readFileSync, existsSync, statSync } from 'node:fs';
 import { join, dirname, relative } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const frontend = join(root, 'frontend');
@@ -85,10 +85,52 @@ for (const path of referenced.keys()) {
     }
 }
 
+// --- les surfaces qui reçoivent l'ombre existent-elles encore ? ---
+//
+// `markGroundSurfaces()` les désigne par leur nom. Une faute de frappe ou un
+// export Blender qui renomme un nœud ne casse rien : la scène se charge, les
+// ombres sont simplement fausses. C'est resté invisible pendant un an.
+const shadowErrors = [];
+const island = readFileSync(join(frontend, 'src/game/loadIsland.mjs'), 'utf8');
+const scenePath = island.match(/loadAsync\('([^']+\.glb)'\)/)?.[1];
+
+if (!scenePath) {
+    shadowErrors.push("loadIsland.mjs ne charge plus de .glb par loadAsync() — contrôle à réécrire");
+} else {
+    const { GROUND_NODES } = await import(
+        pathToFileURL(join(frontend, 'src/game/loadIsland.mjs')).href);
+    const { PropertyBinding } = await import(
+        pathToFileURL(join(frontend, 'node_modules/three/build/three.module.js')).href);
+
+    const glb = readFileSync(join(publicDir, scenePath.replace(/^\//, '')));
+    const json = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)).toString('utf8'));
+    // three assainit les noms au chargement : espaces en tirets bas, points retirés.
+    const byName = new Map(json.nodes.map((n, i) => [PropertyBinding.sanitizeNodeName(n.name || ''), i]));
+
+    for (const name of GROUND_NODES) {
+        const index = byName.get(name);
+        if (index === undefined) {
+            shadowErrors.push(`${name} : absent de ${scenePath}`);
+            continue;
+        }
+        const node = json.nodes[index];
+        // Soit le nœud porte la géométrie, soit c'est son enfant anonyme.
+        const anonymousMesh = (node.children || []).some(
+            (c) => json.nodes[c].mesh !== undefined && !json.nodes[c].name);
+        if (node.mesh === undefined && !anonymousMesh)
+            shadowErrors.push(`${name} : ni mesh ni enfant anonyme portant une géométrie`);
+    }
+}
+
 const mb = (n) => `${(n / 1024 / 1024).toFixed(1)} Mo`;
 console.log(`${referenced.size} assets référencés, ${mb(bytes)} sur le disque`);
 if (orphans.length) console.log(`orphelins (jamais chargés) : ${orphans.join(', ')}`);
 
+if (shadowErrors.length) {
+    console.error(`\nSurfaces d'ombre introuvables (frontend/src/game/loadIsland.mjs) :`);
+    for (const e of shadowErrors) console.error(`  ${e}`);
+    process.exit(1);
+}
 if (decoderErrors.length) {
     console.error(`\nDécodeur manquant :`);
     for (const e of decoderErrors) console.error(`  ${e}`);
@@ -100,4 +142,4 @@ if (missing.length) {
     process.exit(1);
 }
 if (orphans.length) process.exit(1);
-console.log('OK — aucun asset manquant ni orphelin.');
+console.log('OK — aucun asset manquant ni orphelin, surfaces d\'ombre en place.');

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ft_transcendence</title>
     <link rel="stylesheet" href="/src/game/style.css">
 </head>
@@ -86,6 +87,19 @@
         <button class="menu-button" id="back-to-menu-button">Back</button>
     </div>
     
+    <!-- Commandes tactiles : mêmes touches que le clavier, affichées par le CSS
+         sur pointeur grossier seulement, et seulement du côté que l'on pilote. -->
+    <div id="touch-controls" class="hidden">
+        <div class="touch-side hidden" data-side="left">
+            <button type="button" data-key="w" aria-label="Raquette gauche vers le haut">&#9650;</button>
+            <button type="button" data-key="s" aria-label="Raquette gauche vers le bas">&#9660;</button>
+        </div>
+        <div class="touch-side hidden" data-side="right">
+            <button type="button" data-key="ArrowUp" aria-label="Raquette droite vers le haut">&#9650;</button>
+            <button type="button" data-key="ArrowDown" aria-label="Raquette droite vers le bas">&#9660;</button>
+        </div>
+    </div>
+
     <div id="credits">
         <h1>CREDITS</h1>
     </div>

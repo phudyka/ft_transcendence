@@ -142,16 +142,24 @@ export function initSocketEvent(socket){
         displayTournamentPage(socketIds);
     });
 
-    socket.on('tournament-full', (socketIds) => {
-        document.getElementById('space').classList.remove('hidden');
-        console.log("tournament full");
-        document.addEventListener('keydown', (event) => {
-            const { key } = event;
-                if (key === ' '){
-                    socket.emit('player_ready');
-                    console.log('key space');
-                }     
-        });
+    // L'écouteur était posé à chaque `tournament-full` : au deuxième tournoi
+    // d'une même session, `player_ready` partait en double. Il est posé une
+    // fois, et l'invite elle-même sert de bouton là où il n'y a pas de clavier.
+    const space = document.getElementById('space');
+
+    function readyUp() {
+        if (space.classList.contains('hidden')) return;
+        socket.emit('player_ready');
+    }
+
+    document.addEventListener('keydown', (event) => {
+        if (event.key === ' ' && !event.repeat) readyUp();
+    });
+
+    space.addEventListener('click', readyUp);
+
+    socket.on('tournament-full', () => {
+        space.classList.remove('hidden');
     });
     
     function displayTournamentPage(data) {

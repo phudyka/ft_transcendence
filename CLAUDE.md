@@ -41,9 +41,10 @@ Migrations run automatically from `conf/entrypoint.sh` on every container start.
 
 | Script | Guards |
 |---|---|
-| `scripts/check-assets.mjs` | no missing/orphan asset, meshopt decoder wired |
+| `scripts/check-assets.mjs` | no missing/orphan asset, meshopt decoder wired, shadow-receiving nodes still in the GLB |
 | `scripts/check-escaping.mjs` | HTML escaping in text **and** attribute context, no interpolated `innerHTML` outside the `html` template |
 | `scripts/check-physics.mjs` | client/server bounding boxes agree, rewritten ball behaviour |
+| `scripts/check-controls.mjs` | which pad each key drives, across the six game modes |
 | `scripts/check-realtime.mjs` | boots the service, checks 2 namespaces + 4 token-rejection cases |
 | `scripts/check_django.py` | migrations, `display_name` claim on every token, name validation |
 
@@ -85,6 +86,7 @@ Chart.js + socket.io-client + three r185 as npm deps — no CDN, no committed `n
   deliberate markup. Anything reaching `innerHTML` goes through it; `check-escaping.mjs` enforces it.
 - `src/config.js` — socket.io namespaces; `VITE_REALTIME_URL` when the service is off-origin.
 - `src/game/` — three.js client (`main.mjs`, `socketEvent.mjs`, ball/pad/camera/light/loadIsland/…).
+- `src/game/controls.mjs` — which pad a key drives; keyboard and the touch zones both go through it.
 - `src/js/views/dashboard.js` (~1400 lines) is the main screen.
 
 ### Realtime (`src/requirements/realtime/`)
