@@ -20,7 +20,7 @@ parties. Projet final du cursus web de l'école 42, remasterisé sur la branche
 
 | Couche     | Choix                                            |
 | ---------- | ------------------------------------------------ |
-| Frontend   | Vite, JavaScript, Bootstrap 5, three.js          |
+| Frontend   | Vite, JavaScript, three.js                       |
 | API        | Django 5.2 + Django REST framework, JWT          |
 | Temps réel | Node + socket.io (namespaces `/game` et `/chat`) |
 | Base       | PostgreSQL                                       |
@@ -36,17 +36,17 @@ src/
   django/        API : app/ (projet Django), conf/, Dockerfile
   realtime/      service socket.io : app/, Dockerfile
   nginx/         proxy TLS, local uniquement
-  postgresql/    base locale uniquement
-scripts/         vérifications (check-*) et outils d'assets (bake-*)
+scripts/         vérifications (check-*)
 ```
 
 Un répertoire par cible de déploiement : le frontend part sur un hébergeur
-statique, `django/` et `realtime/` sur leurs plateformes respectives, `nginx/`
-et `postgresql/` ne servent qu'en local.
+statique, `django/` et `realtime/` sur leurs plateformes respectives ; `nginx/`
+ne sert qu'en local, et la base est l'image Postgres officielle, déclarée dans
+`compose.yaml` sans Dockerfile.
 
 ## Installation
 
-Node 22 ou plus récent est nécessaire (Vite 8, gltf-transform).
+Node 22 ou plus récent est nécessaire (Vite 8).
 
 ```bash
 git clone https://github.com/phudyka/ft_transcendence.git
@@ -78,7 +78,7 @@ démarrage du conteneur.
 ## Vérifications
 
 ```bash
-make check   # sept scripts, sans conteneur
+make check   # six scripts, sans conteneur
 make lint    # ESLint sur frontend/, src/realtime/ et scripts/
 ```
 
@@ -96,7 +96,6 @@ installées dans un `.venv/` à la racine.
 | `docs/HANDOFF.md` | état des travaux, ce qui reste à faire            |
 | `docs/PLAN.md`    | architecture cible et journal des décisions       |
 | `docs/PRODUCT.md` | public visé et intention du produit               |
-| `docs/DESIGN.md`  | système de design, vérifié par `check-design.mjs` |
 | `CLAUDE.md`       | repères pour travailler dans le dépôt             |
 
 ## Sécurité

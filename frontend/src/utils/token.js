@@ -1,5 +1,4 @@
 import { navigateTo } from "../app.js";
-import { fetchWithToken } from "./api.js";
 import { removeDashboardEventListeners } from "../views/dashboard.js";
 
 export async function getCsrfToken() {

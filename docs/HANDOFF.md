@@ -137,8 +137,8 @@ les régressions les plus faciles à réintroduire :
 
 Prérequis d'environnement, à connaître avant de s'étonner :
 
-- **Node 22 minimum.** Le `node` du système est en v19, trop ancien pour Vite 8
-  et pour `gltf-transform`. Utiliser `~/.nvm/versions/node/v24.18.1/bin`.
+- **Node 22 minimum.** Le `node` du système est en v19, trop ancien pour Vite 8.
+  Utiliser `~/.nvm/versions/node/v24.18.1/bin`.
 - `npm install` dans `frontend/` **et** dans `src/realtime/`.
 - `check_django.py` demande les dépendances de
   `src/django/conf/requirements.txt` dans un environnement virtuel ;

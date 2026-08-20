@@ -14,10 +14,7 @@ export default [
   js.configs.recommended,
   {
     files: ["frontend/**/*.js", "frontend/**/*.mjs"],
-    languageOptions: {
-      // main.js expose Bootstrap sur window pour toutes les vues.
-      globals: { ...globals.browser, bootstrap: "readonly" },
-    },
+    languageOptions: { globals: globals.browser },
   },
   {
     files: [

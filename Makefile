@@ -1,8 +1,9 @@
 COMPOSE = docker compose --project-directory src
 
+# postgresql n'y est plus : le service prend l'image officielle telle quelle,
+# il n'y a plus d'image locale à supprimer.
 IMAGES =	src-nginx\
 			src-django\
-			src-postgresql\
 			src-realtime
 
 VOLUMES =	src_static_files\
@@ -47,7 +48,6 @@ check:
 	@node scripts/check-escaping.mjs
 	@node scripts/check-physics.mjs
 	@node scripts/check-controls.mjs
-	@node scripts/check-design.mjs
 	@node scripts/check-realtime.mjs
 	@$(PYTHON) scripts/check_django.py
 

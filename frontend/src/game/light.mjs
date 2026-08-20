@@ -11,7 +11,7 @@ import { Sky } from "three/examples/jsm/objects/Sky.js";
 // les deux) en une seule recherche dans une cubemap, remplace à lui seul les
 // quatre lumières d'appoint, et donne aux matériaux métalliques de la balle et
 // des raquettes quelque chose à réfléchir. L'occlusion de contact, elle, est
-// cuite dans les couleurs de sommets du GLB — `scripts/bake-ao.mjs`.
+// cuite dans les couleurs de sommets du GLB, en amont du dépôt.
 //
 // Reste une seule lumière analytique : le soleil, qui porte les ombres.
 

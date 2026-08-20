@@ -67,10 +67,9 @@ export default async function loadModel(scene, onLoad, onProgress) {
 
 /* Les seules pistes jouées. Le GLB en portait sept : les trois autres
  * (`PalmArmatureAction`, `PalmArmatureAction.001`, `Swim and Jump`) étaient
- * chargées puis ignorées. `scripts/bake-scene.mjs` lit cette liste pour élaguer
- * le fichier — la garder ici évite qu'un renommage supprime une piste jouée.
+ * chargées puis ignorées, et ont été élaguées du fichier livré.
  */
-export const PLAYED_ANIMATIONS = new Set([
+const PLAYED_ANIMATIONS = new Set([
   "Palmier",
   "Drapeau",
   "Sketchfab_modelAction",

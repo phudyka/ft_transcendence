@@ -251,25 +251,32 @@ iframe#pong {
   background-color: var(--coral-red);
 }
 
-/* CHAT PRIVÉ */
+/* CHAT PRIVÉ. Le tiroir est un `<dialog>` (voir `.drawer` dans tokens.css) :
+   la colonne flex remplace le `calc(100% - 56px)` qui codait en dur la hauteur
+   d'un en-tête Bootstrap. */
 #chatbox {
   background-color: var(
     --night-raised
   ); /* Légèrement plus clair que le fond principal */
   color: var(--paper);
   width: 300px;
+  display: flex;
+  flex-direction: column;
 }
 
-#chatbox .offcanvas-header {
+#chatbox .drawer-header {
   background: color-mix(in srgb, var(--sunset-orange) 20%, transparent);
   padding: 10px;
   border-bottom: 2px solid var(--sunset-orange); /* Bordure orange */
+  display: flex;
+  justify-content: flex-end;
 }
 
-#chatbox .offcanvas-body {
+#chatbox .drawer-body {
   display: flex;
   flex-direction: column;
-  height: calc(100% - 56px); /* Hauteur totale moins la hauteur du header */
+  flex: 1;
+  min-height: 0;
 }
 
 #private-chats-container {
@@ -279,7 +286,7 @@ iframe#pong {
   overflow-y: auto;
 }
 
-#chatbox .offcanvas-title {
+#chatbox .drawer-title {
   font-size: 2.5rem;
   color: var(--sunset-orange); /* Orange pour correspondre au thème */
   text-align: center;
@@ -306,8 +313,7 @@ iframe#pong {
 
 /* Style commun pour friendDropdown et friendDropdown_chat.
    Les menus se pilotent par l'attribut `hidden` et non plus par un
-   `style="display:…"` en ligne ; il faut donc battre le `display: none` que
-   Bootstrap pose sur `.dropdown-menu`. */
+   `style="display:…"` en ligne. */
 .dropdown-menu[hidden], .dropdown-menu_chat[hidden] {
   display: none;
 }

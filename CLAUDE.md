@@ -18,13 +18,13 @@ by nginx or Django.
 ```bash
 make            # compose up -d → nginx/django/postgresql/realtime on https://<hostname>:8080
 cd frontend && npm run dev   # Vite on :5173, proxies /api, /media, /socket.io to :8080
-make check      # the 7 verification scripts (see below)
+make check      # the 6 verification scripts (see below)
 make lint       # npx eslint . (skips src/django/ and frontend/public/)
 make down / re / fclean / refclean / debug
 ```
 
-Node **22+ required** (system `node` is v19, too old for Vite 8 and
-gltf-transform) — use `~/.nvm/versions/node/v24.18.1/bin`. `npm install` is
+Node **22+ required** (system `node` is v19, too old for Vite 8) — use
+`~/.nvm/versions/node/v24.18.1/bin`. `npm install` is
 needed in `frontend/` **and** `src/realtime/`.
 
 **No bind mounts.** Every Dockerfile `COPY`s at build time, so Python, nginx
@@ -52,7 +52,6 @@ system `python3` and fails on imports otherwise):
 | `scripts/check-escaping.mjs` | HTML escaping in text **and** attribute context, no interpolated `innerHTML` outside the `html` template                                                                                                                                                                             |
 | `scripts/check-physics.mjs`  | client/server bounding boxes agree, rewritten ball behaviour                                                                                                                                                                                                                         |
 | `scripts/check-controls.mjs` | which pad each key drives, across the six game modes                                                                                                                                                                                                                                 |
-| `scripts/check-design.mjs`   | the design-system claims in `docs/DESIGN.md`: orphan tokens, focus-ring uniqueness, hardcoded colours **and literal tints on surface properties**, the 16px input floor, `vh` anchoring **in CSS and in JS templates**, gold never used as a fill (tokens.css included), font stacks |
 | `scripts/check-realtime.mjs` | boots the service, checks 2 namespaces, the guest path on `/game`, and 4 token-rejection cases on `/chat`                                                                                                                                                                            |
 | `scripts/check_django.py`    | migrations, `display_name` claim on every token, name validation                                                                                                                                                                                                                     |
 
@@ -96,23 +95,25 @@ src/
   django/            app/ (Django project), conf/, Dockerfile  → API host
   realtime/          app/, Dockerfile                          → socket host
   nginx/             local TLS + routing only
-  postgresql/        local DB only (managed Postgres in production)
-scripts/             check-*.mjs, check_django.py, bake-*.mjs
-docs/                HANDOFF, PLAN, PRODUCT, DESIGN
+scripts/             check-*.mjs, check_django.py
+docs/                HANDOFF, PLAN, PRODUCT
 ```
 
 ### Frontend (`frontend/`)
 
 Vite, two entry points: `index.html` (SPA) and `game.html` (the 3D game). ES
-modules, Bootstrap 5 + socket.io-client + three r185 as npm deps — no CDN, no
+modules, socket.io-client + three r185 as the only two npm deps — no CDN, no
 committed `node_modules`. The one chart on the site (wins/losses) is a
-`conic-gradient` in `profile.css`, not a charting library.
+`conic-gradient` in `profile.css`, not a charting library. **Bootstrap is gone**:
+228 KB of CSS plus the JS bundle were shipped on every route for one drawer, one
+toast and ~25 utility classes. The drawer is a native `<dialog>` opened with
+`showModal()` (backdrop, Escape and the focus trap come free, and its close
+button is a `<form method="dialog">`), the toast is a div plus a `setTimeout`,
+and the utilities live at the end of `tokens.css`.
 
-- `src/main.js` — the real `index.html` entry: imports the six stylesheets, puts
-  `{ Offcanvas, Toast }` on `window.bootstrap` (the views expect the global the
-  old Django template provided), then `await import('./app.js')`. The dynamic
-  import is deliberate — a static one is hoisted above the global assignment and
-  the router boots without it.
+- `src/main.js` — the real `index.html` entry: the seven stylesheets, then
+  `./app.js`. Both imports are static now; the `await import()` only existed to
+  land after the `window.bootstrap` assignment that no longer exists.
 - `src/app.js` — router on `window.location.pathname`; `navigateTo()` is the
   only way to change route; "logged in" means
   `sessionStorage.getItem('username') !== null`. `announceRoute(title)` sets the

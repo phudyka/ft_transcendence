@@ -29,7 +29,7 @@ export function initializeSocket(displayName) {
     // `register` suffit : le serveur écrit lui-même la présence, aux deux bouts
     // de la connexion qu'il est seul à voir en entier.
     socket.emit("register");
-    startActivityTimer(displayName);
+    startActivityTimer();
   });
 
   socket.on("disconnect", () => {
@@ -68,7 +68,7 @@ export function initializeSocket(displayName) {
 const IDLE_MS = 10 * 60 * 1000;
 let rearmActivityTimer = null;
 
-function startActivityTimer(username) {
+function startActivityTimer() {
   clearActivityTimer();
   const arm = () => {
     clearTimeout(activityTimer);

@@ -19,6 +19,12 @@ const privateMessages = new Map();
 const blockedUsers = new Set();
 let activePrivateChat = null;
 
+// Le tiroir de chat privé était un `bootstrap.Offcanvas`. Ouvert par
+// `showModal()`, un `<dialog>` apporte le voile, la fermeture par Échap et le
+// piège à focus, et son bouton de fermeture est un `<form method="dialog">`.
+// Il tient aussi son propre état : plus de classe `.show` à interroger.
+const isDrawerOpen = () => document.getElementById("chatbox")?.open === true;
+
 export async function dashboard() {
   // Le routeur ne sert cette vue qu'à une session ouverte, et le garde sur
   // `displayName` plus bas rattrape le reste. `checkAuthentication()` posait
@@ -272,26 +278,14 @@ export async function dashboard() {
           Logout
         </button>
       </div>
-      <div
-        class="offcanvas offcanvas-end"
-        data-bs-scroll="true"
-        tabindex="-1"
-        id="chatbox"
-        aria-labelledby="chatboxLabel"
-      >
-        <div class="offcanvas-header">
-          <button
-            type="button"
-            class="btn-close"
-            data-bs-dismiss="offcanvas"
-            aria-label="Close"
-          >
-          </button>
-        </div>
-        <div class="offcanvas-body">
+      <dialog id="chatbox" class="drawer" aria-labelledby="chatboxLabel">
+        <form method="dialog" class="drawer-header">
+          <button type="submit" class="btn-close" aria-label="Close"></button>
+        </form>
+        <div class="drawer-body">
           <div id="private-chats-container"></div>
         </div>
-      </div>
+      </dialog>
 
       <footer id="footer-dashboard">
         ft_transcendence — a 3D Pong by phudyka
@@ -343,10 +337,7 @@ export function setupChatListeners(socket) {
 
       // Ne basculer que si le tiroir est fermé : sinon on écrase la
       // conversation ouverte et ce qui était en train d'être tapé.
-      const drawerOpen = document.querySelector(
-        ".offcanvas.offcanvas-end.show",
-      );
-      if (activePrivateChat !== chatPartner && !drawerOpen) {
+      if (activePrivateChat !== chatPartner && !isDrawerOpen()) {
         setupPrivateChat(chatPartner);
       }
 
@@ -369,8 +360,7 @@ export function setupChatListeners(socket) {
         );
       }
 
-      const shown = activePrivateChat === chatPartner &&
-        document.querySelector(".offcanvas.offcanvas-end.show");
+      const shown = activePrivateChat === chatPartner && isDrawerOpen();
       if (
         !msg.isSelf && msg.from !== currentUser &&
         !blockedUsers.has(msg.from) && !shown
@@ -582,7 +572,7 @@ function showChatbox(event) {
     // Le conteneur n'affiche qu'une conversation à la fois : on la redessine
     // à chaque ouverture, messages conservés compris.
     setupPrivateChat(friendName);
-    new bootstrap.Offcanvas(document.getElementById("chatbox")).show();
+    document.getElementById("chatbox").showModal();
   } else {
     console.error("Friend name not found");
   }
@@ -599,7 +589,7 @@ function setupPrivateChat(friendName) {
     "private-chats-container",
   );
   privateChatContainer.innerHTML = html`
-    <h5 class="offcanvas-title" id="chatboxLabel" data-friend="${friendName}">
+    <h5 class="drawer-title" id="chatboxLabel" data-friend="${friendName}">
       Private message with ${friendName}
     </h5>
     <div class="chat-container2">
@@ -890,9 +880,8 @@ function receiveMessage(msg) {
 
 function handleEnterKey(event) {
   if (event.key === "Enter") {
-    const offcanvas = document.querySelector(".offcanvas.offcanvas-end.show");
-    if (offcanvas) {
-      const chatboxLabel = offcanvas.querySelector("#chatboxLabel");
+    if (isDrawerOpen()) {
+      const chatboxLabel = document.getElementById("chatboxLabel");
       if (chatboxLabel) {
         const friendName = chatboxLabel.dataset.friend;
         const messageInput = document.getElementById(
@@ -1004,13 +993,7 @@ function blockUser(event) {
         // Fermer le chat privé si ouvert
         if (activePrivateChat === username) {
           activePrivateChat = null;
-          const chatbox = document.getElementById("chatbox");
-          if (chatbox) {
-            const bsOffcanvas = bootstrap.Offcanvas.getInstance(chatbox);
-            if (bsOffcanvas) {
-              bsOffcanvas.hide();
-            }
-          }
+          document.getElementById("chatbox")?.close();
         }
 
         fetchAndDisplayFriends();
