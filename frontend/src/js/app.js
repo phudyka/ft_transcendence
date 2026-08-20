@@ -95,7 +95,12 @@ export function navigateTo(pathname) {
     document.dispatchEvent(new CustomEvent('viewChanged'));
 }
 
-document.addEventListener('DOMContentLoaded', initRouter);
+// `main.js` charge ce module derrière un `await import()` : son évaluation se
+// termine après DOMContentLoaded, donc l'écouteur seul ne partirait jamais.
+if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', initRouter);
+else
+    initRouter();
 
 function isUserLoggedIn() {
     return sessionStorage.getItem('username') !== null;

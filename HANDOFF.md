@@ -8,18 +8,17 @@ référence de fond : `AUDIT.md` (constat de départ, options d'hébergement) et
 
 ---
 
-## À faire en premier : rien n'est commité
+## À faire en premier : Lot 6
 
-**2 138 fichiers modifiés attendent en zone d'index, sur zéro commit.** Un
-`git checkout` ou un `git stash` malheureux efface plusieurs heures de travail,
-dont 89 Mo d'assets supprimés et 2 000 fichiers déplacés.
+Tout est commité sur `remaster` (`main` intact) et la pile tourne. Le premier essai
+en navigateur a eu lieu le 20 août 2026 : c'est fait, il reste l'interface.
 
 ```bash
-git status --short | head        # 44 ajouts, 2 042 suppressions, 43 renommages, 9 modifications
-git commit -m "remaster: lots 0 à 5"
+make                                    # nginx, django, postgresql, realtime
+cd frontend && npm run dev              # Vite sur http://localhost:5173
 ```
 
-`main` est intact et n'a pas été touché.
+Deux comptes d'essai existent en base : `alice` / `bob`, mot de passe `pong1234`.
 
 ---
 
@@ -41,28 +40,33 @@ Architecture cible et justification du découpage : `PLAN.md`.
 
 ---
 
-## Le trou dans les vérifications
+## Ce qui a été essayé en vrai
 
-**Aucune partie n'a jamais été jouée depuis le début du remaster.** Tout ce qui
-est affirmé plus bas est vérifié par des contrôles automatiques ; le
-comportement réel dans un navigateur, lui, ne l'est pas. C'est le premier
-travail à faire avant d'entamer le Lot 6 — la pile est désormais dans sa forme
-cible, donc l'essai est possible :
+Le trou est comblé. Vérifié en ligne de commande sur la pile réelle :
 
-```bash
-make                       # docker compose : nginx, django, postgresql, realtime
-cd frontend && npm run dev # Vite sur :5173, proxifie /api, /media et /socket.io
-```
+- l'API répond à travers nginx (`/api/content/` en 200, `/admin/` en 302) ;
+- l'inscription passe de bout en bout par le proxy Vite, jeton CSRF compris ;
+- le handshake socket.io aboutit sur `/game` **et** `/chat` en WSS à travers nginx,
+  avec un jeton réellement émis par Django.
 
-Points à observer en priorité, ce sont les endroits les plus retouchés :
+Vérifié dans un navigateur, le 20 août 2026 :
 
-- la scène 3D se charge (GLB recompressé en meshopt, `three` passé de r166 à r185 —
-  colorimétrie, éclairage et GLTF sont les points sensibles de ce saut) ;
-- le son démarre et les musiques de partie s'enchaînent (chargement paresseux) ;
-- la connexion socket aboutit sur `/game` et `/chat` (le JWT est désormais exigé
-  au handshake : sans jeton valide, tout est muet et rien ne s'affiche) ;
-- la raquette de l'IA bouge en solo (`movePad` n'est plus émis qu'au changement) ;
-- le retour de l'OAuth 42 atterrit sur le frontend et non sur l'API.
+- la SPA s'affiche et le routeur répond ;
+- la scène 3D se charge, malgré le saut de `three` r166 à r185 ;
+- le son démarre et les musiques s'enchaînent ;
+- la raquette de l'IA bouge en solo.
+
+Il a fallu une correction pour y arriver : `main.js` charge le routeur derrière un
+`await import()`, et l'évaluation d'un module à `await` de premier niveau se termine
+**après** `DOMContentLoaded`. `app.js` posait son écouteur sur un événement déjà
+passé, `initRouter()` ne partait jamais et la page restait blanche, sans erreur en
+console. Le démarrage teste désormais `document.readyState`.
+
+**Seul chemin jamais exercé : le retour de l'OAuth 42.** La clé de l'application sur
+l'intra est périmée et l'application déclarée pointe encore vers
+`c1r4p6.42nice.fr:8080`. Décision prise de laisser en l'état ; pour l'essayer un
+jour, il faudra une clé neuve et l'ajout de
+`https://localhost:8080/api/auth/42/callback/` aux URL de rappel.
 
 ---
 
@@ -89,7 +93,13 @@ Prérequis d'environnement, à connaître avant de s'étonner :
   et pour `gltf-transform`. Utiliser `~/.nvm/versions/node/v24.18.1/bin`.
 - `npm install` dans `frontend/` **et** dans `src/requirements/realtime/`.
 - `check_django.py` demande les dépendances de
-  `src/requirements/django/conf/requirements.txt` dans un environnement virtuel.
+  `src/requirements/django/conf/requirements.txt` dans un environnement virtuel ;
+  `make check` prend automatiquement `.venv/bin/python` s'il existe à la racine.
+- `src/.env` était resté dans sa forme d'avant le remaster (variables
+  `GAME_SERVER_HOST`, `CHAT_SERVER_HOST`, Grafana, Discord) et il manquait tout ce
+  que le Lot 5 attend. Il a été réécrit sur `src/.env.example`, avec une clé
+  Django neuve de 48 octets — l'ancienne faisait 23 octets, sous le minimum HS256.
+  `make update-hostname` a disparu avec elle : plus aucun hôte n'est en dur.
 
 ---
 
@@ -113,7 +123,8 @@ Rien n'est verrouillé dans un sens ou dans l'autre.
 `src/.env` a été versionné dans l'historique Git avec des valeurs réelles. Tout
 ce qu'il contient est à considérer comme compromis :
 
-- le client secret OAuth 42 — à révoquer sur https://profile.intra.42.fr/oauth/applications ;
+- le client secret OAuth 42 — déjà périmé, donc sans danger, mais une clé neuve
+  sera nécessaire pour rouvrir ce chemin (https://profile.intra.42.fr/oauth/applications) ;
 - le webhook Discord ;
 - la clé secrète Django et les identifiants PostgreSQL et Grafana.
 

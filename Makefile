@@ -2,8 +2,6 @@ NAME = up
 
 PROJECT = "ft_transcendence"
 
-HOSTNAME ?= $(shell hostname -A | cut -d' ' -f1)
-
 IMAGES =	src-nginx\
 			src-django\
 			src-postgresql\
@@ -11,19 +9,16 @@ IMAGES =	src-nginx\
 
 
 VOLUMES =	src_static_files\
-			src_postgres_data
+			src_postgres_data\
+			src_media_files
 
 all: $(NAME)
 
-$(NAME): update-hostname
+# Les adresses ne sont plus en dur nulle part : src/.env porte celles du
+# backend, frontend/.env celles du navigateur.
+$(NAME):
 	@docker compose --project-directory src up -d
-	@echo Project available at https://$(HOSTNAME):8080
-
-# Les adresses ne sont plus en dur dans le code : seul src/.env, non versionné,
-# porte encore l'hôte. Les URL du frontend viennent de frontend/.env.
-update-hostname:
-	@sed -i 's|https://[^:]*:8080|https://$(HOSTNAME):8080|g' src/.env
-	@echo "Hostname updated to $(HOSTNAME)"
+	@echo "API disponible sur $$(grep PUBLIC_API_URL src/.env | cut -d'"' -f2)"
 
 start: all
 
@@ -52,9 +47,9 @@ check:
 	@node scripts/check-escaping.mjs
 	@node scripts/check-physics.mjs
 	@node scripts/check-realtime.mjs
-	@python3 scripts/check_django.py
+	@$(if $(wildcard .venv/bin/python),.venv/bin/python,python3) scripts/check_django.py
 
 debug: $(NAME)
 	@docker compose --project-directory src logs -f
 
-.PHONY: all up start down stop clean fclean re refclean update-hostname check debug
+.PHONY: all up start down stop clean fclean re refclean check debug

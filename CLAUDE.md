@@ -2,154 +2,137 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+Branch `remaster` re-hosted the project: monitoring stack, `user_api` and the two Node servers are
+gone, the frontend moved out of Django into a Vite app. `HANDOFF.md` is the current state of the work
+(what is done, what is not, open decisions); `PLAN.md` holds the target architecture and the decision
+log; `AUDIT.md` the starting diagnosis. Read `HANDOFF.md` before resuming work.
+
 ## Commands
 
-Everything runs through Docker Compose, driven by the root `Makefile` (`--project-directory src`):
+Backend runs in Docker Compose via the root `Makefile` (`--project-directory src`); the frontend runs
+under Vite and is **not** served by nginx or Django.
 
 ```bash
-make            # update-hostname + docker compose up -d  → https://<hostname>:8080
-make down       # compose down -t 0
-make re         # remove images, then rebuild and start
-make fclean     # down + remove images + remove volumes (destroys the DB)
-make refclean   # fclean + start
-make debug      # start + follow all container logs
+make            # update-hostname + compose up -d  → nginx/django/postgresql/realtime on https://<hostname>:8080
+cd frontend && npm run dev   # Vite on :5173, proxies /api, /media, /socket.io to :8080
+make check      # the 5 verification scripts (see below)
+make down / re / fclean / refclean / debug
 ```
 
-There are **no bind mounts**: every Dockerfile `COPY`s the source at build time. Any change to Python,
-JS, `.mjs`, CSS, nginx conf, or Prometheus/Grafana config requires `make re` (or `docker compose
---project-directory src up -d --build <service>`) to take effect. Restarting a container is not enough.
+Node **22+ required** (system `node` is v19, too old for Vite 8 and gltf-transform) —
+use `~/.nvm/versions/node/v24.18.1/bin`. `npm install` is needed in `frontend/` **and**
+`src/requirements/realtime/`.
 
-Logs / shell for a single service:
+**No bind mounts.** Every Dockerfile `COPY`s at build time, so Python, nginx conf or realtime changes
+need `make re` (or `docker compose --project-directory src up -d --build <service>`). Frontend changes
+do not — Vite serves `frontend/` from disk.
 
 ```bash
 docker compose --project-directory src logs -f django
-docker exec -it django sh
+docker exec -it django sh -c 'source /app/.env/bin/activate && python manage.py <cmd>'   # /app/.env is the venv
 ```
 
-Django management commands must run inside the container with the venv activated
-(`/app/.env`, not to be confused with `src/.env`):
-
-```bash
-docker exec -it django sh -c 'source /app/.env/bin/activate && python manage.py <cmd>'
-```
-
-Migrations are applied automatically by `conf/entrypoint.sh` on every container start
-(`makemigrations` + `migrate` + `collectstatic`).
+Migrations run automatically from `conf/entrypoint.sh` on every container start.
 
 ### Tests
 
-`src/requirements/django/src/pong/tests.py` is the only test file and it is stale — it creates users
-via `django.contrib.auth.models.User` while the project's `AUTH_USER_MODEL` is `pong.CustomUser`, so
-the login/register cases exercise the wrong table. There is no JS test setup. To run it:
+`make check` is the real test entry point. It needs no containers, only Node 22+ and the deps above
+(`check_django.py` also needs `src/requirements/django/conf/requirements.txt` in a venv):
 
-```bash
-docker exec -it django sh -c 'source /app/.env/bin/activate && python manage.py test pong'
-docker exec -it django sh -c 'source /app/.env/bin/activate && python manage.py test pong.ViewsTestCase.test_login_view'
-```
+| Script | Guards |
+|---|---|
+| `scripts/check-assets.mjs` | no missing/orphan asset, meshopt decoder wired |
+| `scripts/check-escaping.mjs` | HTML escaping in text **and** attribute context, no interpolated `innerHTML` outside the `html` template |
+| `scripts/check-physics.mjs` | client/server bounding boxes agree, rewritten ball behaviour |
+| `scripts/check-realtime.mjs` | boots the service, checks 2 namespaces + 4 token-rejection cases |
+| `scripts/check_django.py` | migrations, `display_name` claim on every token, name validation |
+
+`src/requirements/django/src/pong/tests.py` is stale and excluded from `make check` — it creates users
+via `django.contrib.auth.models.User` while `AUTH_USER_MODEL` is `pong.CustomUser`. There is no JS test
+setup.
+
+The stack was run in a browser on 20 Aug 2026: SPA, 3D scene, sound and the solo AI pad all work.
+**42 OAuth is the one path never exercised** — the intra key is expired and the flow is left as is.
+Everything else is verified by the scripts above, not by hand; do not claim untested runtime behaviour.
 
 ## Architecture
 
-Five application containers plus a monitoring stack, on three Docker networks (`42nice`, `db_network`,
-`monitoring_network`). Only nginx publishes a port: **8080 → 443**. Every internal service also speaks
-HTTPS on 443 with a self-signed certificate generated at image build time, so internal calls are
-HTTPS-to-HTTPS.
+Four containers, two networks (`42nice`, `db_network`); only nginx publishes a port (**8080 → 443**).
+TLS terminates at nginx (self-signed, built into the image) — Django and realtime speak plain HTTP
+behind it, as they will behind the platform router in production.
 
 ```
-browser ──8080/TLS──> nginx ─┬─ /            → django (gunicorn, TLS 443)
-                             ├─ /static      → shared `static_files` volume
-                             ├─ /monitoring  → grafana:3000
-                             ├─ /game_server + /g_socket.io/ → game_server (node, TLS 443)
-                             └─ /chat_server + /c_socket.io/ → chat_server (node, TLS 443)
+Vite :5173 (dev) / static host (prod) ── frontend
+        │ /api, /media, /socket.io
+        ▼
+nginx :8080 ─┬─ /api, /admin, /media → django:8000 (gunicorn)
+             ├─ /static              → shared `static_files` volume (admin assets)
+             └─ /socket.io/          → realtime:3000
 django ── db_network ──> postgresql
 ```
 
+### Frontend (`frontend/`)
+
+Vite, two entry points: `index.html` (SPA) and `game.html` (the 3D game). ES modules, Bootstrap 5 +
+Chart.js + socket.io-client + three r185 as npm deps — no CDN, no committed `node_modules`.
+
+- `src/js/app.js` — router on `window.location.pathname`; `navigateTo()` is the only way to change
+  route; "logged in" means `sessionStorage.getItem('username') !== null`.
+- `src/js/utils/api.js` — `fetchWithToken()`, the single wrapper adding `Authorization: Bearer` +
+  `X-CSRFToken`. REST calls stay **relative** (`/api/…`) so the static host rewrites them same-origin:
+  no CORS, CSRF cookies preserved.
+- `src/js/utils/html.js` — the `html` tagged template that escapes every interpolation, and `raw()` for
+  deliberate markup. Anything reaching `innerHTML` goes through it; `check-escaping.mjs` enforces it.
+- `src/config.js` — socket.io namespaces; `VITE_REALTIME_URL` when the service is off-origin.
+- `src/game/` — three.js client (`main.mjs`, `socketEvent.mjs`, ball/pad/camera/light/loadIsland/…).
+- `src/js/views/dashboard.js` (~1400 lines) is the main screen.
+
+### Realtime (`src/requirements/realtime/`)
+
+One Node service replacing the old game and chat servers: socket.io namespaces **`/game`** and
+**`/chat`** on the default path (`/socket.io`), plain HTTP on 3000, `/health` for the healthcheck.
+
+- `src/auth.mjs` — `requireAuth` verifies the JWT signature with `DJANGO_SECRET_KEY` at handshake and
+  takes the identity from it. No valid token → no connection, and the client goes silent.
+- `src/game/` — authoritative physics and scoring, **without three.js**; state lives in module-level
+  maps in `sockets.mjs` (in-memory, a restart drops all matches). Modes: `solo`, `multi-2-local`,
+  `multi-2-online`, `multi-four`, `semi-tournament`, `final-tournament`. `WIN_SCORE` from env.
+- `src/chat/index.mjs` — one session per username (`force_disconnect`), friend-request relay,
+  inactivity timeout (`session_expired`).
+
+`ball.mjs`, `pad.mjs` and `config.mjs` exist **twice** (client renders, server simulates). The copies
+diverged on purpose — do not deduplicate them.
+
 ### Django (`src/requirements/django`)
 
-Single app `pong`, project `ft_trans`. It is both the REST API and the SPA host:
-`pong/urls.py` ends with a `<path:path>` catch-all that renders `templates/index.html`, so any
-unmatched URL returns the SPA shell and the client-side router takes over.
+API only: `pong/urls.py` is a flat list of `/api/…` routes plus `/media/…`; the SPA catch-all and the
+templates are gone. Django 5.2, JWT (`rest_framework_simplejwt`), `AUTH_USER_MODEL = 'pong.CustomUser'`,
+function-based views with `@api_view` + `@permission_classes([IsAuthenticated])` in `views.py` (~670
+lines). Config comes from the environment (`dj_database_url`, `env_list`) — nothing host-specific in code.
 
-- Auth is **JWT** (`rest_framework_simplejwt`) with `AUTH_USER_MODEL = 'pong.CustomUser'`; all API
-  views are function-based with `@api_view` + `@permission_classes([IsAuthenticated])`. `views.py`
-  (~670 lines) holds every endpoint; there is a `CustomUserViewSet` defined but the routed URLs are
-  the plain function views, not the router.
 - Models: `CustomUser` (table `users`), `UserToken`, `Friendship`, `FriendRequest`, `MatchHistory`,
-  `BlockedUser`. Friendship is stored asymmetrically — accepting a request creates two `Friendship`
-  rows.
-- 42 OAuth (`auth_42_login` / `auth_42_callback`) redirects back to `/login?auth_success=true&access=…`,
-  i.e. **the JWT pair is passed through URL query parameters** and read by the login view.
-
-### Frontend SPA (`django/src/pong/templates/`)
-
-Vanilla ES modules, no bundler, no framework; Bootstrap 5 + Chart.js + socket.io client come from CDNs
-in `index.html`. Django `collectstatic` copies `templates/` into the `static_files` volume, which nginx
-serves at `/static`.
-
-- `js/app.js` — the router: reads `window.location.pathname`, switches on it, guards
-  `/dashboard`, `/settings`, `/profile/*`. `navigateTo()` is the only way to change route.
-  "Logged in" means `sessionStorage.getItem('username') !== null`.
-- `js/utils/api.js` — `fetchWithToken()`, the single wrapper adding `Authorization: Bearer` from
-  `sessionStorage.accessToken` plus the `X-CSRFToken` cookie. New API calls should go through it.
-- `js/utils/token.js` — refresh/logout; `js/utils/socketManager.js` — the chat socket.io connection
-  and friend/presence events; `js/views/dashboard.js` (~1400 lines) is the main screen.
-
-### Game (`src/requirements/game_server/game/`)
-
-Server and browser code live side by side in the same directory; the split is by import graph, not by
-folder:
-
-- **Server** (`node server.mjs`): `server.mjs` → `routes.mjs` (static + `/main.mjs`) and
-  `sockets.mjs` → `game.mjs`, `tournament.mjs`, `socketUtils.mjs`, `client.mjs`. Physics and scoring are
-  authoritative on the server; state lives in module-level maps in `sockets.mjs`
-  (`rooms`, `roomsTypes`, `clients`, `keysPressedMap`) — in-memory only, nothing is persisted, so a
-  restart drops all matches. Modes: `solo`, `multi-2-local`, `multi-2-online`, `multi-four`,
-  `semi-tournament`, `final-tournament`. Win score comes from the `WIN_SCORE` env var.
-- **Client** (`main.mjs`, loaded by `game/index.html`): Three.js scene, `socketEvent.mjs`, plus
-  `ball/pad/camera/light/logo/clouds/loadIsland/animation/sounds`. `ball.mjs`, `pad.mjs` and
-  `config.mjs` are shared by both sides.
-- Three.js is served **straight from the committed `node_modules/`** at `/game_server/node_modules/…`
-  — that directory is intentionally tracked in git; do not delete it.
-
-**Dashboard ↔ game handshake**: the dashboard embeds the game in an `<iframe src=".../game_server">`
-and `postMessage`s `{username, token, csrfToken, avatar}` to it on load; `main.mjs` validates
-`event.origin`, then `socket.emit('username', …)`. Game invitations travel the same way
-(`{type: 'gameInvitation', to, from}`). A message with no `type` field is the credentials handshake —
-that discriminator is load-bearing.
-
-**Stats**: written from the game *client* (`game/api.mjs`) to the Django REST API
-(`/api/users/display_name/<name>/update_stats/` and `/api/save-match-result/`) using the token
-received over `postMessage`.
-
-### Chat (`src/requirements/chat_server/src/index.js`)
-
-CommonJS, single file, socket.io over HTTPS. Keeps `userConnections` / `userTokens` / `users` maps in
-memory and enforces **one session per username** — registering a second socket emits
-`force_disconnect` to the old one. Also relays friend-request notifications and an inactivity timeout
-(`session_expired`) that the SPA turns into a logout.
-
-### Monitoring
-
-Grafana (proxied at `/monitoring`), Prometheus (scrapes itself, node-exporter, cadvisor), Alertmanager
-(rules in `prometheus/config/alert_rules.yml`, routed to a Discord webhook via
-`alertmanager/config/config.sh` + `DISCORD_WEBHOOK_URL`). Separate `monitoring_network`; none of these
-ports are published.
+  `BlockedUser`. Friendship is asymmetric — accepting creates two rows.
+- 42 OAuth (`auth_42_login` / `auth_42_callback`) redirects to `FRONTEND_URL`, not to the API.
+- Game stats are written from the game *client* (`frontend/src/game/api.mjs`) to
+  `/api/users/display_name/<name>/update_stats/` and `/api/save-match-result/`.
 
 ## Gotchas
 
-- **Hardcoded hostname.** `https://c1r4p6.42nice.fr:8080` is baked into `src/.env`,
-  `game/server.mjs`, `game/main.mjs`, `js/views/dashboard.js`, `js/utils/socketManager.js` and
-  `pong/views.py` (the 42 OAuth `redirect_uri`). `make update-hostname` — run automatically by `make` —
-  `sed`s all six files to `https://$(hostname -A | cut -d' ' -f1):8080`. It **rewrites tracked files in
-  place**, so `git status` is dirty after every `make`; never revert those edits without re-running the
-  target, and if you add a new file with an absolute URL, add it to the `update-hostname` rule too.
-  Note `main.mjs`/`socketManager.js` also compare `event.origin` against that literal.
-- **`src/.env` is tracked in git and there is no `.gitignore`.** It holds the Django secret key, DB
-  credentials, Grafana credentials, the Discord webhook and the 42 OAuth client secret. Assume those
-  are compromised; do not add new secrets to it.
-- **Two databases.** `postgresql/conf/django.sql` creates `django` (used by Django) and `user.sql`
-  creates `users` with its own `user` table. That second schema belongs to `src/requirements/user_api/`,
-  a Node service that is **not referenced by `compose.yaml` or the Makefile** — dead code. Do not extend
-  it; user data lives in Django's `users` table (the `CustomUser` model).
-- CORS/CSRF trusted origins in `settings.py` are built from `FT_TRANSCENDENCE_HOST` plus two literals;
-  a new origin needs to be added there *and* in the game/chat servers' own `cors` options.
-- Both `README.md` and `Readme.md` exist with near-identical content.
+- **All token issuance must go through `pong/tokens.py`.** A token without the `display_name` claim is
+  rejected at the socket handshake, which shows up as a silent, dead chat and game — no API error.
+- **`PAD_HALF` / `BALL_HALF`** in the server physics are measured on the client geometry. Change one
+  without the other and collisions break; `check-physics.mjs` catches it.
+- **Secrets are compromised.** `src/.env` is now untracked and `.gitignore` exists, but the real values
+  (42 OAuth client secret, Discord webhook, Django key, DB credentials) are still in git history.
+  Rotate before any public deploy; purging needs `git filter-repo`.
+- **Hostname.** Only `src/.env` still carries the host; `make update-hostname` (run by `make`) seds it.
+  Frontend URLs come from `frontend/.env` (`VITE_*`). Do not reintroduce hardcoded URLs in code.
+- `ALLOWED_ORIGINS`, `DJANGO_ALLOWED_HOSTS`, `FRONTEND_URL`, `PUBLIC_API_URL` are env-driven; a new
+  origin is added there, not in `settings.py`.
+- `src/requirements/postgresql/conf/user.sql` still creates a `users` database for the deleted
+  `user_api`. Dead — user data lives in Django's `users` table (`CustomUser`).
+- `avatar_url` is inconsistent in DB (`https://…` vs `url("…")` depending on signup / 42 OAuth / upload).
+  Deliberately not validated server-side; escaping closes the XSS. Clients handle both forms.
+- Avatar uploads land in `MEDIA_ROOT` on a `media_files` volume — **ephemeral on free hosting tiers**,
+  which is an open Lot 7 decision (see `HANDOFF.md`).
+- Both `README.md` and `Readme.md` exist with near-identical, now outdated content.
